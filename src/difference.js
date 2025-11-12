@@ -53,7 +53,7 @@ export function applySourceDiff(source, dataDiff, options) {
             // explicit feature removal
             if (diff.remove.has(id)) {
                 removeFeatures.push(feature);
-                // feature with duplicate id being added
+            // feature with duplicate id being added
             } else if (diff.add.has(id)) {
                 removeFeatures.push(feature);
             }
@@ -165,73 +165,6 @@ function applyPropertyUpdates(tags, update) {
     return properties;
 }
 
-// Combines two diffs into a single diff, resolving conflicts
-export function mergeSourceDiffs(prevDiff, nextDiff) {
-    if (!prevDiff) return nextDiff || {};
-    if (!nextDiff) return prevDiff || {};
-
-    // Hash for o(1) lookups while creating a mutatable copy of the collections
-    const prev = diffToHashed(prevDiff);
-    const next = diffToHashed(nextDiff);
-
-    // Resolve merge conflict - removing all features with added or updated features in previous
-    if (next.removeAll) {
-        prev.add.clear();
-        prev.update.clear();
-    }
-
-    // Resolve merge conflict - removing features that were added or updated in previous
-    for (const id of next.remove) {
-        prev.add.delete(id);
-        prev.update.delete(id);
-    }
-
-    // Resolve merge conflict - updating features that were updated in previous
-    for (const [id, nextUpdate] of next.update) {
-        const prevUpdate = prev.update.get(id);
-        if (!prevUpdate) continue;
-
-        next.update.set(id, mergeFeatureDiffs(prevUpdate, nextUpdate));
-        prev.update.delete(id);
-    }
-
-    const merged = {};
-
-    merged.removeAll = prev.removeAll || next.removeAll;
-    merged.remove = new Set([...prev.remove , ...next.remove]);
-    merged.add    = new Map([...prev.add    , ...next.add]);
-    merged.update = new Map([...prev.update , ...next.update]);
-
-    // Resolve merge conflict - removing and adding the same feature
-    if (merged.remove.size && merged.add.size) {
-        for (const id of merged.add.keys()) {
-            merged.remove.delete(id);
-        }
-    }
-
-    return hashedToDiff(merged);
-}
-
-// Merge two feature diffs for the same feature ID.
-export function mergeFeatureDiffs(prev, next) {
-    const merged = {...prev};
-
-    if (next.newGeometry) {
-        merged.newGeometry = next.newGeometry;
-    }
-    if (next.addOrUpdateProperties) {
-        (merged.addOrUpdateProperties ??= []).push(...next.addOrUpdateProperties);
-    }
-    if (next.removeProperties) {
-        (merged.removeProperties ??= []).push(...next.removeProperties);
-    }
-    if (next.removeAllProperties) {
-        merged.removeAllProperties = true;
-    }
-
-    return merged;
-}
-
 // Convert a GeoJSON Source Diff to an idempotent hashed representation using Sets and Maps
 export function diffToHashed(diff) {
     if (!diff) return {};
@@ -244,24 +177,4 @@ export function diffToHashed(diff) {
     hashed.update = new Map(diff.update?.map(update => [update.id, update]));
 
     return hashed;
-}
-
-// Convert a hashed GeoJSON Source Diff back to the array-based representation
-export function hashedToDiff(hashed) {
-    const diff = {};
-
-    if (hashed.removeAll) {
-        diff.removeAll = hashed.removeAll;
-    }
-    if (hashed.remove?.size) {
-        diff.remove = Array.from(hashed.remove);
-    }
-    if (hashed.add?.size) {
-        diff.add = Array.from(hashed.add.values());
-    }
-    if (hashed.update?.size) {
-        diff.update = Array.from(hashed.update.values());
-    }
-
-    return diff;
 }
