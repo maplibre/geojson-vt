@@ -1,6 +1,6 @@
 {
   "name": "geojson-vt",
-  "version": "4.0.3",
+  "version": "5.0.0",
   "description": "Slice GeoJSON data into vector tiles efficiently",
   "type": "module",
   "exports": "./src/index.js",
