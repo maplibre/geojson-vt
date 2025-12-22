@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>debug page</title>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { padding: 0; margin: 0; }
+        #canvas { border-right: 1px dotted #aaa; border-bottom: 1px dotted #aaa;}
+        #canvas.hover { background: #cfc; }
+        button { font-size: 16px; background: white; border: 1px solid #ccc;
+            position: absolute; top: 5px; left: 5px;}
+        button:hover { border-color: black; }
+    </style>
+</head>
+
+<body>
+    <script src='https://unpkg.com/@maplibre/geojson-vt@latest/dist/geojson-vt.js'></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
+    <canvas id="canvas"></canvas>
+    <button id="back">&larr;</button>
+    <script src="viz.js"></script>
+</body>
+</html>
