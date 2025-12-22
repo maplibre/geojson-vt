@@ -29,6 +29,7 @@
     "build": "rollup -c",
     "watch": "rollup -cw",
     "bench": "node bench/benchmark.js",
+    "docs": "mkdir -p docs && cp -r debug/* docs/ && find docs -name '*.html' -exec sed -i 's|../dist/geojson-vt-dev.js|https://unpkg.com/@maplibre/geojson-vt@latest/dist/geojson-vt.js|g' {} +",
     "prepublishOnly": "npm run test && npm run build"
   },
   "files": [
