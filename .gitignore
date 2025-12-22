@@ -6,6 +6,7 @@ geojson-vt-dev.js
 geojson-vt.js
 node_modules
 coverage
+coverage.lcov
 .nyc_output
 .idea
 dist
