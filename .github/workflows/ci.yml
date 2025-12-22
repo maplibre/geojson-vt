@@ -24,12 +24,12 @@ jobs:
         run: npm run build
 
       - name: Run tests
-        run: npx nyc --reporter=json npm test
+        run: node --experimental-test-coverage --test --test-reporter=lcov --test-reporter-destination=coverage.lcov
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: ${{ github.workspace }}/coverage/coverage-final.json
+          files: ${{ github.workspace }}/coverage.lcov
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
