@@ -1,4 +1,22 @@
 ## main
+### ✨ Features and improvements
+- _...Add new stuff here..._
+
+### 🐞 Bug fixes
+- _...Add new stuff here..._
+
+## 5.0.1
+
+### ✨ Features and improvements
+
+- Add CI, coverage etc ([#1](https://github.com/maplibre/geojson-vt/pull/1)), ([#4](https://github.com/maplibre/geojson-vt/pull/4)) (by [HarelM](https://github.com/HarelM))
+
+## 5.0.0
+
+### ✨ Features and improvements
+
+- This is the first version, and as such it was manually published.
+- Added support for index updates (by [wayofthefuture](https://github.com/wayofthefuture))
 
 ## 4.0.5
 
