@@ -12,6 +12,6 @@ const config = (file, plugins) => ({
 });
 
 export default [
-    config('geojson-vt-dev.js', []),
-    config('geojson-vt.js', [terser()])
+    config('dist/geojson-vt-dev.js', []),
+    config('dist/geojson-vt.js', [terser()])
 ];

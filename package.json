@@ -12,9 +12,9 @@
     "geometry"
   ],
   "module": "src/index.js",
-  "main": "geojson-vt-dev.js",
-  "jsdelivr": "geojson-vt.js",
-  "unpkg": "geojson-vt.js",
+  "main": "dist/geojson-vt-dev.js",
+  "jsdelivr": "dist/geojson-vt.js",
+  "unpkg": "dist/geojson-vt.js",
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "benchmark": "^2.1.4",
@@ -26,15 +26,17 @@
   "scripts": {
     "pretest": "eslint src/*.js test/*.js debug/viz.js",
     "test": "node --test",
-    "cov": "node --experimental-test-coverage --test",
     "build": "rollup -c",
     "watch": "rollup -cw",
     "bench": "node bench/benchmark.js",
     "prepublishOnly": "npm run test && npm run build"
   },
   "files": [
-    "geojson-vt.js",
-    "geojson-vt-dev.js",
+    "dist",
     "src"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maplibre/geojson-vt"
+  }
 }

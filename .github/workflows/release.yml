@@ -1,0 +1,15 @@
+name: publish
+
+permissions:
+  id-token: write  # Required for trusted publishing
+  contents: write
+  attestations: write
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  release:
+    uses: maplibre/reusable-workflows/.github/workflows/npm-publish.yml@main
