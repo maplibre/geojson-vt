@@ -111,9 +111,6 @@ function getUpdatedFeature(vtFeature, update, options) {
         update.removeProperties?.length > 0 ||
         update.addOrUpdateProperties?.length > 0;
 
-    // nothing to do
-    if (!changeGeometry && !changeProps) return null;
-
     // if geometry changed, need to create new geojson feature and convert to simplified format
     if (changeGeometry) {
         const geojsonFeature = {

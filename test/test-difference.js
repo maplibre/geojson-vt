@@ -26,6 +26,7 @@ test('applySourceDiff: adds a feature using the feature id', () => {
     const {source} = applySourceDiff([], {
         add: [point]
     }, options);
+
     assert.equal(source.length, 1);
     assert.equal(source[0].id, 'point');
 });
@@ -45,6 +46,7 @@ test('applySourceDiff: adds a feature using the promoteId', () => {
     const {source} = applySourceDiff([], {
         add: [point2]
     }, {promoteId: 'promoteId'});
+
     assert.equal(source.length, 1);
     assert.equal(source[0].id, 'point2');
 });
@@ -73,8 +75,39 @@ test('applySourceDiff: removes a feature by its id', () => {
     const {source} = applySourceDiff([point, point2], {
         remove: ['point2'],
     }, options);
+
     assert.equal(source.length, 1);
     assert.equal(source[0].id, 'point');
+});
+
+test('applySourceDiff: removeAll clears all features', () => {
+    const point = {
+        type: 'Feature',
+        id: 'point',
+        geometry: {
+            type: 'Point',
+            coordinates: [0, 0]
+        },
+        properties: {},
+    };
+
+    const point2 = {
+        type: 'Feature',
+        id: 'point2',
+        geometry: {
+            type: 'Point',
+            coordinates: [0, 0]
+        },
+        properties: {},
+    };
+
+    const source = [point, point2];
+    const result = applySourceDiff(source, {
+        removeAll: true
+    }, options);
+
+    assert.deepEqual(source, result.affected);
+    assert.deepEqual(result.source, []);
 });
 
 test('applySourceDiff: updates a feature geometry', () => {
@@ -134,6 +167,7 @@ test('applySourceDiff: adds properties', () => {
             ]
         }]
     }, options);
+
     assert.equal(source.length, 1);
     const tags = source[0].tags;
     assert.equal(Object.keys(tags).length, 2);
@@ -149,7 +183,6 @@ test('applySourceDiff: updates properties', () => {
             type: 'Point',
             coordinates: [0, 0]
         },
-        properties: {prop: 'value', prop2: 'value2'},
         tags: {prop: 'value', prop2: 'value2'},
         minX: 0,
         minY: 0,
@@ -166,6 +199,7 @@ test('applySourceDiff: updates properties', () => {
         }]
     }, options);
     assert.equal(source.length, 1);
+
     const tags2 = source[0].tags;
     assert.equal(Object.keys(tags2).length, 2);
     assert.equal(tags2.prop, 'value');
@@ -180,7 +214,6 @@ test('applySourceDiff: removes properties', () => {
             type: 'Point',
             coordinates: [0, 0]
         },
-        properties: {prop: 'value', prop2: 'value2'},
         tags: {prop: 'value', prop2: 'value2'},
         minX: 0,
         minY: 0,
@@ -194,6 +227,7 @@ test('applySourceDiff: removes properties', () => {
             removeProperties: ['prop2']
         }]
     }, options);
+
     assert.equal(source.length, 1);
     const tags3 = source[0].tags;
     assert.equal(Object.keys(tags3).length, 1);
@@ -208,7 +242,6 @@ test('applySourceDiff: removes all properties', () => {
             type: 'Point',
             coordinates: [0, 0]
         },
-        properties: {prop: 'value', prop2: 'value2'},
         tags: {prop: 'value', prop2: 'value2'},
         minX: 0,
         minY: 0,
@@ -222,8 +255,35 @@ test('applySourceDiff: removes all properties', () => {
             removeAllProperties: true,
         }]
     }, options);
+
     assert.equal(source.length, 1);
     assert.equal(Object.keys(source[0].tags).length, 0);
+});
+
+test('applySourceDiff: empty update preserves properties', () => {
+    const point = {
+        type: 'Feature',
+        id: 'point',
+        geometry: {
+            type: 'Point',
+            coordinates: [0, 0]
+        },
+        tags: {prop: 'value', prop2: 'value2'},
+        minX: 0,
+        minY: 0,
+        maxX: 0,
+        maxY: 0
+    };
+
+    const {source} = applySourceDiff([point], {
+        update: [{id: 'point'}]
+    }, options);
+
+    assert.equal(source.length, 1);
+    const tags2 = source[0].tags;
+    assert.equal(Object.keys(tags2).length, 2);
+    assert.equal(tags2.prop, 'value');
+    assert.equal(tags2.prop2, 'value2');
 });
 
 function projectX(x) {

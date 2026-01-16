@@ -1,5 +1,6 @@
 ## main
 ### ✨ Features and improvements
+- Increase coverage to 100% (by [wayofthefuture](https://github.com/wayofthefuture))
 - _...Add new stuff here..._
 
 ### 🐞 Bug fixes

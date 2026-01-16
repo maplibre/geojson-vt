@@ -256,7 +256,7 @@ test('updateData: invalidates empty tiles', () => {
         updateable: true,
         indexMaxZoom: 1,
         indexMaxPoints: 0,
-        debug: 1
+        debug: 2
     });
     assert.equal(index.stats.z1, 4);
 
