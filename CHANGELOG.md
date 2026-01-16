@@ -1,6 +1,6 @@
 ## main
 ### ✨ Features and improvements
-- Increase coverage to 100% (by [wayofthefuture](https://github.com/wayofthefuture))
+- Increase coverage to 100% ([#11](https://github.com/maplibre/geojson-vt/pull/11)) (by [wayofthefuture](https://github.com/wayofthefuture))
 - _...Add new stuff here..._
 
 ### 🐞 Bug fixes
