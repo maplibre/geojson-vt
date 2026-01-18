@@ -24,8 +24,6 @@ import {wrap} from './wrap';       // date line processing
 //   ]
 // }
 
-/* eslint @stylistic/comma-spacing: 0, no-shadow: 0 */
-
 // applies a diff to the geojsonvt source simplified features array
 // returns an object with the affected features and new source array for invalidation
 export function applySourceDiff(source, dataDiff, options) {
