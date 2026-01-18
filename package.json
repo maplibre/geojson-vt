@@ -18,6 +18,7 @@
   "unpkg": "dist/geojson-vt.js",
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
+    "@vitest/coverage-v8": "^4.0.17",
     "benchmark": "^2.1.4",
     "eslint": "^9.39.2",
     "eslint-config-mourner": "^4.1.0",
@@ -26,8 +27,8 @@
   },
   "license": "ISC",
   "scripts": {
-    "pretest": "eslint src/*.js test/*.js debug/viz.js",
-    "test": "node --test ./test/*.js && vitest run",
+    "lint": "eslint src/*.js test/*.js debug/viz.js",
+    "test": "vitest",
     "build": "rollup -c",
     "watch": "rollup -cw",
     "bench": "node bench/benchmark.js",

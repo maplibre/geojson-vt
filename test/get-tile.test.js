@@ -1,9 +1,8 @@
 
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import {test, expect} from 'vitest';
 import fs from 'fs';
 
-import geojsonvt from '../dist/geojson-vt.mjs';
+import geojsonvt from '../src/index.js';
 
 const square = [{
     geometry: [[[-64, 4160], [-64, -64], [4160, -64], [4160, 4160], [-64, 4160]]],
@@ -18,18 +17,18 @@ test('getTile: us-states.json', () => {
     console.log = function () {};
     const index = geojsonvt(getJSON('us-states.json'), {debug: 2});
 
-    assert.deepEqual(index.getTile(7, 37, 48).features, getJSON('us-states-z7-37-48.json'), 'z7-37-48');
-    assert.deepEqual(index.getTile('7', '37', '48').features, getJSON('us-states-z7-37-48.json'), 'z, x, y as strings');
+    expect(index.getTile(7, 37, 48).features).toEqual(getJSON('us-states-z7-37-48.json'), 'z7-37-48');
+    expect(index.getTile('7', '37', '48').features).toEqual(getJSON('us-states-z7-37-48.json'), 'z, x, y as strings');
 
-    assert.deepEqual(index.getTile(9, 148, 192).features, square, 'z9-148-192 (clipped square)');
+    expect(index.getTile(9, 148, 192).features).toEqual(square, 'z9-148-192 (clipped square)');
 
-    assert.equal(index.getTile(11, 800, 400), null, 'non-existing tile');
-    assert.equal(index.getTile(-5, 123.25, 400.25), null, 'invalid tile');
-    assert.equal(index.getTile(25, 200, 200), null, 'invalid tile');
+    expect(index.getTile(11, 800, 400)).toBe(null, 'non-existing tile');
+    expect(index.getTile(-5, 123.25, 400.25)).toBe(null, 'invalid tile');
+    expect(index.getTile(25, 200, 200)).toBe(null, 'invalid tile');
 
     console.log = log;
 
-    assert.equal(index.total, 37);
+    expect(index.total).toBe(37);
 });
 
 test('getTile: unbuffered tile left/right edges', () => {
@@ -40,8 +39,8 @@ test('getTile: unbuffered tile left/right edges', () => {
         buffer: 0
     });
 
-    assert.deepEqual(index.getTile(2, 1, 1), null);
-    assert.deepEqual(index.getTile(2, 2, 1).features, [{geometry: [[[0, 0], [0, 4096]]], type: 2, tags: null}]);
+    expect(index.getTile(2, 1, 1)).toBe(null);
+    expect(index.getTile(2, 2, 1).features).toEqual([{geometry: [[[0, 0], [0, 4096]]], type: 2, tags: null}]);
 });
 
 test('getTile: unbuffered tile top/bottom edges', () => {
@@ -52,8 +51,8 @@ test('getTile: unbuffered tile top/bottom edges', () => {
         buffer: 0
     });
 
-    assert.deepEqual(index.getTile(2, 1, 0).features, [{geometry: [[[0, 4096], [4096, 4096]]], type: 2, tags: null}]);
-    assert.deepEqual(index.getTile(2, 1, 1).features, []);
+    expect(index.getTile(2, 1, 0).features).toEqual([{geometry: [[[0, 4096], [4096, 4096]]], type: 2, tags: null}]);
+    expect(index.getTile(2, 1, 1).features).toEqual([]);
 });
 
 test('getTile: polygon clipping on the boundary', () => {
@@ -70,7 +69,7 @@ test('getTile: polygon clipping on the boundary', () => {
         buffer: 1024
     });
 
-    assert.deepEqual(index.getTile(5, 19, 9).features, [{
+    expect(index.getTile(5, 19, 9).features).toEqual([{
         geometry: [[[3072, 3072], [5120, 3072], [5120, 5120], [3072, 5120], [3072, 3072]]],
         type: 3,
         tags: null

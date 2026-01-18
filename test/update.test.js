@@ -1,6 +1,5 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import geojsonvt from '../dist/geojson-vt.mjs';
+import {test, expect} from 'vitest';
+import geojsonvt from '../src/index.js';
 
 test('updateData: requires updateable option', () => {
     const index = geojsonvt({
@@ -8,9 +7,9 @@ test('updateData: requires updateable option', () => {
         features: []
     });
 
-    assert.throws(() => {
+    expect(() => {
         index.updateData({add: [], remove: []});
-    });
+    }).toThrow();
 });
 
 test('updateData: adds new features', () => {
@@ -38,7 +37,7 @@ test('updateData: adds new features', () => {
     index.updateData({add: [newFeature]});
 
     const tile = index.getTile(0, 0, 0);
-    assert.equal(tile.features.length, 2);
+    expect(tile.features.length).toBe(2);
 });
 
 test('updateData: removes features by id', () => {
@@ -65,7 +64,7 @@ test('updateData: removes features by id', () => {
     index.updateData({remove: ['feature1']});
 
     const tile = index.getTile(0, 0, 0);
-    assert.equal(tile.features.length, 1);
+    expect(tile.features.length).toBe(1);
 });
 
 test('updateData: replaces features with duplicate ids', () => {
@@ -93,9 +92,9 @@ test('updateData: replaces features with duplicate ids', () => {
     index.updateData({add: [updatedFeature]});
 
     const tile = index.getTile(0, 0, 0);
-    assert.equal(tile.features.length, 1);
-    assert.equal(tile.features[0].id, 'feature1');
-    assert.equal(tile.features[0].tags.name, 'Updated');
+    expect(tile.features.length).toBe(1);
+    expect(tile.features[0].id).toBe('feature1');
+    expect(tile.features[0].tags.name).toBe('Updated');
 });
 
 test('updateData: handles both add and remove in same call', () => {
@@ -132,10 +131,10 @@ test('updateData: handles both add and remove in same call', () => {
     });
 
     const tile = index.getTile(0, 0, 0);
-    assert.equal(tile.features.length, 2);
+    expect(tile.features.length).toBe(2);
 
     const featureIds = tile.features.map(f => f.id).sort();
-    assert.deepEqual(featureIds, ['feature2', 'feature3']);
+    expect(featureIds).toEqual(['feature2', 'feature3']);
 });
 
 test('updateData: works with empty diff', () => {
@@ -144,10 +143,10 @@ test('updateData: works with empty diff', () => {
         features: []
     }, {updateable: true});
 
-    assert.doesNotThrow(() => {
+    expect(() => {
         index.updateData({});
         index.updateData({add: [], remove: []});
-    });
+    }).not.toThrow();
 });
 
 test('updateData: invalidates tiles at deeper zoom', () => {
@@ -175,8 +174,8 @@ test('updateData: invalidates tiles at deeper zoom', () => {
     const tileId = toID(5, 16, 16);
 
     const tileBefore = index.tiles[tileId];
-    assert.ok(tileBefore);
-    assert.equal(tileBefore.numFeatures, 1);
+    expect(tileBefore).toBeTruthy();
+    expect(tileBefore.numFeatures).toBe(1);
 
     const updatedFeature = {
         type: 'Feature',
@@ -193,11 +192,11 @@ test('updateData: invalidates tiles at deeper zoom', () => {
     index.updateData({add: [updatedFeature]});
 
     const tileAfter = index.tiles[tileId];
-    assert.equal(tileAfter, undefined);
+    expect(tileAfter).toBeUndefined();
 
     const tileRegenerated = index.getTile(5, 16, 16);
-    assert.ok(tileRegenerated);
-    assert.equal(tileRegenerated.features[0].tags.name, 'Updated');
+    expect(tileRegenerated).toBeTruthy();
+    expect(tileRegenerated.features[0].tags.name).toBe('Updated');
 });
 
 test('updateData: invalidates tiles with partial intersection', () => {
@@ -233,8 +232,8 @@ test('updateData: invalidates tiles with partial intersection', () => {
     index.updateData({add: [edgeFeature]});
 
     const tile = index.getTile(2, 3, 2);
-    assert.ok(tile);
-    assert.equal(tile.features.length, 2);
+    expect(tile).toBeTruthy();
+    expect(tile.features.length).toBe(2);
 });
 
 test('updateData: invalidates empty tiles', () => {
@@ -258,7 +257,7 @@ test('updateData: invalidates empty tiles', () => {
         indexMaxPoints: 0,
         debug: 2
     });
-    assert.equal(index.stats.z1, 4);
+    expect(index.stats.z1).toBe(4);
 
     const globalFeature = {
         type: 'Feature',
@@ -270,7 +269,7 @@ test('updateData: invalidates empty tiles', () => {
     };
 
     index.updateData({add: [globalFeature]});
-    assert.equal(index.stats.z1, 0);
+    expect(index.stats.z1).toBe(0);
 });
 
 test('updateData: does not invalidate unaffected tiles', () => {
@@ -308,8 +307,8 @@ test('updateData: does not invalidate unaffected tiles', () => {
     const nwTileBefore = index.tiles[nwTileId];
     const seTileBefore = index.tiles[seTileId];
 
-    assert.ok(nwTileBefore);
-    assert.ok(seTileBefore);
+    expect(nwTileBefore).toBeTruthy();
+    expect(seTileBefore).toBeTruthy();
 
     const updatedFeature = {
         type: 'Feature',
@@ -323,10 +322,10 @@ test('updateData: does not invalidate unaffected tiles', () => {
     index.updateData({add: [updatedFeature]});
 
     const nwTileAfter = index.tiles[nwTileId];
-    assert.equal(nwTileAfter, undefined);
+    expect(nwTileAfter).toBeUndefined();
 
     const seTileAfter = index.tiles[seTileId];
-    assert.equal(seTileAfter, seTileBefore);
+    expect(seTileAfter).toBe(seTileBefore);
 });
 
 test('updateData: invalidates and regenerates tiles at multiple zoom levels', () => {
@@ -379,18 +378,18 @@ test('updateData: invalidates and regenerates tiles at multiple zoom levels', ()
     const newZ5Tile = index.getTile(5, 16, 16);
     const newZ7Tile = index.getTile(7, 64, 64);
 
-    assert.ok(newZ3Tile);
-    assert.ok(newZ5Tile);
-    assert.ok(newZ7Tile);
+    expect(newZ3Tile).toBeTruthy();
+    expect(newZ5Tile).toBeTruthy();
+    expect(newZ7Tile).toBeTruthy();
 
-    assert.equal(newZ3Tile.features[0].id, 'feature1');
-    assert.equal(newZ3Tile.features[0].tags.name, 'Updated');
+    expect(newZ3Tile.features[0].id).toBe('feature1');
+    expect(newZ3Tile.features[0].tags.name).toBe('Updated');
 
-    assert.equal(newZ5Tile.features[0].id, 'feature1');
-    assert.equal(newZ5Tile.features[0].tags.name, 'Updated');
+    expect(newZ5Tile.features[0].id).toBe('feature1');
+    expect(newZ5Tile.features[0].tags.name).toBe('Updated');
 
-    assert.equal(newZ7Tile.features[0].id, 'feature1');
-    assert.equal(newZ7Tile.features[0].tags.name, 'Updated');
+    expect(newZ7Tile.features[0].id).toBe('feature1');
+    expect(newZ7Tile.features[0].tags.name).toBe('Updated');
 });
 
 test('updateData: invalidates tiles when feature is within the buffer edge', () => {
@@ -414,7 +413,7 @@ test('updateData: invalidates tiles when feature is within the buffer edge', () 
 
     const tileId = toID(1, 0, 0);
     index.getTile(1, 0, 0);
-    assert.ok(index.tiles[tileId]);
+    expect(index.tiles[tileId]).toBeTruthy();
 
     const featureWithinBuffer = {
         type: 'Feature',
@@ -426,7 +425,7 @@ test('updateData: invalidates tiles when feature is within the buffer edge', () 
     };
 
     index.updateData({add: [featureWithinBuffer]});
-    assert.equal(index.tiles[tileId], undefined);
+    expect(index.tiles[tileId]).toBeUndefined();
 });
 
 test('updateData: handles drill-down after update', () => {
@@ -461,10 +460,10 @@ test('updateData: handles drill-down after update', () => {
     index.updateData({add: [newFeature]});
 
     const highZoomTile = index.getTile(8, 128, 128);
-    assert.ok(highZoomTile);
+    expect(highZoomTile).toBeTruthy();
 
     const featureIds = highZoomTile.features.map(f => f.id).sort();
-    assert.deepEqual(featureIds, ['line1', 'line2']);
+    expect(featureIds).toEqual(['line1', 'line2']);
 });
 
 function toID(z, x, y) {

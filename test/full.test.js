@@ -1,9 +1,8 @@
 
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import {test, expect} from 'vitest';
 import fs from 'fs';
 
-import geojsonvt from '../dist/geojson-vt.mjs';
+import geojsonvt from '../src/index.js';
 
 testTiles('us-states.json', 'us-states-tiles.json', {indexMaxZoom: 7, indexMaxPoints: 200});
 testTiles('dateline.json', 'dateline-tiles.json', {indexMaxZoom: 0, indexMaxPoints: 10000});
@@ -15,31 +14,31 @@ testTiles('ids.json', 'ids-promote-id-tiles.json', {indexMaxZoom: 0, promoteId: 
 testTiles('ids.json', 'ids-generate-id-tiles.json', {indexMaxZoom: 0, generateId: true});
 
 test('throws on invalid GeoJSON', () => {
-    assert.throws(() => {
+    expect(() => {
         genTiles({type: 'Pologon'});
-    });
+    }).toThrow();
 });
 
 function testTiles(inputFile, expectedFile, options) {
     test(`full tiling test: ${  expectedFile.replace('-tiles.json', '')}`, () => {
         const tiles = genTiles(getJSON(inputFile), options);
         // fs.writeFileSync(path.join(__dirname, '/fixtures/' + expectedFile), JSON.stringify(tiles));
-        assert.deepEqual(tiles, getJSON(expectedFile));
+        expect(tiles).toEqual(getJSON(expectedFile));
     });
 }
 
 test('empty geojson', () => {
-    assert.deepEqual({}, genTiles(getJSON('empty.json')));
+    expect({}).toEqual(genTiles(getJSON('empty.json')));
 });
 
 test('null geometry', () => {
     // should ignore features with null geometry
-    assert.deepEqual({}, genTiles(getJSON('feature-null-geometry.json')));
+    expect({}).toEqual(genTiles(getJSON('feature-null-geometry.json')));
 });
 
 test('empty coordinates', () => {
     // should ignore features with empty coordinates
-    assert.deepEqual({}, genTiles(getJSON('empty-coords.json')));
+    expect({}).toEqual(genTiles(getJSON('empty-coords.json')));
 });
 
 function getJSON(name) {
