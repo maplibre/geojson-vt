@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import simplify from '../src/simplify.js';
+import {simplify} from '../src/simplify.js';
 
 /* eslint @stylistic/comma-spacing: 0, no-shadow: 0 */
 

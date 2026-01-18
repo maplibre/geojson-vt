@@ -1,5 +1,5 @@
 
-import createFeature from './feature.js';
+import {createFeature} from './feature.js';
 
 /* clip features between two vertical or horizontal axis-parallel lines:
  *     |        |
@@ -11,7 +11,7 @@ import createFeature from './feature.js';
  * axis: 0 for x, 1 for y
  * minAll and maxAll: minimum and maximum coordinate value for all features
  */
-export default function clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
+export function clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
     k1 /= scale;
     k2 /= scale;
 

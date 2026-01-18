@@ -1,9 +1,9 @@
 
-import convert from './convert.js';              // GeoJSON conversion and preprocessing
-import clip from './clip.js';                    // stripe clipping algorithm
-import wrap from './wrap.js';                    // date line processing
-import transform from './transform.js';          // coordinate transformation
-import createTile from './tile.js';              // final simplified tile generation
+import {convert} from './convert.js';              // GeoJSON conversion and preprocessing
+import {clip} from './clip.js';                    // stripe clipping algorithm
+import {wrap} from './wrap.js';                    // date line processing
+import {transformTile} from './transform.js';          // coordinate transformation
+import {createTile} from './tile.js';              // final simplified tile generation
 import {applySourceDiff} from './difference.js'; // diff utilities
 
 const defaultOptions = {
@@ -176,7 +176,7 @@ class GeoJSONVT {
         x = (x + z2) & (z2 - 1); // wrap tile x coordinate
 
         const id = toID(z, x, y);
-        if (this.tiles[id]) return transform(this.tiles[id], extent);
+        if (this.tiles[id]) return transformTile(this.tiles[id], extent);
 
         if (debug > 1) console.log('drilling down to z%d-%d-%d', z, x, y);
 
@@ -202,7 +202,7 @@ class GeoJSONVT {
         this.splitTile(parent.source, z0, x0, y0, z, x, y);
         if (debug > 1) console.timeEnd('drilling down');
 
-        return this.tiles[id] ? transform(this.tiles[id], extent) : null;
+        return this.tiles[id] ? transformTile(this.tiles[id], extent) : null;
     }
 
     // invalidates (removes) tiles affected by the provided features

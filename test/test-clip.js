@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import clip from '../src/clip.js';
+import {clip} from '../src/clip.js';
 
 /* eslint @stylistic/comma-spacing: 0 */
 

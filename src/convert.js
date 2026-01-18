@@ -1,10 +1,14 @@
 
-import simplify from './simplify.js';
-import createFeature from './feature.js';
+import {simplify} from './simplify.js';
+import {createFeature} from './feature.js';
 
-// converts GeoJSON feature into an intermediate projected JSON vector format with simplification data
-
-export default function convert(data, options) {
+/**
+ * converts GeoJSON feature into an intermediate projected JSON vector format with simplification data
+ * @param {*} data
+ * @param {*} options
+ * @returns
+ */
+export function convert(data, options) {
     const features = [];
     if (data.type === 'FeatureCollection') {
         for (let i = 0; i < data.features.length; i++) {
