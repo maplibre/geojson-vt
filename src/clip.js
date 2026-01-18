@@ -34,28 +34,28 @@ export function clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
         let newGeometry = [];
 
         switch (feature.type) {
-            case 'Point':
-            case 'MultiPoint':
-                clipPoints(feature.geometry, newGeometry, k1, k2, axis);
-                break;
-            case 'LineString':
-                clipLine(feature.geometry, newGeometry, k1, k2, axis, false, options.lineMetrics);
-                break;
-            case 'MultiLineString':
-                clipLines(feature.geometry, newGeometry, k1, k2, axis, false);
-                break;
-            case 'Polygon':
-                clipLines(feature.geometry, newGeometry, k1, k2, axis, true);
-                break;
-            case 'MultiPolygon':
-                for (const polygon of feature.geometry) {
-                    const newPolygon = [];
-                    clipLines(polygon, newPolygon, k1, k2, axis, true);
-                    if (newPolygon.length) {
-                        (newGeometry).push(newPolygon);
-                    }
+        case 'Point':
+        case 'MultiPoint':
+            clipPoints(feature.geometry, newGeometry, k1, k2, axis);
+            break;
+        case 'LineString':
+            clipLine(feature.geometry, newGeometry, k1, k2, axis, false, options.lineMetrics);
+            break;
+        case 'MultiLineString':
+            clipLines(feature.geometry, newGeometry, k1, k2, axis, false);
+            break;
+        case 'Polygon':
+            clipLines(feature.geometry, newGeometry, k1, k2, axis, true);
+            break;
+        case 'MultiPolygon':
+            for (const polygon of feature.geometry) {
+                const newPolygon = [];
+                clipLines(polygon, newPolygon, k1, k2, axis, true);
+                if (newPolygon.length) {
+                    (newGeometry).push(newPolygon);
                 }
-                break;
+            }
+            break;
         }
 
         if (newGeometry.length === 0) continue;
