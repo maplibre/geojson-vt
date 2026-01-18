@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
 
-import geojsonvt from '../src/index.js';
+import geojsonvt from '../dist/geojson-vt.mjs';
 
 const square = [{
     geometry: [[[-64, 4160], [-64, -64], [4160, -64], [4160, 4160], [-64, 4160]]],

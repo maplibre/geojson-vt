@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import geojsonvt from '../src/index.js';
+import geojsonvt from '../dist/geojson-vt.mjs';
 
 const leftPoint = {
     type: 'Feature',

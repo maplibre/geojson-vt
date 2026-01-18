@@ -12,7 +12,7 @@
     "geometry"
   ],
   "author": "Vladimir Agafonkin",
-  "module": "src/index.js",
+  "module": "dist/geojson-vt.mjs",
   "main": "dist/geojson-vt-dev.js",
   "jsdelivr": "dist/geojson-vt.js",
   "unpkg": "dist/geojson-vt.js",
@@ -21,12 +21,13 @@
     "benchmark": "^2.1.4",
     "eslint": "^9.39.2",
     "eslint-config-mourner": "^4.1.0",
-    "rollup": "^4.55.1"
+    "rollup": "^4.55.1",
+    "vitest": "^4.0.17"
   },
   "license": "ISC",
   "scripts": {
     "pretest": "eslint src/*.js test/*.js debug/viz.js",
-    "test": "node --test",
+    "test": "node --test ./test/*.js && vitest run",
     "build": "rollup -c",
     "watch": "rollup -cw",
     "bench": "node bench/benchmark.js",

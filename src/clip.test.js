@@ -1,8 +1,6 @@
 
-import test from 'node:test';
-import assert from 'node:assert/strict';
-
-import {clip} from '../src/clip.js';
+import {test, expect} from 'vitest';
+import {clip} from './clip.js';
 
 /* eslint @stylistic/comma-spacing: 0 */
 
@@ -27,7 +25,7 @@ test('clips polylines', () => {
             [40,10,1,10,10,1]], tags: 2, minX: 10, minY: 0, maxX: 40, maxY: 10}
     ];
 
-    assert.equal(JSON.stringify(clipped), JSON.stringify(expected));
+    expect(JSON.stringify(clipped)).toEqual(JSON.stringify(expected));
 });
 
 test('clips lines with line metrics on', () => {
@@ -45,8 +43,8 @@ test('clips lines with line metrics on', () => {
     const clipped = clip([{geometry: geom, type: 'LineString', minX: 0, minY: 0, maxX: 50, maxY: 60}],
         1, 10, 40, 0, -Infinity, Infinity, {lineMetrics: true});
 
-    assert.deepEqual(
-        clipped.map(f => [f.geometry.start, f.geometry.end]),
+    expect(
+        clipped.map(f => [f.geometry.start, f.geometry.end])).toEqual(
         [[10, 40], [70, 130], [160, 200], [230, 245]]
     );
 });
@@ -67,7 +65,7 @@ test('clips polygons', () => {
         {id: null, type: 'Polygon', geometry: [[10,0,1,40,0,1,40,10,1,10,10,1,10,0,1]], tags: 2,  minX: 10, minY: 0, maxX: 40, maxY: 10}
     ];
 
-    assert.equal(JSON.stringify(clipped), JSON.stringify(expected));
+    expect(JSON.stringify(clipped)).toEqual(JSON.stringify(expected));
 });
 
 test('clips points', () => {
@@ -77,6 +75,6 @@ test('clips points', () => {
         {geometry: geom2, type: 'MultiPoint', tags: 2, minX: 0, minY: 0, maxX: 50, maxY: 10}
     ], 1, 10, 40, 0, -Infinity, Infinity, {});
 
-    assert.deepEqual(clipped, [{id: null, type: 'MultiPoint',
+    expect(clipped).toEqual([{id: null, type: 'MultiPoint',
         geometry: [20,10,0,20,20,0,30,20,0,30,30,0,25,40,0,25,50,0,25,60,0], tags: 1, minX: 20, minY: 10, maxX: 30, maxY: 60}]);
 });

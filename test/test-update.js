@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import geojsonvt from '../src/index.js';
+import geojsonvt from '../dist/geojson-vt.mjs';
 
 test('updateData: requires updateable option', () => {
     const index = geojsonvt({
