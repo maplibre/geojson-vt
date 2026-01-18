@@ -21,32 +21,36 @@ export function wrap(features, options) {
 function shiftFeatureCoords(features, offset) {
     const newFeatures = [];
 
-    for (let i = 0; i < features.length; i++) {
-        const feature = features[i];
-        const type = feature.type;
+    for (let feature of features) {
 
-        let newGeometry;
-
-        if (type === 'Point' || type === 'MultiPoint' || type === 'LineString') {
-            newGeometry = shiftCoords(feature.geometry, offset);
-
-        } else if (type === 'MultiLineString' || type === 'Polygon') {
-            newGeometry = [];
-            for (const line of feature.geometry) {
-                newGeometry.push(shiftCoords(line, offset));
-            }
-        } else if (type === 'MultiPolygon') {
-            newGeometry = [];
-            for (const polygon of feature.geometry) {
-                const newPolygon = [];
-                for (const line of polygon) {
-                    newPolygon.push(shiftCoords(line, offset));
+        switch (feature.type) {
+            case 'Point':
+            case 'MultiPoint':
+            case 'LineString':
+                newFeatures.push(createFeature(feature.id, feature.type, shiftCoords(feature.geometry, offset), feature.tags));
+                break;
+            case 'MultiLineString':
+            case 'Polygon': {
+                    const newGeometry = [];
+                    for (const line of feature.geometry) {
+                        newGeometry.push(shiftCoords(line, offset));
+                    }
+                    newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                }                
+                break;
+            case 'MultiPolygon': {
+                const newGeometry = [];
+                for (const polygon of feature.geometry) {
+                    const newPolygon = [];
+                    for (const line of polygon) {
+                        newPolygon.push(shiftCoords(line, offset));
+                    }
+                    newGeometry.push(newPolygon);
                 }
-                newGeometry.push(newPolygon);
+                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                break;
             }
-        }
-
-        newFeatures.push(createFeature(feature.id, type, newGeometry, feature.tags));
+        }    
     }
 
     return newFeatures;
