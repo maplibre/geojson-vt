@@ -10,16 +10,16 @@ import {createFeature} from './feature.js';
  */
 export function convert(data, options) {
     const features = [];
-    if (data.type === 'FeatureCollection') {
+    switch (data.type) {
+    case 'FeatureCollection':
         for (let i = 0; i < data.features.length; i++) {
             convertFeature(features, data.features[i], options, i);
         }
-
-    } else if (data.type === 'Feature') {
+        break;
+    case 'Feature':
         convertFeature(features, data, options);
-
-    } else {
-        // single geometry or a geometry collection
+        break;
+    default:
         convertFeature(features, {geometry: data}, options);
     }
 
@@ -28,65 +28,84 @@ export function convert(data, options) {
 
 function convertFeature(features, geojson, options, index) {
     if (!geojson.geometry) return;
-
     const coords = geojson.geometry.coordinates;
     if (coords && coords.length === 0) return;
 
-    const type = geojson.geometry.type;
-    const tolerance = Math.pow(options.tolerance / ((1 << options.maxZoom) * options.extent), 2);
-    let geometry = [];
-    let id = geojson.id;
-    if (options.promoteId) {
-        id = geojson.properties[options.promoteId];
-    } else if (options.generateId) {
-        id = index || 0;
-    }
-    if (type === 'Point') {
-        convertPoint(coords, geometry);
-
-    } else if (type === 'MultiPoint') {
-        for (const p of coords) {
-            convertPoint(p, geometry);
-        }
-
-    } else if (type === 'LineString') {
-        convertLine(coords, geometry, tolerance, false);
-
-    } else if (type === 'MultiLineString') {
-        if (options.lineMetrics) {
-            // explode into linestrings to be able to track metrics
-            for (const line of coords) {
-                geometry = [];
-                convertLine(line, geometry, tolerance, false);
-                features.push(createFeature(id, 'LineString', geometry, geojson.properties));
-            }
-            return;
-        }
-        convertLines(coords, geometry, tolerance, false);
-
-    } else if (type === 'Polygon') {
-        convertLines(coords, geometry, tolerance, true);
-
-    } else if (type === 'MultiPolygon') {
-        for (const polygon of coords) {
-            const newPolygon = [];
-            convertLines(polygon, newPolygon, tolerance, true);
-            geometry.push(newPolygon);
-        }
-    } else if (type === 'GeometryCollection') {
+    if (geojson.geometry.type === 'GeometryCollection') {
         for (const singleGeometry of geojson.geometry.geometries) {
             convertFeature(features, {
-                id,
+                id: geojson.id,
+                type: 'Feature',
                 geometry: singleGeometry,
                 properties: geojson.properties
             }, options, index);
         }
         return;
-    } else {
-        throw new Error('Input data is not a valid GeoJSON object.');
     }
 
-    features.push(createFeature(id, type, geometry, geojson.properties));
+
+    const tolerance = Math.pow(options.tolerance / ((1 << options.maxZoom) * options.extent), 2);
+    let id = geojson.id;
+    if (options.promoteId) {
+        id = geojson.properties?.[options.promoteId];
+    } else if (options.generateId) {
+        id = index || 0;
+    }
+
+    switch (geojson.geometry.type) {
+    case 'Point': {
+        const pointGeometry = [];
+        convertPoint(geojson.geometry.coordinates, pointGeometry);
+        features.push(createFeature(id, geojson.geometry.type, pointGeometry, geojson.properties));
+    }
+        return;
+    case 'MultiPoint': {
+        const multiPointGeometry = [];
+        for (const p of geojson.geometry.coordinates) {
+            convertPoint(p, multiPointGeometry);
+        }
+        features.push(createFeature(id, geojson.geometry.type, multiPointGeometry, geojson.properties));
+    }
+        return;
+    case 'LineString': {
+        const lineGeometry = [];
+        convertLine(geojson.geometry.coordinates, lineGeometry, tolerance, false);
+        features.push(createFeature(id, geojson.geometry.type, lineGeometry, geojson.properties));
+    }
+        return;
+    case 'MultiLineString':
+        if (options.lineMetrics) {
+            // explode into linestrings to be able to track metrics
+            for (const line of geojson.geometry.coordinates) {
+                const lineGeometry = [];
+                convertLine(line, lineGeometry, tolerance, false);
+                features.push(createFeature(id, 'LineString', lineGeometry, geojson.properties));
+            }
+        } else {
+            const multiLineGeometry = [];
+            convertLines(geojson.geometry.coordinates, multiLineGeometry, tolerance, false);
+            features.push(createFeature(id, geojson.geometry.type, multiLineGeometry, geojson.properties));
+        }
+        return;
+    case 'Polygon': {
+        const polygonGeometry = [];
+        convertLines(geojson.geometry.coordinates, polygonGeometry, tolerance, true);
+        features.push(createFeature(id, geojson.geometry.type, polygonGeometry, geojson.properties));
+    }
+        return;
+    case 'MultiPolygon': {
+        const multiPolygonGeometry = [];
+        for (const polygon of geojson.geometry.coordinates) {
+            const newPolygon = [];
+            convertLines(polygon, newPolygon, tolerance, true);
+            multiPolygonGeometry.push(newPolygon);
+        }
+        features.push(createFeature(id, geojson.geometry.type, multiPolygonGeometry, geojson.properties));
+    }
+        return;
+    default:
+        throw new Error('Input data is not a valid GeoJSON object.');
+    }
 }
 
 function convertPoint(coords, out) {
