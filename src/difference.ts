@@ -1,40 +1,74 @@
-import {convert} from './convert.js'; // GeoJSON conversion and preprocessing
-import {wrap} from './wrap.js';       // date line processing
+import {convert} from './convert';
+import {wrap} from './wrap';
+import type { GeoJSONVTOptions } from './definitions';
+import type { GeoJSONVTFeature } from './feature';
 
-// This file provides a set of helper functions for managing "diffs" (changes)
-// to GeoJSON data structures. These diffs describe additions, removals,
-// and updates of features in a GeoJSON source in an efficient way.
+export type GeoJSONVTSourceDiff = {
+    /**
+     * If true, clear all existing features
+     */
+    removeAll?: boolean;
+    /**
+     * Array of feature IDs to remove
+     */
+    remove?: (string | number)[];
+    /**
+     * Array of GeoJSON features to add
+     */
+    add?: GeoJSON.Feature[];
+    /**
+     * Array of per-feature updates
+     */
+    update?: GeoJSONVTFeatureDiff[];
+};
 
-// GeoJSON Source Diff:
-// {
-//   removeAll: true,                    // If true, clear all existing features
-//   remove: [featureId, ...],           // Array of feature IDs to remove
-//   add: [feature, ...],                // Array of GeoJSON features to add
-//   update: [GeoJSON Feature Diff, ...]   // Array of per-feature updates
-// }
+export type GeoJSONVTFeatureDiff = {
+    /**
+     * ID of the feature being updated
+     */
+    id: string | number;
+    /**
+     * Optional new geometry
+     */
+    newGeometry?: GeoJSON.Geometry;
+    /**
+     * Remove all properties if true
+     */
+    removeAllProperties?: boolean;
+    /**
+     * Specific properties to delete
+     */
+    removeProperties?: string[];
+    /**
+     * Properties to add or update
+     */
+    addOrUpdateProperties?: {
+        key: string;
+        value: any;
+    }[];
+};
 
-// GeoJSON Feature Diff:
-// {
-//   id: featureId,                       // ID of the feature being updated
-//   newGeometry: GeoJSON.Geometry,      // Optional new geometry
-//   removeAllProperties: true,          // Remove all properties if true
-//   removeProperties: [key, ...],       // Specific properties to delete
-//   addOrUpdateProperties: [            // Properties to add or update
-//     { key: "name", value: "New name" }
-//   ]
-// }
+type HashedGeoJSONVTSourceDiff = {
+    removeAll?: boolean | undefined;
+    remove: Set<string | number>;
+    add: Map<string | number | undefined, GeoJSON.Feature>;
+    update: Map<string | number, GeoJSONVTFeatureDiff>;
+};
 
-/* eslint @stylistic/comma-spacing: 0, no-shadow: 0 */
-
-// applies a diff to the geojsonvt source simplified features array
-// returns an object with the affected features and new source array for invalidation
-export function applySourceDiff(source, dataDiff, options) {
+/**
+ * Applies a GeoJSON Source Diff to an existing set of simplified features
+ * @param source 
+ * @param dataDiff 
+ * @param options 
+ * @returns 
+ */
+export function applySourceDiff(source: GeoJSONVTFeature[], dataDiff: GeoJSONVTSourceDiff, options: GeoJSONVTOptions) {
 
     // convert diff to sets/maps for o(1) lookups
     const diff = diffToHashed(dataDiff);
 
     // collection for features that will be affected by this update
-    let affected = [];
+    let affected: GeoJSONVTFeature[] = [];
 
     // full removal - clear everything before applying diff
     if (diff.removeAll) {
@@ -51,7 +85,7 @@ export function applySourceDiff(source, dataDiff, options) {
             const {id} = feature;
 
             // explicit feature removal
-            if (diff.remove.has(id)) {
+            if (diff.remove.has(id!)) {
                 removeFeatures.push(feature);
             // feature with duplicate id being added
             } else if (diff.add.has(id)) {
@@ -88,11 +122,11 @@ export function applySourceDiff(source, dataDiff, options) {
             const feature = source[featureIndex];
 
             // get updated geojsonvt simplified feature
-            const updatedFeature = getUpdatedFeature(feature, update, options);
+            const updatedFeature = getUpdatedFeature(feature!, update, options);
             if (!updatedFeature) continue;
 
             // track both features for invalidation
-            affected.push(feature, updatedFeature);
+            affected.push(feature!, updatedFeature);
 
             // replace old feature with updated feature
             source[featureIndex] = updatedFeature;
@@ -103,20 +137,20 @@ export function applySourceDiff(source, dataDiff, options) {
 }
 
 // return an updated geojsonvt simplified feature
-function getUpdatedFeature(vtFeature, update, options) {
+function getUpdatedFeature(vtFeature: GeoJSONVTFeature, update: GeoJSONVTFeatureDiff, options: GeoJSONVTOptions): GeoJSONVTFeature | null {
     const changeGeometry = !!update.newGeometry;
 
     const changeProps =
         update.removeAllProperties ||
-        update.removeProperties?.length > 0 ||
-        update.addOrUpdateProperties?.length > 0;
+        update.removeProperties?.length! > 0 ||
+        update.addOrUpdateProperties?.length! > 0;
 
     // if geometry changed, need to create new geojson feature and convert to simplified format
     if (changeGeometry) {
         const geojsonFeature = {
-            type: 'Feature',
+            type: 'Feature' as const,
             id: vtFeature.id,
-            geometry: update.newGeometry,
+            geometry: update.newGeometry!,
             properties: changeProps ? applyPropertyUpdates(vtFeature.tags, update) : vtFeature.tags
         };
 
@@ -126,7 +160,7 @@ function getUpdatedFeature(vtFeature, update, options) {
         // wraps features (ie extreme west and extreme east)
         features = wrap(features, options);
 
-        return features[0];
+        return features[0]!;
     }
 
     // only properties changed - update tags directly
@@ -140,7 +174,7 @@ function getUpdatedFeature(vtFeature, update, options) {
 }
 
 // helper to apply property updates from a diff update object to a properties object
-function applyPropertyUpdates(tags, update) {
+function applyPropertyUpdates(tags: GeoJSON.GeoJsonProperties, update: GeoJSONVTFeatureDiff): GeoJSON.GeoJsonProperties {
     if (update.removeAllProperties) {
         return {};
     }
@@ -163,15 +197,18 @@ function applyPropertyUpdates(tags, update) {
 }
 
 // Convert a GeoJSON Source Diff to an idempotent hashed representation using Sets and Maps
-export function diffToHashed(diff) {
-    if (!diff) return {};
+export function diffToHashed(diff: GeoJSONVTSourceDiff): HashedGeoJSONVTSourceDiff {
+    if (!diff) return {
+        remove: new Set(),
+        add: new Map(),
+        update: new Map()
+    };
 
-    const hashed = {};
-
-    hashed.removeAll = diff.removeAll;
-    hashed.remove = new Set(diff.remove || []);
-    hashed.add    = new Map(diff.add?.map(feature => [feature.id, feature]));
-    hashed.update = new Map(diff.update?.map(update => [update.id, update]));
-
+    const hashed: HashedGeoJSONVTSourceDiff = {
+        removeAll: diff.removeAll,
+        remove: new Set(diff.remove || []),
+        add: new Map(diff.add?.map(feature => [feature.id, feature])),
+        update: new Map(diff.update?.map(update => [update.id, update]))
+    };
     return hashed;
 }

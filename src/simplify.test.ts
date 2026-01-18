@@ -1,8 +1,7 @@
 
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import { test, expect } from 'vitest';
 
-import {simplify} from '../src/simplify.js';
+import {simplify} from './simplify';
 
 /* eslint @stylistic/comma-spacing: 0, no-shadow: 0 */
 
@@ -62,7 +61,7 @@ test('simplifies points correctly with the given tolerance', () => {
             result.push([coords[i], coords[i + 1]]);
         }
     }
-    assert.deepEqual(result, simplified);
+    expect(result).toEqual(simplified);
 });
 
 test('does not throw max call stack error on bad long input', () => {
@@ -71,7 +70,7 @@ test('does not throw max call stack error on bad long input', () => {
         coords.push([0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]);
     }
 
-    assert.doesNotThrow(() => {
+    expect(() => {
         simplify(coords, 2e-15);
-    });
+    }).not.toThrow();
 });

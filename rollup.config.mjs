@@ -1,7 +1,8 @@
 import terser from '@rollup/plugin-terser';
+import typescript from '@rollup/plugin-typescript';
 
 const config = (file, plugins) => ({
-    input: 'src/index.js',
+    input: 'src/index.ts',
     output: {
         name: 'geojsonvt',
         format: 'umd',
@@ -12,6 +13,15 @@ const config = (file, plugins) => ({
 });
 
 export default [
-    config('dist/geojson-vt-dev.js', []),
-    config('dist/geojson-vt.js', [terser()])
+    config('dist/geojson-vt-dev.js', [typescript()]),
+    config('dist/geojson-vt.js', [typescript(), terser()]),
+    {
+        input: 'src/index.ts',
+        output: {
+            file: 'dist/geojson-vt.mjs', 
+            format: 'esm',
+            indent: false
+        },
+        plugins: [typescript()]
+    }
 ];

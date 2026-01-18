@@ -1,6 +1,5 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import {applySourceDiff} from '../src/difference.js';
+import {test, expect} from 'vitest';
+import {applySourceDiff} from './difference';
 
 const options = {
     maxZoom: 14,
@@ -27,8 +26,8 @@ test('applySourceDiff: adds a feature using the feature id', () => {
         add: [point]
     }, options);
 
-    assert.equal(source.length, 1);
-    assert.equal(source[0].id, 'point');
+    expect(source.length).toBe(1);
+    expect(source[0].id).toBe('point');
 });
 
 test('applySourceDiff: adds a feature using the promoteId', () => {
@@ -47,8 +46,8 @@ test('applySourceDiff: adds a feature using the promoteId', () => {
         add: [point2]
     }, {promoteId: 'promoteId'});
 
-    assert.equal(source.length, 1);
-    assert.equal(source[0].id, 'point2');
+    expect(source.length).toBe(1);
+    expect(source[0].id).toBe('point2');
 });
 
 test('applySourceDiff: removes a feature by its id', () => {
@@ -76,8 +75,8 @@ test('applySourceDiff: removes a feature by its id', () => {
         remove: ['point2'],
     }, options);
 
-    assert.equal(source.length, 1);
-    assert.equal(source[0].id, 'point');
+    expect(source.length).toBe(1);
+    expect(source[0].id).toBe('point');
 });
 
 test('applySourceDiff: removeAll clears all features', () => {
@@ -106,8 +105,8 @@ test('applySourceDiff: removeAll clears all features', () => {
         removeAll: true
     }, options);
 
-    assert.deepEqual(source, result.affected);
-    assert.deepEqual(result.source, []);
+    expect(source).toEqual(result.affected);
+    expect(result.source).toEqual([]);
 });
 
 test('applySourceDiff: updates a feature geometry', () => {
@@ -136,10 +135,10 @@ test('applySourceDiff: updates a feature geometry', () => {
         }]
     }, options);
 
-    assert.equal(source.length, 1);
-    assert.equal(source[0].id, 'point');
-    assert.equal(source[0].geometry[0], projectX(1));
-    assert.equal(source[0].geometry[1], projectY(0));
+    expect(source.length).toBe(1);
+    expect(source[0].id).toBe('point');
+    expect(source[0].geometry[0]).toBe(projectX(1));
+    expect(source[0].geometry[1]).toBe(projectY(0));
 });
 
 test('applySourceDiff: adds properties', () => {
@@ -168,11 +167,11 @@ test('applySourceDiff: adds properties', () => {
         }]
     }, options);
 
-    assert.equal(source.length, 1);
+    expect(source.length).toBe(1);
     const tags = source[0].tags;
-    assert.equal(Object.keys(tags).length, 2);
-    assert.equal(tags.prop, 'value');
-    assert.equal(tags.prop2, 'value2');
+    expect(Object.keys(tags).length).toBe(2);
+    expect(tags.prop).toBe('value');
+    expect(tags.prop2).toBe('value2');
 });
 
 test('applySourceDiff: updates properties', () => {
@@ -198,12 +197,12 @@ test('applySourceDiff: updates properties', () => {
             ]
         }]
     }, options);
-    assert.equal(source.length, 1);
+    expect(source.length).toBe(1);
 
     const tags2 = source[0].tags;
-    assert.equal(Object.keys(tags2).length, 2);
-    assert.equal(tags2.prop, 'value');
-    assert.equal(tags2.prop2, 'value3');
+    expect(Object.keys(tags2).length).toBe(2);
+    expect(tags2.prop).toBe('value');
+    expect(tags2.prop2).toBe('value3');
 });
 
 test('applySourceDiff: removes properties', () => {
@@ -228,10 +227,10 @@ test('applySourceDiff: removes properties', () => {
         }]
     }, options);
 
-    assert.equal(source.length, 1);
+    expect(source.length).toBe(1);
     const tags3 = source[0].tags;
-    assert.equal(Object.keys(tags3).length, 1);
-    assert.equal(tags3.prop, 'value');
+    expect(Object.keys(tags3).length).toBe(1);
+    expect(tags3.prop).toBe('value');
 });
 
 test('applySourceDiff: removes all properties', () => {
@@ -256,8 +255,8 @@ test('applySourceDiff: removes all properties', () => {
         }]
     }, options);
 
-    assert.equal(source.length, 1);
-    assert.equal(Object.keys(source[0].tags).length, 0);
+    expect(source.length).toBe(1);
+    expect(Object.keys(source[0].tags).length).toBe(0);
 });
 
 test('applySourceDiff: empty update preserves properties', () => {
@@ -279,11 +278,11 @@ test('applySourceDiff: empty update preserves properties', () => {
         update: [{id: 'point'}]
     }, options);
 
-    assert.equal(source.length, 1);
+    expect(source.length).toBe(1);
     const tags2 = source[0].tags;
-    assert.equal(Object.keys(tags2).length, 2);
-    assert.equal(tags2.prop, 'value');
-    assert.equal(tags2.prop2, 'value2');
+    expect(Object.keys(tags2).length).toBe(2);
+    expect(tags2.prop).toBe('value');
+    expect(tags2.prop2).toBe('value2');
 });
 
 function projectX(x) {

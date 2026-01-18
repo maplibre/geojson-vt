@@ -1,27 +1,35 @@
 
-import {convert} from './convert.js';              // GeoJSON conversion and preprocessing
-import {clip} from './clip.js';                    // stripe clipping algorithm
-import {wrap} from './wrap.js';                    // date line processing
-import {transformTile} from './transform.js';          // coordinate transformation
-import {createTile} from './tile.js';              // final simplified tile generation
-import {applySourceDiff} from './difference.js'; // diff utilities
+import {convert} from './convert';
+import {clip} from './clip';
+import {wrap} from './wrap';
+import {transformTile, type GeoJSONVTTransformedTile} from './transform';
+import {createTile, type GeoJSONVTTile} from './tile';
+import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference.js';
+import type { GeoJSONVTFeature } from './feature';
+import type { GeoJSONVTOptions } from './definitions';
 
-const defaultOptions = {
-    maxZoom: 14,            // max zoom to preserve detail on
-    indexMaxZoom: 5,        // max zoom in the tile index
-    indexMaxPoints: 100000, // max number of points per tile in the tile index
-    tolerance: 3,           // simplification tolerance (higher means simpler)
-    extent: 4096,           // tile extent
-    buffer: 64,             // tile buffer on each side
-    lineMetrics: false,     // whether to calculate line metrics
-    promoteId: null,        // name of a feature property to be promoted to feature.id
-    generateId: false,      // whether to generate feature ids. Cannot be used with promoteId
-    updateable: false,      // whether geojson can be updated (with caveat of a stored simplified copy)
-    debug: 0                // logging level (0, 1 or 2)
+const defaultOptions: GeoJSONVTOptions = {
+    maxZoom: 14,
+    indexMaxZoom: 5,
+    indexMaxPoints: 100000,
+    tolerance: 3,
+    extent: 4096,
+    buffer: 64,
+    lineMetrics: false,
+    promoteId: null,
+    generateId: false,
+    updateable: false,
+    debug: 0
 };
 
 class GeoJSONVT {
-    constructor(data, options) {
+    private options: GeoJSONVTOptions;
+    public tiles: {[key: string]: GeoJSONVTTile};
+    public tileCoords: {z: number, x: number, y: number, id: number}[];
+    public stats: {[key: string]: number} = {};
+    public total: number = 0;
+    public source?: GeoJSONVTFeature[];
+    constructor(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
         options = this.options = extend(Object.create(defaultOptions), options);
 
         const debug = options.debug;
@@ -58,19 +66,28 @@ class GeoJSONVT {
         }
 
         if (debug) {
-            if (features.length) console.log('features: %d, points: %d', this.tiles[0].numFeatures, this.tiles[0].numPoints);
+            if (features.length) console.log('features: %d, points: %d', this.tiles[0]?.numFeatures, this.tiles[0]?.numPoints);
             console.timeEnd('generate tiles');
             console.log('tiles generated:', this.total, JSON.stringify(this.stats));
         }
     }
 
-    // splits features from a parent tile to sub-tiles.
-    // z, x, and y are the coordinates of the parent tile
-    // cz, cx, and cy are the coordinates of the target tile
-    //
-    // If no target tile is specified, splitting stops when we reach the maximum
-    // zoom or the number of points is low as specified in the options.
-    splitTile(features, z, x, y, cz, cx, cy) {
+    /**
+     * splits features from a parent tile to sub-tiles.
+     * z, x, and y are the coordinates of the parent tile
+     * cz, cx, and cy are the coordinates of the target tile
+     * 
+     * If no target tile is specified, splitting stops when we reach the maximum
+     * zoom or the number of points is low as specified in the options.
+     * @param features 
+     * @param z 
+     * @param x 
+     * @param y 
+     * @param cz 
+     * @param cx 
+     * @param cy 
+     */
+    splitTile(features: GeoJSONVTFeature[], z: number, x: number, y: number, cz?: number, cx?: number, cy?: number) {
 
         const stack = [features, z, x, y];
         const options = this.options;
@@ -78,10 +95,10 @@ class GeoJSONVT {
 
         // avoid recursion by using a processing queue
         while (stack.length) {
-            y = stack.pop();
-            x = stack.pop();
-            z = stack.pop();
-            features = stack.pop();
+            y = stack.pop() as number;
+            x = stack.pop() as number;
+            z = stack.pop() as number;
+            features = stack.pop() as GeoJSONVTFeature[];
 
             const z2 = 1 << z;
             const id = toID(z, x, y);
@@ -119,7 +136,7 @@ class GeoJSONVT {
             } else if (cz != null) {
                 // stop tiling if it's not an ancestor of the target tile
                 const zoomSteps = cz - z;
-                if (x !== cx >> zoomSteps || y !== cy >> zoomSteps) continue;
+                if (x !== cx! >> zoomSteps || y !== cy! >> zoomSteps) continue;
             }
 
             // if we slice further down, no need to keep source geometry
@@ -162,7 +179,7 @@ class GeoJSONVT {
         }
     }
 
-    getTile(z, x, y) {
+    getTile(z: number, x: number, y: number): GeoJSONVTTransformedTile | null {
         z = +z;
         x = +x;
         y = +y;
@@ -205,8 +222,12 @@ class GeoJSONVT {
         return this.tiles[id] ? transformTile(this.tiles[id], extent) : null;
     }
 
-    // invalidates (removes) tiles affected by the provided features
-    invalidateTiles(features) {
+    /**
+     * Invalidates (removes) tiles affected by the provided features
+     * @internal
+     * @param features 
+     */
+    invalidateTiles(features: GeoJSONVTFeature[]) {
         const options = this.options;
         const {debug} = options;
 
@@ -231,7 +252,7 @@ class GeoJSONVT {
 
         // iterate through existing tiles and remove ones that are affected by features
         for (const id in this.tiles) {
-            const tile = this.tiles[id];
+            const tile = this.tiles[id]!;
 
             // calculate tile bounds including buffer
             const z2 = 1 << tile.z;
@@ -275,17 +296,19 @@ class GeoJSONVT {
         if (removedLookup.size) this.tileCoords = this.tileCoords.filter(c => !removedLookup.has(c.id));
     }
 
-    // updates the tile index by adding and/or removing geojson features
-    // invalidates tiles that are affected by the update for regeneration on next getTile call
-    // diff is an object with properties specified in difference.js
-    updateData(diff) {
+    /**
+     * Updates the tile index by adding and/or removing geojson features
+     * invalidates tiles that are affected by the update for regeneration on next getTile call.
+     * @param diff - the source diff object
+     */
+    updateData(diff: GeoJSONVTSourceDiff) {
         const options = this.options;
         const debug = options.debug;
 
         if (!options.updateable) throw new Error('to update tile geojson `updateable` option must be set to true');
 
         // apply diff and collect affected features and updated source that will be used to invalidate tiles
-        const {affected, source} = applySourceDiff(this.source, diff, options);
+        const {affected, source} = applySourceDiff(this.source!, diff, options);
 
         // nothing has changed
         if (!affected.length) return;
@@ -304,8 +327,8 @@ class GeoJSONVT {
 
         // re-generate root tile with updated feature set
         const [z, x, y] = [0, 0, 0];
-        const rootTile = createTile(this.source, z, x, y, this.options);
-        rootTile.source = this.source;
+        const rootTile = createTile(this.source!, z, x, y, this.options);
+        rootTile.source = this.source!;
 
         // update tile index with new root tile - ready for getTile calls
         const id = toID(z, x, y);
@@ -320,15 +343,15 @@ class GeoJSONVT {
     }
 }
 
-function toID(z, x, y) {
+function toID(z: number, x: number, y: number): number {
     return (((1 << z) * y + x) * 32) + z;
 }
 
-function extend(dest, src) {
+function extend(dest: any, src: any) {
     for (const i in src) dest[i] = src[i];
     return dest;
 }
 
-export default function geojsonvt(data, options) {
+export default function geojsonvt(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
     return new GeoJSONVT(data, options);
 }

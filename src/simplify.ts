@@ -1,15 +1,15 @@
 /**
  * calculate simplification data using optimized Douglas-Peucker algorithm
- * @param {*} coords
- * @param {*} first
- * @param {*} last
- * @param {*} sqTolerance
+ * @param coords - flat array of coordinates
+ * @param first - index of the first coordinate in the segment
+ * @param last - index of the last coordinate in the segment
+ * @param sqTolerance - square tolerance value
  */
-export function simplify(coords, first, last, sqTolerance) {
+export function simplify(coords: number[], first: number, last: number, sqTolerance: number) {
     let maxSqDist = sqTolerance;
     const mid = first + ((last - first) >> 1);
     let minPosToMid = last - first;
-    let index;
+    let index: number = 0;
 
     const ax = coords[first];
     const ay = coords[first + 1];
@@ -17,7 +17,7 @@ export function simplify(coords, first, last, sqTolerance) {
     const by = coords[last + 1];
 
     for (let i = first + 3; i < last; i += 3) {
-        const d = getSqSegDist(coords[i], coords[i + 1], ax, ay, bx, by);
+        const d = getSqSegDist(coords[i]!, coords[i + 1]!, ax!, ay!, bx!, by!);
 
         if (d > maxSqDist) {
             index = i;
@@ -42,8 +42,17 @@ export function simplify(coords, first, last, sqTolerance) {
     }
 }
 
-// square distance from a point to a segment
-function getSqSegDist(px, py, x, y, bx, by) {
+/**
+ * Claculates the square distance from a point to a segment
+ * @param px - x coordinate of the point
+ * @param py - y coordinate of the point
+ * @param x - x coordinate of the first segment endpoint
+ * @param y - y coordinate of the first segment endpoint
+ * @param bx - x coordinate of the second segment endpoint
+ * @param by - y coordinate of the second segment endpoint
+ * @returns square distance from a point to a segment
+ */
+function getSqSegDist(px: number, py: number, x: number, y: number, bx: number, by: number): number {
 
     let dx = bx - x;
     let dy = by - y;
