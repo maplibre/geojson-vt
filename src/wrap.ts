@@ -1,8 +1,9 @@
 
 import {clip} from './clip';
+import type { GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 import {createFeature} from './feature';
 
-export function wrap(features, options) {
+export function wrap(features: GeoJSONVTFeature[], options: GeoJSONVTOptions): GeoJSONVTFeature[] {
     const buffer = options.buffer / options.extent;
     let merged = features;
     const left  = clip(features, 1, -1 - buffer, buffer,     0, -1, 2, options); // left world copy
@@ -18,7 +19,7 @@ export function wrap(features, options) {
     return merged;
 }
 
-function shiftFeatureCoords(features, offset) {
+function shiftFeatureCoords(features: GeoJSONVTFeature[], offset: number): GeoJSONVTFeature[] {
     const newFeatures = [];
 
     for (const feature of features) {
@@ -56,8 +57,8 @@ function shiftFeatureCoords(features, offset) {
     return newFeatures;
 }
 
-function shiftCoords(points, offset) {
-    const newPoints = [];
+function shiftCoords(points: StartEndSizeArray, offset: number): number[] | StartEndSizeArray {
+    const newPoints: StartEndSizeArray = [];
     newPoints.size = points.size;
 
     if (points.start !== undefined) {

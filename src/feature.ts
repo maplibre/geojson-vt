@@ -1,6 +1,18 @@
+import type { GeoJSONVTFeature, GeometryType, GeometryTypeMap } from "./definitions";
 
-export function createFeature(id, type, geom, tags) {
-    const data = {type, geom};
+export type SupportedGeometries = GeoJSON.Point | GeoJSON.MultiPoint | GeoJSON.LineString | GeoJSON.MultiLineString | GeoJSON.Polygon | GeoJSON.MultiPolygon;
+
+/**
+ * 
+ * @param id - the feature's ID
+ * @param type - the feature's type
+ * @param geom - the feature's geometry
+ * @param tags - the feature's properties
+ * @returns the created feature
+ */
+export function createFeature<T extends GeometryType>(id: number | string | undefined, type: T, geom: GeometryTypeMap[T], tags: GeoJSON.GeoJsonProperties): GeoJSONVTFeature {
+    // This is mosltly for TypeScript type narrowing
+    const data = { type, geom } as { [K in GeometryType]: { type: K, geom: GeometryTypeMap[K] } }[GeometryType];
     const feature = {
         id: id == null ? null : id,
         type: data.type,
@@ -10,7 +22,7 @@ export function createFeature(id, type, geom, tags) {
         minY: Infinity,
         maxX: -Infinity,
         maxY: -Infinity
-    };
+    } as GeoJSONVTFeature;
 
     switch (data.type) {
     case 'Point':
@@ -37,7 +49,7 @@ export function createFeature(id, type, geom, tags) {
     return feature;
 }
 
-function calcLineBBox(feature, geom) {
+function calcLineBBox(feature: GeoJSONVTFeature, geom: number[]) {
     for (let i = 0; i < geom.length; i += 3) {
         feature.minX = Math.min(feature.minX, geom[i]);
         feature.minY = Math.min(feature.minY, geom[i + 1]);

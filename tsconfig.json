@@ -11,11 +11,7 @@
     "module": "es2022",
     "target": "esnext",
     "noEmit": true,
-    "types": [],
-    // For nodejs:
-    // "lib": ["esnext"],
-    // "types": ["node"],
-    // and npm install -D @types/node
+    "types": ["geojson"],
 
     // Other Outputs
     // "sourceMap": true,

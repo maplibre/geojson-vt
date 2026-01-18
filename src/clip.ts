@@ -1,5 +1,6 @@
 
 import {createFeature} from './feature';
+import type { GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 
 /* clip features between two vertical or horizontal axis-parallel lines:
  *     |        |
@@ -11,14 +12,14 @@ import {createFeature} from './feature';
  * axis: 0 for x, 1 for y
  * minAll and maxAll: minimum and maximum coordinate value for all features
  */
-export function clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
+export function clip(features: GeoJSONVTFeature[], scale: number, k1: number, k2: number, axis: number, minAll: number, maxAll: number, options: GeoJSONVTOptions): GeoJSONVTFeature[] | null {
     k1 /= scale;
     k2 /= scale;
 
     if (minAll >= k1 && maxAll < k2) return features; // trivial accept
     else if (maxAll < k1 || minAll >= k2) return null; // trivial reject
 
-    const clipped = [];
+    const clipped: GeoJSONVTFeature[] = [];
 
     for (const feature of features) {
         const min = axis === 0 ? feature.minX : feature.minY;
@@ -85,7 +86,7 @@ export function clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
     return clipped.length ? clipped : null;
 }
 
-function clipPoints(geom, newGeom, k1, k2, axis) {
+function clipPoints(geom: number[], newGeom: number[], k1: number, k2: number, axis: number) {
     for (let i = 0; i < geom.length; i += 3) {
         const a = geom[i + axis];
 
@@ -95,7 +96,7 @@ function clipPoints(geom, newGeom, k1, k2, axis) {
     }
 }
 
-function clipLine(geom, newGeom, k1, k2, axis, isPolygon, trackMetrics) {
+function clipLine(geom: StartEndSizeArray, newGeom: StartEndSizeArray[], k1: number, k2: number, axis: number, isPolygon: boolean, trackMetrics: boolean) {
 
     let slice = newSlice(geom);
     const intersect = axis === 0 ? intersectX : intersectY;
@@ -169,31 +170,31 @@ function clipLine(geom, newGeom, k1, k2, axis, isPolygon, trackMetrics) {
     }
 }
 
-function newSlice(line) {
-    const slice = [];
+function newSlice(line: StartEndSizeArray): StartEndSizeArray {
+    const slice: StartEndSizeArray = [];
     slice.size = line.size;
     slice.start = line.start;
     slice.end = line.end;
     return slice;
 }
 
-function clipLines(geom, newGeom, k1, k2, axis, isPolygon) {
+function clipLines(geom: StartEndSizeArray[], newGeom: StartEndSizeArray[], k1: number, k2: number, axis: number, isPolygon: boolean) {
     for (const line of geom) {
         clipLine(line, newGeom, k1, k2, axis, isPolygon, false);
     }
 }
 
-function addPoint(out, x, y, z) {
+function addPoint(out: number[], x: number, y: number, z: number) {
     out.push(x, y, z);
 }
 
-function intersectX(out, ax, ay, bx, by, x) {
+function intersectX(out: StartEndSizeArray, ax: number, ay: number, bx: number, by: number, x: number) {
     const t = (x - ax) / (bx - ax);
     addPoint(out, x, ay + (by - ay) * t, 1);
     return t;
 }
 
-function intersectY(out, ax, ay, bx, by, y) {
+function intersectY(out: StartEndSizeArray, ax: number, ay: number, bx: number, by: number, y: number) {
     const t = (y - ay) / (by - ay);
     addPoint(out, ax + (bx - ax) * t, y, 1);
     return t;
