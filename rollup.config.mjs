@@ -18,7 +18,8 @@ export default [
         input: 'src/index.js',
         output: {
             format: 'esm',
-            file: 'dist/geojson-vt.mjs'
+            file: 'dist/geojson-vt.mjs',
+            sourcemap: true
         },
         plugins: []
     }

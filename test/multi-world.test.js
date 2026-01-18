@@ -1,6 +1,6 @@
 
 import {test, expect} from 'vitest';
-import geojsonvt from '../src/index.js';
+import geojsonvt from '../dist/geojson-vt.mjs';
 
 const leftPoint = {
     type: 'Feature',
