@@ -1,10 +1,10 @@
 
-import {convert} from './convert.js';              // GeoJSON conversion and preprocessing
-import {clip} from './clip.js';                    // stripe clipping algorithm
-import {wrap} from './wrap.js';                    // date line processing
-import {transformTile} from './transform.js';          // coordinate transformation
-import {createTile} from './tile.js';              // final simplified tile generation
-import {applySourceDiff} from './difference.js'; // diff utilities
+import {convert} from './convert';              // GeoJSON conversion and preprocessing
+import {clip} from './clip';                    // stripe clipping algorithm
+import {wrap} from './wrap';                    // date line processing
+import {transformTile} from './transform';          // coordinate transformation
+import {createTile} from './tile';              // final simplified tile generation
+import {applySourceDiff} from './difference'; // diff utilities
 
 const defaultOptions = {
     maxZoom: 14,            // max zoom to preserve detail on

@@ -1,6 +1,6 @@
 
 import {test, expect} from 'vitest';
-import {clip} from './clip.js';
+import {clip} from './clip';
 
 /* eslint @stylistic/comma-spacing: 0 */
 

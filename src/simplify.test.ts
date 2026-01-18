@@ -1,6 +1,6 @@
 
 import {test, expect} from 'vitest';
-import {simplify} from './simplify.js';
+import {simplify} from './simplify';
 
 /* eslint @stylistic/comma-spacing: 0, no-shadow: 0 */
 

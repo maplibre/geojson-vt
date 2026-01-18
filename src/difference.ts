@@ -1,5 +1,5 @@
-import {convert} from './convert.js'; // GeoJSON conversion and preprocessing
-import {wrap} from './wrap.js';       // date line processing
+import {convert} from './convert'; // GeoJSON conversion and preprocessing
+import {wrap} from './wrap';       // date line processing
 
 // This file provides a set of helper functions for managing "diffs" (changes)
 // to GeoJSON data structures. These diffs describe additions, removals,
