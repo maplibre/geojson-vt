@@ -1,5 +1,14 @@
 
-export default function createTile(features, z, tx, ty, options) {
+/**
+ * Creates a tile object from the given features
+ * @param {*} features - the features to include in the tile
+ * @param {*} z
+ * @param {*} tx
+ * @param {*} ty
+ * @param {*} options
+ * @returns the created tile
+ */
+export function createTile(features, z, tx, ty, options) {
     const tolerance = z === options.maxZoom ? 0 : options.tolerance / ((1 << z) * options.extent);
     const tile = {
         features: [],

@@ -1,8 +1,8 @@
 
-import clip from './clip.js';
-import createFeature from './feature.js';
+import {clip} from './clip.js';
+import {createFeature} from './feature.js';
 
-export default function wrap(features, options) {
+export function wrap(features, options) {
     const buffer = options.buffer / options.extent;
     let merged = features;
     const left  = clip(features, 1, -1 - buffer, buffer,     0, -1, 2, options); // left world copy
