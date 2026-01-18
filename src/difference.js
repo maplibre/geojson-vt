@@ -164,14 +164,17 @@ function applyPropertyUpdates(tags, update) {
 
 // Convert a GeoJSON Source Diff to an idempotent hashed representation using Sets and Maps
 export function diffToHashed(diff) {
-    if (!diff) return {};
+    if (!diff) return {
+        remove: new Set(),
+        add: new Map(),
+        update: new Map()
+    };
 
-    const hashed = {};
-
-    hashed.removeAll = diff.removeAll;
-    hashed.remove = new Set(diff.remove || []);
-    hashed.add    = new Map(diff.add?.map(feature => [feature.id, feature]));
-    hashed.update = new Map(diff.update?.map(update => [update.id, update]));
-
+    const hashed = {
+        removeAll: diff.removeAll,
+        remove: new Set(diff.remove || []),
+        add: new Map(diff.add?.map(feature => [feature.id, feature])),
+        update: new Map(diff.update?.map(update => [update.id, update]))
+    };
     return hashed;
 }
