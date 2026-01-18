@@ -21,9 +21,6 @@ export function clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
     const clipped = [];
 
     for (const feature of features) {
-        const geometry = feature.geometry;
-        let type = feature.type;
-
         const min = axis === 0 ? feature.minX : feature.minY;
         const max = axis === 0 ? feature.maxX : feature.maxY;
 
@@ -36,50 +33,53 @@ export function clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
 
         let newGeometry = [];
 
-        if (type === 'Point' || type === 'MultiPoint') {
-            clipPoints(geometry, newGeometry, k1, k2, axis);
-
-        } else if (type === 'LineString') {
-            clipLine(geometry, newGeometry, k1, k2, axis, false, options.lineMetrics);
-
-        } else if (type === 'MultiLineString') {
-            clipLines(geometry, newGeometry, k1, k2, axis, false);
-
-        } else if (type === 'Polygon') {
-            clipLines(geometry, newGeometry, k1, k2, axis, true);
-
-        } else if (type === 'MultiPolygon') {
-            for (const polygon of geometry) {
-                const newPolygon = [];
-                clipLines(polygon, newPolygon, k1, k2, axis, true);
-                if (newPolygon.length) {
-                    newGeometry.push(newPolygon);
+        switch (feature.type) {
+            case 'Point':
+            case 'MultiPoint':
+                clipPoints(feature.geometry, newGeometry, k1, k2, axis);
+                break;
+            case 'LineString':
+                clipLine(feature.geometry, newGeometry, k1, k2, axis, false, options.lineMetrics);
+                break;
+            case 'MultiLineString':
+                clipLines(feature.geometry, newGeometry, k1, k2, axis, false);
+                break;
+            case 'Polygon':
+                clipLines(feature.geometry, newGeometry, k1, k2, axis, true);
+                break;
+            case 'MultiPolygon':
+                for (const polygon of feature.geometry) {
+                    const newPolygon = [];
+                    clipLines(polygon, newPolygon, k1, k2, axis, true);
+                    if (newPolygon.length) {
+                        (newGeometry).push(newPolygon);
+                    }
                 }
-            }
+                break;
         }
 
-        if (newGeometry.length) {
-            if (options.lineMetrics && type === 'LineString') {
-                for (const line of newGeometry) {
-                    clipped.push(createFeature(feature.id, type, line, feature.tags));
-                }
-                continue;
-            }
+        if (newGeometry.length === 0) continue;
 
-            if (type === 'LineString' || type === 'MultiLineString') {
-                if (newGeometry.length === 1) {
-                    type = 'LineString';
-                    newGeometry = newGeometry[0];
-                } else {
-                    type = 'MultiLineString';
-                }
+        if (options.lineMetrics && feature.type === 'LineString') {
+            for (const line of newGeometry) {
+                clipped.push(createFeature(feature.id, feature.type, line, feature.tags));
             }
-            if (type === 'Point' || type === 'MultiPoint') {
-                type = newGeometry.length === 3 ? 'Point' : 'MultiPoint';
-            }
-
-            clipped.push(createFeature(feature.id, type, newGeometry, feature.tags));
+            continue;
         }
+        let type = feature.type;
+        if (type === 'LineString' || feature.type === 'MultiLineString') {
+            if (newGeometry.length === 1) {
+                type = 'LineString';
+                newGeometry = newGeometry[0];
+            } else {
+                type = 'MultiLineString';
+            }
+        }
+        if (feature.type === 'Point' || feature.type === 'MultiPoint') {
+            type = newGeometry.length === 3 ? 'Point' : 'MultiPoint';
+        }
+
+        clipped.push(createFeature(feature.id, type, newGeometry, feature.tags));
     }
 
     return clipped.length ? clipped : null;
