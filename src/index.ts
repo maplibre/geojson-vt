@@ -178,7 +178,7 @@ class GeoJSONVT {
         }
     }
 
-    getTile(z: number, x: number, y: number): GeoJSONVTTransformedTile | null {
+    getTile(z: number | string, x: number | string, y: number | string): GeoJSONVTTransformedTile | null {
         z = +z;
         x = +x;
         y = +y;

@@ -18,7 +18,7 @@ test('getTile: us-states.json', () => {
     const index = geojsonvt(getJSON('us-states.json'), {debug: 2});
 
     expect(index.getTile(7, 37, 48).features).toEqual(getJSON('us-states-z7-37-48.json'));
-    expect(index.getTile('7' as any, '37' as any, '48' as any).features).toEqual(getJSON('us-states-z7-37-48.json'));
+    expect(index.getTile('7', '37', '48').features).toEqual(getJSON('us-states-z7-37-48.json'));
 
     expect(index.getTile(9, 148, 192).features).toEqual(square);
 
