@@ -2,8 +2,6 @@
 import {test, expect} from 'vitest';
 import {simplify} from './simplify';
 
-/* eslint @stylistic/comma-spacing: 0, no-shadow: 0 */
-
 const points = [
     [0.22455,0.25015],[0.22691,0.24419],[0.23331,0.24145],[0.23498,0.23606],
     [0.24421,0.23276],[0.26259,0.21531],[0.26776,0.21381],[0.27357,0.20184],
