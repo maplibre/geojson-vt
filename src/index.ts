@@ -4,8 +4,8 @@ import {clip} from './clip';
 import {wrap} from './wrap';
 import {transformTile, type GeoJSONVTTransformedTile} from './transform';
 import {createTile, type GeoJSONVTTile, type GeoJSONVTTileFeature} from './tile';
-import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
-import type { GeoJSONVTFeature, GeoJSONVTOptions } from './definitions';
+import {applySourceDiff, type GeoJSONVTFeatureDiff, type GeoJSONVTSourceDiff} from './difference';
+import type { GeoJSONVTFeature, GeoJSONVTOptions, GeometryType, GeometryTypeMap, PartialGeoJSONVTFeature, StartEndSizeArray } from './definitions';
 
 const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
@@ -350,4 +350,17 @@ export default function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOpti
     return new GeoJSONVT(data, options);
 }
 
-export type { GeoJSONVTFeature, GeoJSONVTOptions, GeoJSONVTTile, GeoJSONVTTileFeature };
+export type { 
+    GeoJSONVTFeature, 
+    GeoJSONVTOptions, 
+    GeoJSONVTTile, 
+    GeoJSONVTTileFeature, 
+    GeometryType,
+    PartialGeoJSONVTFeature,
+    GeoJSONVT,
+    GeometryTypeMap,
+    StartEndSizeArray,
+    GeoJSONVTTransformedTile,
+    GeoJSONVTSourceDiff,
+    GeoJSONVTFeatureDiff
+};
