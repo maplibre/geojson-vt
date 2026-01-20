@@ -1,22 +1,22 @@
 
 import {test, expect} from 'vitest';
-import geojsonvt from '../dist/geojson-vt.mjs';
+import geojsonvt from '../src';
 
 const leftPoint = {
-    type: 'Feature',
+    type: 'Feature' as const,
     properties: {},
     geometry: {
         coordinates: [-540, 0],
-        type: 'Point'
+        type: 'Point' as const
     }
 };
 
 const rightPoint = {
-    type: 'Feature',
+    type: 'Feature' as const,
     properties: {},
     geometry: {
         coordinates: [540, 0],
-        type: 'Point'
+        type: 'Point' as const
     }
 };
 

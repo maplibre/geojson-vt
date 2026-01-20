@@ -62,9 +62,9 @@ test('simplifies points correctly with the given tolerance', () => {
 });
 
 test('does not throw max call stack error on bad long input', () => {
-    const coords = [];
+    const coords: number[] = [];
     for (let i = 0; i < 1400; i++) {
-        coords.push([0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]);
+        coords.push(0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0);
     }
 
     expect(() => {

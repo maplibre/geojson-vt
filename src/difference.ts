@@ -43,7 +43,7 @@ export type GeoJSONVTFeatureDiff = {
      */
     addOrUpdateProperties?: {
         key: string;
-        value: any;
+        value: unknown;
     }[];
 };
 

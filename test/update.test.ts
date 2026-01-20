@@ -1,9 +1,9 @@
 import {test, expect} from 'vitest';
-import geojsonvt from '../dist/geojson-vt.mjs';
+import geojsonvt from '../src';
 
 test('updateData: requires updateable option', () => {
     const index = geojsonvt({
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: []
     });
 
@@ -14,12 +14,12 @@ test('updateData: requires updateable option', () => {
 
 test('updateData: adds new features', () => {
     const initialData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'feature1',
-                geometry: {type: 'Point', coordinates: [0, 0]},
+                geometry: {type: 'Point' as const, coordinates: [0, 0]},
                 properties: {name: 'Feature 1'}
             }
         ]
@@ -28,9 +28,9 @@ test('updateData: adds new features', () => {
     const index = geojsonvt(initialData, {updateable: true});
 
     const newFeature = {
-        type: 'Feature',
+        type: 'Feature' as const,
         id: 'feature2',
-        geometry: {type: 'Point', coordinates: [10, 10]},
+        geometry: {type: 'Point' as const, coordinates: [10, 10]},
         properties: {name: 'Feature 2'}
     };
 
@@ -42,18 +42,18 @@ test('updateData: adds new features', () => {
 
 test('updateData: removes features by id', () => {
     const initialData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'feature1',
-                geometry: {type: 'Point', coordinates: [0, 0]},
+                geometry: {type: 'Point' as const, coordinates: [0, 0]},
                 properties: {name: 'Feature 1'}
             },
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'feature2',
-                geometry: {type: 'Point', coordinates: [10, 10]},
+                geometry: {type: 'Point' as const, coordinates: [10, 10]},
                 properties: {name: 'Feature 2'}
             }
         ]
@@ -69,12 +69,12 @@ test('updateData: removes features by id', () => {
 
 test('updateData: replaces features with duplicate ids', () => {
     const initialData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'feature1',
-                geometry: {type: 'Point', coordinates: [0, 0]},
+                geometry: {type: 'Point' as const, coordinates: [0, 0]},
                 properties: {name: 'Original'}
             }
         ]
@@ -83,9 +83,9 @@ test('updateData: replaces features with duplicate ids', () => {
     const index = geojsonvt(initialData, {updateable: true});
 
     const updatedFeature = {
-        type: 'Feature',
+        type: 'Feature' as const,
         id: 'feature1',
-        geometry: {type: 'Point', coordinates: [5, 5]},
+        geometry: {type: 'Point' as const, coordinates: [5, 5]},
         properties: {name: 'Updated'}
     };
 
@@ -99,18 +99,18 @@ test('updateData: replaces features with duplicate ids', () => {
 
 test('updateData: handles both add and remove in same call', () => {
     const initialData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'feature1',
-                geometry: {type: 'Point', coordinates: [0, 0]},
+                geometry: {type: 'Point' as const, coordinates: [0, 0]},
                 properties: {name: 'Feature 1'}
             },
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'feature2',
-                geometry: {type: 'Point', coordinates: [10, 10]},
+                geometry: {type: 'Point' as const, coordinates: [10, 10]},
                 properties: {name: 'Feature 2'}
             }
         ]
@@ -119,9 +119,9 @@ test('updateData: handles both add and remove in same call', () => {
     const index = geojsonvt(initialData, {updateable: true});
 
     const newFeature = {
-        type: 'Feature',
+        type: 'Feature' as const,
         id: 'feature3',
-        geometry: {type: 'Point', coordinates: [20, 20]},
+        geometry: {type: 'Point' as const, coordinates: [20, 20]},
         properties: {name: 'Feature 3'}
     };
 
@@ -151,12 +151,12 @@ test('updateData: works with empty diff', () => {
 
 test('updateData: invalidates tiles at deeper zoom', () => {
     const initialData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [{
-            type: 'Feature',
+            type: 'Feature' as const,
             id: 'feature1',
             geometry: {
-                type: 'Polygon',
+                type: 'Polygon' as const,
                 coordinates: [[
                     [0, 0], [5, 0], [5, 5], [0, 5], [0, 0]
                 ]]
@@ -178,10 +178,10 @@ test('updateData: invalidates tiles at deeper zoom', () => {
     expect(tileBefore.numFeatures).toBe(1);
 
     const updatedFeature = {
-        type: 'Feature',
+        type: 'Feature' as const,
         id: 'feature1',
         geometry: {
-            type: 'Polygon',
+            type: 'Polygon' as const,
             coordinates: [[
                 [0, 0], [10, 0], [10, 10], [0, 10], [0, 0]
             ]]
@@ -201,15 +201,16 @@ test('updateData: invalidates tiles at deeper zoom', () => {
 
 test('updateData: invalidates tiles with partial intersection', () => {
     const initialData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'far-east',
                 geometry: {
-                    type: 'Point',
+                    type: 'Point' as const,
                     coordinates: [179.99, 0]  // far east
-                }
+                },
+                properties: {}
             }
         ]
     };
@@ -221,12 +222,13 @@ test('updateData: invalidates tiles with partial intersection', () => {
     });
 
     const edgeFeature = {
-        type: 'Feature',
+        type: 'Feature' as const,
         id: 'edge-line',
         geometry: {
-            type: 'LineString',
+            type: 'LineString' as const,
             coordinates: [[0, -1], [180, 1]]
-        }
+        },
+        properties: {}
     };
 
     index.updateData({add: [edgeFeature]});
@@ -238,15 +240,16 @@ test('updateData: invalidates tiles with partial intersection', () => {
 
 test('updateData: invalidates empty tiles', () => {
     const initialData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'nw-only',
                 geometry: {
-                    type: 'Point',
+                    type: 'Point' as const,
                     coordinates: [-90, 45]  // top left quadrant only
-                }
+                },
+                properties: {}
             }
         ]
     };
@@ -260,12 +263,13 @@ test('updateData: invalidates empty tiles', () => {
     expect(index.stats.z1).toBe(4);
 
     const globalFeature = {
-        type: 'Feature',
+        type: 'Feature' as const,
         id: 'global',
         geometry: {
-            type: 'LineString',
+            type: 'LineString' as const,
             coordinates: [[-180, -85], [180, 85]]  // spans whole world
-        }
+        },
+        properties: {}
     };
 
     index.updateData({add: [globalFeature]});
@@ -274,23 +278,25 @@ test('updateData: invalidates empty tiles', () => {
 
 test('updateData: does not invalidate unaffected tiles', () => {
     const initialData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'northwest',
                 geometry: {
-                    type: 'Point',
+                    type: 'Point' as const,
                     coordinates: [-90, 45]  // NW quadrant only
-                }
+                },
+                properties: {}
             },
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'southeast',
                 geometry: {
-                    type: 'Point',
+                    type: 'Point' as const,
                     coordinates: [90, -45]  // SE quadrant only
-                }
+                },
+                properties: {}
             }
         ]
     };
@@ -311,12 +317,13 @@ test('updateData: does not invalidate unaffected tiles', () => {
     expect(seTileBefore).toBeTruthy();
 
     const updatedFeature = {
-        type: 'Feature',
+        type: 'Feature' as const,
         id: 'northwest',
         geometry: {
-            type: 'Point',
+            type: 'Point' as const,
             coordinates: [-85, 40]  // NW different coordinate
-        }
+        },
+        properties: {}
     };
 
     index.updateData({add: [updatedFeature]});
@@ -330,13 +337,13 @@ test('updateData: does not invalidate unaffected tiles', () => {
 
 test('updateData: invalidates and regenerates tiles at multiple zoom levels', () => {
     const initialData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'feature1',
                 geometry: {
-                    type: 'Polygon',
+                    type: 'Polygon' as const,
                     coordinates: [[
                         [0, 0],
                         [5, 0],
@@ -357,10 +364,10 @@ test('updateData: invalidates and regenerates tiles at multiple zoom levels', ()
     });
 
     const updatedFeature = {
-        type: 'Feature',
+        type: 'Feature' as const,
         id: 'feature1',
         geometry: {
-            type: 'Polygon',
+            type: 'Polygon' as const,
             coordinates: [[
                 [0, 0],
                 [10, 0],
@@ -394,14 +401,15 @@ test('updateData: invalidates and regenerates tiles at multiple zoom levels', ()
 
 test('updateData: invalidates tiles when feature is within the buffer edge', () => {
     const initialData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [{
-            type: 'Feature',
+            type: 'Feature' as const,
             id: 'feature1',
             geometry: {
-                type: 'Point',
+                type: 'Point' as const,
                 coordinates: [-45, 45] // inside tile 1-0-0
-            }
+            },
+            properties: {}
         }]
     };
 
@@ -416,12 +424,13 @@ test('updateData: invalidates tiles when feature is within the buffer edge', () 
     expect(index.tiles[tileId]).toBeTruthy();
 
     const featureWithinBuffer = {
-        type: 'Feature',
+        type: 'Feature' as const,
         id: 'buffer-feature',
         geometry: {
-            type: 'Point',
+            type: 'Point' as const,
             coordinates: [2, 0] // feature within tile buffer edge
-        }
+        },
+        properties: {}
     };
 
     index.updateData({add: [featureWithinBuffer]});
@@ -430,15 +439,16 @@ test('updateData: invalidates tiles when feature is within the buffer edge', () 
 
 test('updateData: handles drill-down after update', () => {
     const initialData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [
             {
-                type: 'Feature',
+                type: 'Feature' as const,
                 id: 'line1',
                 geometry: {
-                    type: 'LineString',
+                    type: 'LineString' as const,
                     coordinates: [[0, 0], [5, 5]]
-                }
+                },
+                properties: {}
             }
         ]
     };
@@ -449,12 +459,13 @@ test('updateData: handles drill-down after update', () => {
     });
 
     const newFeature = {
-        type: 'Feature',
+        type: 'Feature' as const,
         id: 'line2',
         geometry: {
-            type: 'LineString',
+            type: 'LineString' as const,
             coordinates: [[0, 0], [6, 6]]
-        }
+        },
+        properties: {}
     };
 
     index.updateData({add: [newFeature]});
@@ -466,6 +477,6 @@ test('updateData: handles drill-down after update', () => {
     expect(featureIds).toEqual(['line1', 'line2']);
 });
 
-function toID(z, x, y) {
+function toID(z: number, x: number, y: number): number {
     return (((1 << z) * y + x) * 32) + z;
 }

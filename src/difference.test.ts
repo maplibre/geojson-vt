@@ -1,6 +1,5 @@
 import {test, expect} from 'vitest';
 import {applySourceDiff} from './difference';
-import type { GeoJSONVTFeature } from './definitions';
 
 const options = {
     maxZoom: 14,
@@ -138,8 +137,8 @@ test('applySourceDiff: updates a feature geometry', () => {
 
     expect(source.length).toBe(1);
     expect(source[0].id).toBe('point');
-    expect(source[0].geometry[0]).toBe(projectX(1));
-    expect(source[0].geometry[1]).toBe(projectY(0));
+    expect(source[0].geometry[0]).toBe(0.5027777777777778);
+    expect(source[0].geometry[1]).toBe(0.5);
 });
 
 test('applySourceDiff: adds properties', () => {
@@ -269,13 +268,3 @@ test('applySourceDiff: empty update preserves properties', () => {
     expect(tags2.prop).toBe('value');
     expect(tags2.prop2).toBe('value2');
 });
-
-function projectX(x) {
-    return x / 360 + 0.5;
-}
-
-function projectY(y) {
-    const sin = Math.sin(y * Math.PI / 180);
-    const y2 = 0.5 - 0.25 * Math.log((1 + sin) / (1 - sin)) / Math.PI;
-    return y2 < 0 ? 0 : y2 > 1 ? 1 : y2;
-}

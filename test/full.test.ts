@@ -2,7 +2,7 @@
 import {test, expect} from 'vitest';
 import fs from 'fs';
 
-import geojsonvt from '../dist/geojson-vt.mjs';
+import geojsonvt, {type GeoJSONVTOptions, type GeoJSONVTTileFeature } from '../src';
 
 testTiles('us-states.json', 'us-states-tiles.json', {indexMaxZoom: 7, indexMaxPoints: 200});
 testTiles('dateline.json', 'dateline-tiles.json', {indexMaxZoom: 0, indexMaxPoints: 10000});
@@ -15,11 +15,11 @@ testTiles('ids.json', 'ids-generate-id-tiles.json', {indexMaxZoom: 0, generateId
 
 test('throws on invalid GeoJSON', () => {
     expect(() => {
-        genTiles({type: 'Pologon'});
+        genTiles({type: 'Pologon'} as unknown as GeoJSON.GeoJSON);
     }).toThrow();
 });
 
-function testTiles(inputFile, expectedFile, options) {
+function testTiles(inputFile: string, expectedFile: string, options: GeoJSONVTOptions) {
     test(`full tiling test: ${  expectedFile.replace('-tiles.json', '')}`, () => {
         const tiles = genTiles(getJSON(inputFile), options);
         // fs.writeFileSync(path.join(__dirname, '/fixtures/' + expectedFile), JSON.stringify(tiles));
@@ -41,17 +41,17 @@ test('empty coordinates', () => {
     expect({}).toEqual(genTiles(getJSON('empty-coords.json')));
 });
 
-function getJSON(name) {
-    return JSON.parse(fs.readFileSync(new URL(`fixtures/${name}`, import.meta.url)));
+function getJSON(name: string) {
+    return JSON.parse(fs.readFileSync(new URL(`fixtures/${name}`, import.meta.url), 'utf-8'));
 }
 
-function genTiles(data, options) {
+function genTiles(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
     const index = geojsonvt(data, Object.assign({
         indexMaxZoom: 0,
         indexMaxPoints: 10000
     }, options));
 
-    const output = {};
+    const output: Record<string, GeoJSONVTTileFeature[]> = {};
 
     for (const id in index.tiles) {
         const tile = index.tiles[id];

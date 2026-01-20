@@ -1,7 +1,7 @@
 
 import {test, expect} from 'vitest';
 import {clip} from './clip';
-import type { GeoJSONVTFeature, StartEndSizeArray } from './definitions';
+import type { StartEndSizeArray } from './definitions';
 
 const geom1 = [0,0,0,50,0,0,50,10,0,20,10,0,20,20,0,30,20,0,30,30,0,50,30,0,50,40,0,25,40,0,25,50,0,0,50,0,0,60,0,25,60,0];
 const geom2 = [0,0,0,50,0,0,50,10,0,0,10,0];
@@ -14,12 +14,12 @@ test('clips polylines', () => {
     ], 1, 10, 40, 0, -Infinity, Infinity, {});
 
     const expected = [
-        {id: null, type: 'MultiLineString', geometry: [
+        {id: null as string, type: 'MultiLineString', geometry: [
             [10,0,1,40,0,1],
             [40,10,1,20,10,0,20,20,0,30,20,0,30,30,0,40,30,1],
             [40,40,1,25,40,0,25,50,0,10,50,1],
             [10,60,1,25,60,0]], tags: {"1": 1}, minX: 10, minY: 0, maxX: 40, maxY: 60},
-        {id: null, type: 'MultiLineString', geometry: [
+        {id: null as string, type: 'MultiLineString', geometry: [
             [10,0,1,40,0,1],
             [40,10,1,10,10,1]], tags: {"2": 2}, minX: 10, minY: 0, maxX: 40, maxY: 10}
     ];
@@ -43,12 +43,12 @@ test('clips lines with line metrics on', () => {
         1, 10, 40, 0, -Infinity, Infinity, {lineMetrics: true});
 
     expect(
-        clipped.map((f: GeoJSONVTFeature & { geometry: StartEndSizeArray }) => [f.geometry.start, f.geometry.end])).toEqual(
+        clipped.map(f => [(f.geometry as StartEndSizeArray).start, (f.geometry as StartEndSizeArray).end])).toEqual(
         [[10, 40], [70, 130], [160, 200], [230, 245]]
     );
 });
 
-function closed(geometry) {
+function closed(geometry: number[]): number[][] {
     return [geometry.concat(geometry.slice(0, 3))];
 }
 
@@ -60,8 +60,8 @@ test('clips polygons', () => {
     ], 1, 10, 40, 0, -Infinity, Infinity, {});
 
     const expected = [
-        {id: null, type: 'Polygon', geometry: [[10,0,1,40,0,1,40,10,1,20,10,0,20,20,0,30,20,0,30,30,0,40,30,1,40,40,1,25,40,0,25,50,0,10,50,1,10,60,1,25,60,0,10,24,1,10,0,1]], tags: {"1": 1}, minX: 10, minY: 0, maxX: 40, maxY: 60},
-        {id: null, type: 'Polygon', geometry: [[10,0,1,40,0,1,40,10,1,10,10,1,10,0,1]], tags: {"2": 2}, minX: 10, minY: 0, maxX: 40, maxY: 10}
+        {id: null as string, type: 'Polygon', geometry: [[10,0,1,40,0,1,40,10,1,20,10,0,20,20,0,30,20,0,30,30,0,40,30,1,40,40,1,25,40,0,25,50,0,10,50,1,10,60,1,25,60,0,10,24,1,10,0,1]], tags: {"1": 1}, minX: 10, minY: 0, maxX: 40, maxY: 60},
+        {id: null as string, type: 'Polygon', geometry: [[10,0,1,40,0,1,40,10,1,10,10,1,10,0,1]], tags: {"2": 2}, minX: 10, minY: 0, maxX: 40, maxY: 10}
     ];
 
     expect(JSON.stringify(clipped)).toEqual(JSON.stringify(expected));

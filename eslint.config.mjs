@@ -4,12 +4,5 @@ import tseslint from 'typescript-eslint';
 
 export default defineConfig(
   eslint.configs.recommended,
-  tseslint.configs.recommended,
-
-  {
-    rules: {
-        // HM TODO: remove this!
-        "@typescript-eslint/no-explicit-any": "off"
-    }
-  }
+  tseslint.configs.recommended
 );

@@ -2,7 +2,7 @@
 import {test, expect} from 'vitest';
 import fs from 'fs';
 
-import geojsonvt from '../dist/geojson-vt.mjs';
+import geojsonvt from '../src';
 
 const square = [{
     geometry: [[[-64, 4160], [-64, -64], [4160, -64], [4160, 4160], [-64, 4160]]],
@@ -17,14 +17,14 @@ test('getTile: us-states.json', () => {
     console.log = function () {};
     const index = geojsonvt(getJSON('us-states.json'), {debug: 2});
 
-    expect(index.getTile(7, 37, 48).features).toEqual(getJSON('us-states-z7-37-48.json'), 'z7-37-48');
-    expect(index.getTile('7', '37', '48').features).toEqual(getJSON('us-states-z7-37-48.json'), 'z, x, y as strings');
+    expect(index.getTile(7, 37, 48).features).toEqual(getJSON('us-states-z7-37-48.json'));
+    expect(index.getTile('7' as any, '37' as any, '48' as any).features).toEqual(getJSON('us-states-z7-37-48.json'));
 
-    expect(index.getTile(9, 148, 192).features).toEqual(square, 'z9-148-192 (clipped square)');
+    expect(index.getTile(9, 148, 192).features).toEqual(square);
 
-    expect(index.getTile(11, 800, 400)).toBe(null, 'non-existing tile');
-    expect(index.getTile(-5, 123.25, 400.25)).toBe(null, 'invalid tile');
-    expect(index.getTile(25, 200, 200)).toBe(null, 'invalid tile');
+    expect(index.getTile(11, 800, 400)).toBeNull();
+    expect(index.getTile(-5, 123.25, 400.25)).toBeNull();
+    expect(index.getTile(25, 200, 200)).toBeNull();
 
     console.log = log;
 
@@ -76,6 +76,6 @@ test('getTile: polygon clipping on the boundary', () => {
     }]);
 });
 
-function getJSON(name) {
-    return JSON.parse(fs.readFileSync(new URL(`fixtures/${name}`, import.meta.url)));
+function getJSON(name: string) {
+    return JSON.parse(fs.readFileSync(new URL(`fixtures/${name}`, import.meta.url), 'utf-8'));
 }

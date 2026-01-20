@@ -3,7 +3,7 @@ import {convert} from './convert';
 import {clip} from './clip';
 import {wrap} from './wrap';
 import {transformTile, type GeoJSONVTTransformedTile} from './transform';
-import {createTile, type GeoJSONVTTile} from './tile';
+import {createTile, type GeoJSONVTTile, type GeoJSONVTTileFeature} from './tile';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
 import type { GeoJSONVTFeature, GeoJSONVTOptions } from './definitions';
 
@@ -29,7 +29,7 @@ class GeoJSONVT {
     public total: number = 0;
     public source?: GeoJSONVTFeature[];
     constructor(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
-        options = this.options = extend(Object.create(defaultOptions), options);
+        options = this.options = Object.assign({}, defaultOptions, options);
 
         const debug = options.debug;
 
@@ -346,11 +346,8 @@ function toID(z: number, x: number, y: number): number {
     return (((1 << z) * y + x) * 32) + z;
 }
 
-function extend(dest: any, src: any) {
-    for (const i in src) dest[i] = src[i];
-    return dest;
-}
-
-export default function geojsonvt(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
+export default function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
     return new GeoJSONVT(data, options);
 }
+
+export type { GeoJSONVTFeature, GeoJSONVTOptions, GeoJSONVTTile, GeoJSONVTTileFeature };

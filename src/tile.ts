@@ -35,11 +35,11 @@ export type GeoJSONVTTile = {
 export function createTile(features: GeoJSONVTFeature[], z: number, tx: number, ty: number, options: GeoJSONVTOptions): GeoJSONVTTile {
     const tolerance = z === options.maxZoom ? 0 : options.tolerance / ((1 << z) * options.extent);
     const tile = {
-        features: [],
+        features: [] as GeoJSONVTTileFeature[],
         numPoints: 0,
         numSimplified: 0,
         numFeatures: features.length,
-        source: null,
+        source: null as GeoJSONVTFeature[] | null,
         x: tx,
         y: ty,
         z,
@@ -56,7 +56,7 @@ export function createTile(features: GeoJSONVTFeature[], z: number, tx: number, 
 }
 
 function addFeature(tile: GeoJSONVTTile, feature: GeoJSONVTFeature, tolerance: number, options: GeoJSONVTOptions) {
-    const simplified = [];
+    const simplified: number[] | number[][] = [];
 
     tile.minX = Math.min(tile.minX, feature.minX);
     tile.minY = Math.min(tile.minY, feature.minY);
@@ -67,25 +67,25 @@ function addFeature(tile: GeoJSONVTTile, feature: GeoJSONVTFeature, tolerance: n
     case 'Point':
     case 'MultiPoint':
         for (let i = 0; i < feature.geometry.length; i += 3) {
-            simplified.push(feature.geometry[i], feature.geometry[i + 1]);
+            (simplified as number[]).push(feature.geometry[i] , feature.geometry[i + 1]);
             tile.numPoints++;
             tile.numSimplified++;
         }
         break;
     case 'LineString':
-        addLine(simplified, feature.geometry, tile, tolerance, false, false);
+        addLine(simplified as number[][], feature.geometry, tile, tolerance, false, false);
         break;
     case 'MultiLineString':
     case 'Polygon':
         for (let i = 0; i < feature.geometry.length; i++) {
-            addLine(simplified, feature.geometry[i], tile, tolerance, feature.type === 'Polygon', i === 0);
+            addLine(simplified as number[][], feature.geometry[i], tile, tolerance, feature.type === 'Polygon', i === 0);
         }
         break;
     case 'MultiPolygon':
         for (let k = 0; k < feature.geometry.length; k++) {
             const polygon = feature.geometry[k];
             for (let i = 0; i < polygon.length; i++) {
-                addLine(simplified, polygon[i], tile, tolerance, true, i === 0);
+                addLine(simplified as number[][], polygon[i], tile, tolerance, true, i === 0);
             }
         }
         break;
