@@ -1,6 +1,7 @@
 ## main
 ### ✨ Features and improvements
 - Increase coverage to 100% ([#11](https://github.com/maplibre/geojson-vt/pull/11)) (by [wayofthefuture](https://github.com/wayofthefuture))
+- Move to use switch case stamenets and migrate tests to use vitest. ([#16](https://github.com/maplibre/geojson-vt/pull/16)) (by [HarelM](https://github.com/harelm))
 - _...Add new stuff here..._
 
 ### 🐞 Bug fixes
