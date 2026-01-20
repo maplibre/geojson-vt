@@ -19,6 +19,7 @@ export function createFeature(id, type, geom, tags) {
         calcLineBBox(feature, data.geom);
         break;
     case 'Polygon':
+        // the outer ring (ie [0]) contains all inner rings
         calcLineBBox(feature, data.geom[0]);
         break;
     case 'MultiLineString':
