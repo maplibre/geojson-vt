@@ -57,23 +57,23 @@ function convertFeature(features, geojson, options, index) {
         const pointGeometry = [];
         convertPoint(geojson.geometry.coordinates, pointGeometry);
         features.push(createFeature(id, geojson.geometry.type, pointGeometry, geojson.properties));
-    }
         return;
+    }
     case 'MultiPoint': {
         const multiPointGeometry = [];
         for (const p of geojson.geometry.coordinates) {
             convertPoint(p, multiPointGeometry);
         }
         features.push(createFeature(id, geojson.geometry.type, multiPointGeometry, geojson.properties));
-    }
         return;
+    }
     case 'LineString': {
         const lineGeometry = [];
         convertLine(geojson.geometry.coordinates, lineGeometry, tolerance, false);
         features.push(createFeature(id, geojson.geometry.type, lineGeometry, geojson.properties));
-    }
         return;
-    case 'MultiLineString':
+    }
+    case 'MultiLineString': {
         if (options.lineMetrics) {
             // explode into linestrings to be able to track metrics
             for (const line of geojson.geometry.coordinates) {
@@ -81,18 +81,19 @@ function convertFeature(features, geojson, options, index) {
                 convertLine(line, lineGeometry, tolerance, false);
                 features.push(createFeature(id, 'LineString', lineGeometry, geojson.properties));
             }
-        } else {
-            const multiLineGeometry = [];
-            convertLines(geojson.geometry.coordinates, multiLineGeometry, tolerance, false);
-            features.push(createFeature(id, geojson.geometry.type, multiLineGeometry, geojson.properties));
+            return;
         }
+        const multiLineGeometry = [];
+        convertLines(geojson.geometry.coordinates, multiLineGeometry, tolerance, false);
+        features.push(createFeature(id, geojson.geometry.type, multiLineGeometry, geojson.properties));
         return;
+    }
     case 'Polygon': {
         const polygonGeometry = [];
         convertLines(geojson.geometry.coordinates, polygonGeometry, tolerance, true);
         features.push(createFeature(id, geojson.geometry.type, polygonGeometry, geojson.properties));
-    }
         return;
+    }
     case 'MultiPolygon': {
         const multiPolygonGeometry = [];
         for (const polygon of geojson.geometry.coordinates) {
@@ -101,8 +102,8 @@ function convertFeature(features, geojson, options, index) {
             multiPolygonGeometry.push(newPolygon);
         }
         features.push(createFeature(id, geojson.geometry.type, multiPolygonGeometry, geojson.properties));
-    }
         return;
+    }
     default:
         throw new Error('Input data is not a valid GeoJSON object.');
     }
