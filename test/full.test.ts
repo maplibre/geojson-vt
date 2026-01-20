@@ -13,9 +13,9 @@ testTiles('single-geom.json', 'single-geom-tiles.json', {indexMaxZoom: 0, indexM
 testTiles('ids.json', 'ids-promote-id-tiles.json', {indexMaxZoom: 0, promoteId: 'prop0'});
 testTiles('ids.json', 'ids-generate-id-tiles.json', {indexMaxZoom: 0, generateId: true});
 
-test('throws on invalid GeoJSON', () => {
+test('throws on invalid GeoJSON type', () => {
     expect(() => {
-        genTiles({type: 'Pologon'} as unknown as GeoJSON.GeoJSON);
+        genTiles({type: 'Pologon', coordinates:[[-0.26,51.45],[-0.26,51.45]]} as unknown as GeoJSON.GeoJSON);
     }).toThrow();
 });
 

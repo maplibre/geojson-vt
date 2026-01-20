@@ -22,8 +22,10 @@ export function simplify(coords: number[], first: number, last: number, sqTolera
         if (d > maxSqDist) {
             index = i;
             maxSqDist = d;
+            continue;
+        }
 
-        } else if (d === maxSqDist) {
+        if (d === maxSqDist) {
             // a workaround to ensure we choose a pivot close to the middle of the list,
             // reducing recursion depth, for certain degenerate inputs
             // https://github.com/mapbox/geojson-vt/issues/104
@@ -53,12 +55,10 @@ export function simplify(coords: number[], first: number, last: number, sqTolera
  * @returns square distance from a point to a segment
  */
 function getSqSegDist(px: number, py: number, x: number, y: number, bx: number, by: number): number {
-
     let dx = bx - x;
     let dy = by - y;
 
     if (dx !== 0 || dy !== 0) {
-
         const t = ((px - x) * dx + (py - y) * dy) / (dx * dx + dy * dy);
 
         if (t > 1) {

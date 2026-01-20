@@ -34,6 +34,7 @@ export type GeoJSONVTTile = {
  */
 export function createTile(features: GeoJSONVTFeature[], z: number, tx: number, ty: number, options: GeoJSONVTOptions): GeoJSONVTTile {
     const tolerance = z === options.maxZoom ? 0 : options.tolerance / ((1 << z) * options.extent);
+
     const tile = {
         features: [] as GeoJSONVTTileFeature[],
         numPoints: 0,
@@ -49,9 +50,11 @@ export function createTile(features: GeoJSONVTFeature[], z: number, tx: number, 
         maxX: -1,
         maxY: 0
     };
+
     for (const feature of features) {
         addFeature(tile, feature, tolerance, options);
     }
+
     return tile;
 }
 
@@ -64,34 +67,37 @@ function addFeature(tile: GeoJSONVTTile, feature: GeoJSONVTFeature, tolerance: n
     tile.maxY = Math.max(tile.maxY, feature.maxY);
 
     switch (feature.type) {
-    case 'Point':
-    case 'MultiPoint':
-        for (let i = 0; i < feature.geometry.length; i += 3) {
-            (simplified as number[]).push(feature.geometry[i] , feature.geometry[i + 1]);
-            tile.numPoints++;
-            tile.numSimplified++;
-        }
-        break;
-    case 'LineString':
-        addLine(simplified as number[][], feature.geometry, tile, tolerance, false, false);
-        break;
-    case 'MultiLineString':
-    case 'Polygon':
-        for (let i = 0; i < feature.geometry.length; i++) {
-            addLine(simplified as number[][], feature.geometry[i], tile, tolerance, feature.type === 'Polygon', i === 0);
-        }
-        break;
-    case 'MultiPolygon':
-        for (let k = 0; k < feature.geometry.length; k++) {
-            const polygon = feature.geometry[k];
-            for (let i = 0; i < polygon.length; i++) {
-                addLine(simplified as number[][], polygon[i], tile, tolerance, true, i === 0);
+        case 'Point':
+        case 'MultiPoint':
+            for (let i = 0; i < feature.geometry.length; i += 3) {
+                (simplified as number[]).push(feature.geometry[i] , feature.geometry[i + 1]);
+                tile.numPoints++;
+                tile.numSimplified++;
             }
-        }
-        break;
-    }
+            break;
 
-    if (simplified.length === 0) return;
+        case 'LineString':
+            addLine(simplified as number[][], feature.geometry, tile, tolerance, false, false);
+            break;
+
+        case 'MultiLineString':
+        case 'Polygon':
+            for (let i = 0; i < feature.geometry.length; i++) {
+                addLine(simplified as number[][], feature.geometry[i], tile, tolerance, feature.type === 'Polygon', i === 0);
+            }
+            break;
+
+        case 'MultiPolygon':
+            for (let k = 0; k < feature.geometry.length; k++) {
+                const polygon = feature.geometry[k];
+                for (let i = 0; i < polygon.length; i++) {
+                    addLine(simplified as number[][], polygon[i], tile, tolerance, true, i === 0);
+                }
+            }
+            break;
+    }
+    if (!simplified.length) return;
+
     let tags = feature.tags || null;
 
     if (feature.type === 'LineString' && options.lineMetrics) {
@@ -108,9 +114,11 @@ function addFeature(tile: GeoJSONVTTile, feature: GeoJSONVTFeature, tolerance: n
         (feature.type === 'LineString' || feature.type === 'MultiLineString' ? 2 : 1),
         tags
     };
+
     if (feature.id !== null) {
         tileFeature.id = feature.id;
     }
+
     tile.features.push(tileFeature);
 }
 
@@ -139,17 +147,20 @@ function addLine(result: number[][], geom: StartEndSizeArray, tile: GeoJSONVTTil
 
 function rewind(ring: number[], clockwise: boolean) {
     let area = 0;
+
     for (let i = 0, len = ring.length, j = len - 2; i < len; j = i, i += 2) {
         area += (ring[i] - ring[j]) * (ring[i + 1] + ring[j + 1]);
     }
-    if (area > 0 === clockwise) {
-        for (let i = 0, len = ring.length; i < len / 2; i += 2) {
-            const x = ring[i];
-            const y = ring[i + 1];
-            ring[i] = ring[len - 2 - i];
-            ring[i + 1] = ring[len - 1 - i];
-            ring[len - 2 - i] = x;
-            ring[len - 1 - i] = y;
-        }
+
+    if (area > 0 !== clockwise) return;
+
+    for (let i = 0, len = ring.length; i < len / 2; i += 2) {
+        const x = ring[i];
+        const y = ring[i + 1];
+
+        ring[i] = ring[len - 2 - i];
+        ring[i + 1] = ring[len - 1 - i];
+        ring[len - 2 - i] = x;
+        ring[len - 1 - i] = y;
     }
 }

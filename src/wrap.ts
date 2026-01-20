@@ -6,15 +6,16 @@ import {createFeature} from './feature';
 export function wrap(features: GeoJSONVTFeature[], options: GeoJSONVTOptions): GeoJSONVTFeature[] {
     const buffer = options.buffer / options.extent;
     let merged = features;
+
     const left  = clip(features, 1, -1 - buffer, buffer,     0, -1, 2, options); // left world copy
     const right = clip(features, 1,  1 - buffer, 2 + buffer, 0, -1, 2, options); // right world copy
 
-    if (left || right) {
-        merged = clip(features, 1, -buffer, 1 + buffer, 0, -1, 2, options) || []; // center world copy
+    if (!left && !right) return merged;
 
-        if (left) merged = shiftFeatureCoords(left, 1).concat(merged); // merge left into center
-        if (right) merged = merged.concat(shiftFeatureCoords(right, -1)); // merge right into center
-    }
+    merged = clip(features, 1, -buffer, 1 + buffer, 0, -1, 2, options) || []; // center world copy
+
+    if (left) merged = shiftFeatureCoords(left, 1).concat(merged); // merge left into center
+    if (right) merged = merged.concat(shiftFeatureCoords(right, -1)); // merge right into center
 
     return merged;
 }
@@ -23,36 +24,40 @@ function shiftFeatureCoords(features: GeoJSONVTFeature[], offset: number): GeoJS
     const newFeatures = [];
 
     for (const feature of features) {
-
         switch (feature.type) {
-        case 'Point':
-        case 'MultiPoint':
-        case 'LineString': {
-            const newGeometry = shiftCoords(feature.geometry, offset);
-            newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-            break;
-        }
-        case 'MultiLineString':
-        case 'Polygon': {
-            const newGeometry = [];
-            for (const line of feature.geometry) {
-                newGeometry.push(shiftCoords(line, offset));
+            case 'Point':
+            case 'MultiPoint':
+            case 'LineString': {
+                const newGeometry = shiftCoords(feature.geometry, offset);
+
+                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                continue;
             }
-            newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-            break;
-        }
-        case 'MultiPolygon': {
-            const newGeometry = [];
-            for (const polygon of feature.geometry) {
-                const newPolygon = [];
-                for (const line of polygon) {
-                    newPolygon.push(shiftCoords(line, offset));
+
+            case 'MultiLineString':
+            case 'Polygon': {
+                const newGeometry = [];
+                for (const line of feature.geometry) {
+                    newGeometry.push(shiftCoords(line, offset));
                 }
-                newGeometry.push(newPolygon);
+
+                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                continue;
             }
-            newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-            break;
-        }
+
+            case 'MultiPolygon': {
+                const newGeometry = [];
+                for (const polygon of feature.geometry) {
+                    const newPolygon = [];
+                    for (const line of polygon) {
+                        newPolygon.push(shiftCoords(line, offset));
+                    }
+                    newGeometry.push(newPolygon);
+                }
+
+                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                continue;
+            }
         }
     }
 
@@ -71,5 +76,6 @@ function shiftCoords(points: StartEndSizeArray, offset: number): number[] | Star
     for (let i = 0; i < points.length; i += 3) {
         newPoints.push(points[i] + offset, points[i + 1], points[i + 2]);
     }
+
     return newPoints;
 }

@@ -16,8 +16,13 @@ export function clip(features: GeoJSONVTFeature[], scale: number, k1: number, k2
     k1 /= scale;
     k2 /= scale;
 
-    if (minAll >= k1 && maxAll < k2) return features; // trivial accept
-    else if (maxAll < k1 || minAll >= k2) return null; // trivial reject
+    if (minAll >= k1 && maxAll < k2) { // trivial accept
+        return features;
+    }
+
+    if (maxAll < k1 || minAll >= k2) { // trivial reject
+        return null;
+    }
 
     const clipped: GeoJSONVTFeature[] = [];
 
@@ -28,71 +33,86 @@ export function clip(features: GeoJSONVTFeature[], scale: number, k1: number, k2
         if (min >= k1 && max < k2) { // trivial accept
             clipped.push(feature);
             continue;
-        } else if (max < k1 || min >= k2) { // trivial reject
+        }
+
+        if (max < k1 || min >= k2) { // trivial reject
             continue;
         }
 
         switch (feature.type) {
-        case 'Point':
-        case 'MultiPoint': {
-            const pointGeometry: number[] = [];
-            clipPoints(feature.geometry, pointGeometry, k1, k2, axis);
-            if (pointGeometry.length === 0) continue;
-            const type = pointGeometry.length === 3 ? 'Point' : 'MultiPoint';
-            clipped.push(createFeature(feature.id, type, pointGeometry, feature.tags));   
-            continue;
-        }
-        case 'LineString': {
-            const lineGeometry: StartEndSizeArray[] = [];
-            clipLine(feature.geometry, lineGeometry, k1, k2, axis, false, options.lineMetrics);
-            if (lineGeometry.length === 0) continue;
-            if (options.lineMetrics) {
-                for (const line of lineGeometry) {
-                    clipped.push(createFeature(feature.id, feature.type, line, feature.tags));
-                }
+            case 'Point':
+            case 'MultiPoint': {
+                const pointGeometry: number[] = [];
+                clipPoints(feature.geometry, pointGeometry, k1, k2, axis);
+                if (!pointGeometry.length) continue;
+
+                const type = pointGeometry.length === 3 ? 'Point' : 'MultiPoint';
+                clipped.push(createFeature(feature.id, type, pointGeometry, feature.tags));
                 continue;
             }
-            if (lineGeometry.length === 1) {
-                clipped.push(createFeature(feature.id, feature.type, lineGeometry[0], feature.tags));
-            } else {
+
+            case 'LineString': {
+                const lineGeometry: StartEndSizeArray[] = [];
+                clipLine(feature.geometry, lineGeometry, k1, k2, axis, false, options.lineMetrics);
+                if (!lineGeometry.length) continue;
+
+                if (options.lineMetrics) {
+                    for (const line of lineGeometry) {
+                        clipped.push(createFeature(feature.id, feature.type, line, feature.tags));
+                    }
+                    continue;
+                }
+
+                if (lineGeometry.length === 1) {
+                    clipped.push(createFeature(feature.id, feature.type, lineGeometry[0], feature.tags));
+                    continue;
+                }
+
                 clipped.push(createFeature(feature.id, "MultiLineString", lineGeometry, feature.tags));
+                continue;
             }
-            continue;
-        }
-        case 'MultiLineString': {
-            const multiLineGeometry: StartEndSizeArray[] = [];
-            clipLines(feature.geometry, multiLineGeometry, k1, k2, axis, false);
-            if (multiLineGeometry.length === 0) continue;
-            if (multiLineGeometry.length === 1) {
-                clipped.push(createFeature(feature.id, "LineString", multiLineGeometry[0], feature.tags));
-            } else {
+
+            case 'MultiLineString': {
+                const multiLineGeometry: StartEndSizeArray[] = [];
+                clipLines(feature.geometry, multiLineGeometry, k1, k2, axis, false);
+                if (!multiLineGeometry.length) continue;
+
+                if (multiLineGeometry.length === 1) {
+                    clipped.push(createFeature(feature.id, "LineString", multiLineGeometry[0], feature.tags));
+                    continue;
+                }
+
                 clipped.push(createFeature(feature.id, feature.type, multiLineGeometry, feature.tags));
+                continue;
             }
-            continue;
-        }
-        case 'Polygon': {
-            const polygonGeometry: StartEndSizeArray[] = [];
-            clipLines(feature.geometry, polygonGeometry, k1, k2, axis, true);
-            if (polygonGeometry.length === 0) continue;
-            clipped.push(createFeature(feature.id, feature.type, polygonGeometry, feature.tags));
-            continue;
-        }
-        case 'MultiPolygon': {
-            const multiPolygonGeometry: StartEndSizeArray[][] = [];
-            for (const polygon of feature.geometry) {
-                const newPolygon: StartEndSizeArray[] = [];
-                clipLines(polygon, newPolygon, k1, k2, axis, true);
-                if (!newPolygon.length) continue;
-                multiPolygonGeometry.push(newPolygon);
+
+            case 'Polygon': {
+                const polygonGeometry: StartEndSizeArray[] = [];
+                clipLines(feature.geometry, polygonGeometry, k1, k2, axis, true);
+                if (!polygonGeometry.length) continue;
+
+                clipped.push(createFeature(feature.id, feature.type, polygonGeometry, feature.tags));
+                continue;
             }
-            if (multiPolygonGeometry.length === 0) continue;
-            clipped.push(createFeature(feature.id, feature.type, multiPolygonGeometry, feature.tags));
-            continue;
-        }
+
+            case 'MultiPolygon': {
+                const multiPolygonGeometry: StartEndSizeArray[][] = [];
+                for (const polygon of feature.geometry) {
+                    const newPolygon: StartEndSizeArray[] = [];
+                    clipLines(polygon, newPolygon, k1, k2, axis, true);
+                    if (newPolygon.length) multiPolygonGeometry.push(newPolygon);
+                }
+                if (!multiPolygonGeometry.length) continue;
+
+                clipped.push(createFeature(feature.id, feature.type, multiPolygonGeometry, feature.tags));
+                continue;
+            }
         }
     }
 
-    return clipped.length ? clipped : null;
+    if (!clipped.length) return null;
+
+    return clipped;
 }
 
 function clipPoints(geom: number[], newGeom: number[], k1: number, k2: number, axis: number) {
@@ -139,11 +159,13 @@ function clipLine(geom: StartEndSizeArray, newGeom: StartEndSizeArray[], k1: num
         } else {
             addPoint(slice, ax, ay, az);
         }
+
         if (b < k1 && a >= k1) {
             // <--|---  | or <--|-----|--- (line exits the clip region on the left)
             t = intersect(slice, ax, ay, bx, by, k1);
             exited = true;
         }
+
         if (b > k2 && a <= k2) {
             // |  ---|--> or ---|-----|--> (line exits the clip region on the right)
             t = intersect(slice, ax, ay, bx, by, k2);
