@@ -1,8 +1,6 @@
 
 import {test, expect} from 'vitest';
-import {simplify} from './simplify.js';
-
-/* eslint @stylistic/comma-spacing: 0, no-shadow: 0 */
+import {simplify} from './simplify';
 
 const points = [
     [0.22455,0.25015],[0.22691,0.24419],[0.23331,0.24145],[0.23498,0.23606],

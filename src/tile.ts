@@ -74,10 +74,8 @@ function addFeature(tile, feature, tolerance, options) {
         tags = {};
         for (const key in feature.tags) tags[key] = feature.tags[key];
         // HM TODO: replace with geojsonvt
-        /* eslint-disable dot-notation */
         tags['mapbox_clip_start'] = feature.geometry.start / feature.geometry.size;
         tags['mapbox_clip_end'] = feature.geometry.end / feature.geometry.size;
-        /* eslint-enable dot-notation */
     }
 
     const tileFeature = {

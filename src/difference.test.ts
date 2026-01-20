@@ -1,5 +1,5 @@
 import {test, expect} from 'vitest';
-import {applySourceDiff} from './difference.js';
+import {applySourceDiff} from './difference';
 
 const options = {
     maxZoom: 14,

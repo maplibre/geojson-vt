@@ -1,5 +1,5 @@
-import {convert} from './convert.js'; // GeoJSON conversion and preprocessing
-import {wrap} from './wrap.js';       // date line processing
+import {convert} from './convert'; // GeoJSON conversion and preprocessing
+import {wrap} from './wrap';       // date line processing
 
 // This file provides a set of helper functions for managing "diffs" (changes)
 // to GeoJSON data structures. These diffs describe additions, removals,
@@ -23,8 +23,6 @@ import {wrap} from './wrap.js';       // date line processing
 //     { key: "name", value: "New name" }
 //   ]
 // }
-
-/* eslint @stylistic/comma-spacing: 0, no-shadow: 0 */
 
 // applies a diff to the geojsonvt source simplified features array
 // returns an object with the affected features and new source array for invalidation

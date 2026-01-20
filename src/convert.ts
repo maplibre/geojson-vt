@@ -1,6 +1,6 @@
 
-import {simplify} from './simplify.js';
-import {createFeature} from './feature.js';
+import {simplify} from './simplify';
+import {createFeature} from './feature';
 
 /**
  * converts GeoJSON feature into an intermediate projected JSON vector format with simplification data
@@ -53,7 +53,6 @@ function convertFeature(features, geojson, options, index) {
     }
 
     switch (geojson.geometry.type) {
-
     case 'Point': {
         const pointGeometry = [];
         convertPoint(geojson.geometry.coordinates, pointGeometry);
