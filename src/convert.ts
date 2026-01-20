@@ -21,7 +21,7 @@ export function convert(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions): GeoJS
         convertFeature(features, data, options);
         break;
     default:
-        convertFeature(features, {geometry: data}, options);
+        convertFeature(features, {type: "Feature" as const, geometry: data, properties: undefined}, options);
     }
 
     return features;

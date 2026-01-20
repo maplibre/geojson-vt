@@ -1,5 +1,6 @@
 import {test, expect} from 'vitest';
 import {applySourceDiff} from './difference';
+import type { GeoJSONVTFeature } from './definitions';
 
 const options = {
     maxZoom: 14,
@@ -13,10 +14,10 @@ const options = {
 
 test('applySourceDiff: adds a feature using the feature id', () => {
     const point = {
-        type: 'Feature',
+        type: 'Feature' as const,
         id: 'point',
         geometry: {
-            type: 'Point',
+            type: 'Point' as const,
             coordinates: [0, 0]
         },
         properties: {},
@@ -32,9 +33,9 @@ test('applySourceDiff: adds a feature using the feature id', () => {
 
 test('applySourceDiff: adds a feature using the promoteId', () => {
     const point2 = {
-        type: 'Feature',
+        type: 'Feature' as const,
         geometry: {
-            type: 'Point',
+            type: 'Point' as const,
             coordinates: [0, 0],
         },
         properties: {
@@ -52,23 +53,25 @@ test('applySourceDiff: adds a feature using the promoteId', () => {
 
 test('applySourceDiff: removes a feature by its id', () => {
     const point = {
-        type: 'Feature',
+        type: 'Point' as const,
         id: 'point',
-        geometry: {
-            type: 'Point',
-            coordinates: [0, 0]
-        },
-        properties: {},
+        geometry: [0, 0],
+        tags: {},
+        minX: 0,
+        minY: 0,
+        maxX: 0,
+        maxY: 0
     };
 
     const point2 = {
-        type: 'Feature',
+        type: 'Point' as const,
         id: 'point2',
-        geometry: {
-            type: 'Point',
-            coordinates: [0, 0]
-        },
-        properties: {},
+        geometry: [0, 0],
+        tags: {},
+        minX: 0,
+        minY: 0,
+        maxX: 0,
+        maxY: 0
     };
 
     const {source} = applySourceDiff([point, point2], {
@@ -81,23 +84,25 @@ test('applySourceDiff: removes a feature by its id', () => {
 
 test('applySourceDiff: removeAll clears all features', () => {
     const point = {
-        type: 'Feature',
+        type: 'Point' as const,
         id: 'point',
-        geometry: {
-            type: 'Point',
-            coordinates: [0, 0]
-        },
-        properties: {},
+        geometry: [0, 0],
+        tags: {},
+        minX: 0,
+        minY: 0,
+        maxX: 0,
+        maxY: 0
     };
 
     const point2 = {
-        type: 'Feature',
+        type: 'Point' as const,
         id: 'point2',
-        geometry: {
-            type: 'Point',
-            coordinates: [0, 0]
-        },
-        properties: {},
+        geometry: [0, 0],
+        tags: {},
+        minX: 0,
+        minY: 0,
+        maxX: 0,
+        maxY: 0
     };
 
     const source = [point, point2];
@@ -111,13 +116,9 @@ test('applySourceDiff: removeAll clears all features', () => {
 
 test('applySourceDiff: updates a feature geometry', () => {
     const point = {
-        type: 'Feature',
+        type: 'Point' as const,
         id: 'point',
-        geometry: {
-            type: 'Point',
-            coordinates: [0, 0]
-        },
-        properties: {},
+        geometry: [0, 0],
         tags: {},
         minX: 0,
         minY: 0,
@@ -143,13 +144,9 @@ test('applySourceDiff: updates a feature geometry', () => {
 
 test('applySourceDiff: adds properties', () => {
     const point = {
-        type: 'Feature',
+        type: 'Point' as const,
         id: 'point',
-        geometry: {
-            type: 'Point',
-            coordinates: [0, 0]
-        },
-        properties: {},
+        geometry: [0, 0],
         tags: {},
         minX: 0,
         minY: 0,
@@ -176,12 +173,9 @@ test('applySourceDiff: adds properties', () => {
 
 test('applySourceDiff: updates properties', () => {
     const point = {
-        type: 'Feature',
+        type: 'Point' as const,
         id: 'point',
-        geometry: {
-            type: 'Point',
-            coordinates: [0, 0]
-        },
+        geometry: [0, 0],
         tags: {prop: 'value', prop2: 'value2'},
         minX: 0,
         minY: 0,
@@ -207,12 +201,9 @@ test('applySourceDiff: updates properties', () => {
 
 test('applySourceDiff: removes properties', () => {
     const point = {
-        type: 'Feature',
+        type: 'Point' as const,
         id: 'point',
-        geometry: {
-            type: 'Point',
-            coordinates: [0, 0]
-        },
+        geometry: [0, 0],
         tags: {prop: 'value', prop2: 'value2'},
         minX: 0,
         minY: 0,
@@ -235,12 +226,9 @@ test('applySourceDiff: removes properties', () => {
 
 test('applySourceDiff: removes all properties', () => {
     const point = {
-        type: 'Feature',
+        type: 'Point' as const,
         id: 'point',
-        geometry: {
-            type: 'Point',
-            coordinates: [0, 0]
-        },
+        geometry: [0, 0],
         tags: {prop: 'value', prop2: 'value2'},
         minX: 0,
         minY: 0,
@@ -261,12 +249,9 @@ test('applySourceDiff: removes all properties', () => {
 
 test('applySourceDiff: empty update preserves properties', () => {
     const point = {
-        type: 'Feature',
+        type: 'Point' as const,
         id: 'point',
-        geometry: {
-            type: 'Point',
-            coordinates: [0, 0]
-        },
+        geometry: [0, 0],
         tags: {prop: 'value', prop2: 'value2'},
         minX: 0,
         minY: 0,

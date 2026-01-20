@@ -1,55 +1,65 @@
 export type GeoJSONVTOptions = {
     /**
-     * max zoom to preserve detail on
+     * Max zoom to preserve detail on
+     * @default 14
      */
-    maxZoom: number;
+    maxZoom?: number;
     /**
-     * max zoom in the tile index
+     * Max zoom in the tile index
+     * @default 5
      */
-    indexMaxZoom: number;
+    indexMaxZoom?: number;
     /**
-     * max number of points per tile in the tile index
+     * Max number of points per tile in the tile index
+     * @default 100000
      */
-    indexMaxPoints: number;
+    indexMaxPoints?: number;
     /**
-     * simplification tolerance (higher means simpler)
+     * Simplification tolerance (higher means simpler)
+     * @default 3
      */
-    tolerance: number;
+    tolerance?: number;
     /**
-     * tile extent
+     * Tile extent
+     * @default 4096
      */
-    extent: number;
+    extent?: number;
     /**
-     * tile buffer on each side
+     * Tile buffer on each side
+     * @default 64
      */
-    buffer: number;
+    buffer?: number;
     /**
-     * whether to calculate line metrics
+     * Whether to calculate line metrics
+     * @default false
      */
-    lineMetrics: boolean;
+    lineMetrics?: boolean;
     /**
-     * name of a feature property to be promoted to feature.id
+     * Name of a feature property to be promoted to feature.id
      */
-    promoteId: string | null;
+    promoteId?: string | null;
     /**
-     * whether to generate feature ids. Cannot be used with promoteId
+     * Whether to generate feature ids. Cannot be used with promoteId
+     * @default false
      */
-    generateId: boolean;
+    generateId?: boolean;
     /**
-     * whether geojson can be updated (with caveat of a stored simplified copy)
+     * Whether geojson can be updated (with caveat of a stored simplified copy)
+     * @default false
      */
-    updateable: boolean;
+    updateable?: boolean;
     /**
-     * logging level (0, 1 or 2)
+     * Logging level (0, 1 or 2)
+     * @default 0
      */
-    debug: number;
+    debug?: number;
 };
 
 
 export type StartEndSizeArray = number[] & { start?: number; end?: number; size?: number };
 
 type PartialGeoJSONVTFeature = {
-    id: number | string | undefined;
+    id?: number | string | undefined;
     tags: GeoJSON.GeoJsonProperties;
     minX: number;
     minY: number;

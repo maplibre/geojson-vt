@@ -68,6 +68,6 @@ test('does not throw max call stack error on bad long input', () => {
     }
 
     expect(() => {
-        simplify(coords, 2e-15);
+        simplify(coords, 0, coords.length, 2e-15);
     }).not.toThrow();
 });
