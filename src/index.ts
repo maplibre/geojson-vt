@@ -21,13 +21,19 @@ const defaultOptions: GeoJSONVTOptions = {
     debug: 0
 };
 
+/**
+ * Main class for creating and managing a vector tile index from GeoJSON data.
+ */
 class GeoJSONVT {
     private options: GeoJSONVTOptions;
+    /** @internal */
     public tiles: {[key: string]: GeoJSONVTTile};
-    public tileCoords: {z: number, x: number, y: number, id: number}[];
+    private tileCoords: {z: number, x: number, y: number, id: number}[];
+    /** @internal */
     public stats: {[key: string]: number} = {};
+    /** @internal */
     public total: number = 0;
-    public source?: GeoJSONVTFeature[];
+    private source?: GeoJSONVTFeature[];
     constructor(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
         options = this.options = Object.assign({}, defaultOptions, options);
 
@@ -78,13 +84,14 @@ class GeoJSONVT {
      * 
      * If no target tile is specified, splitting stops when we reach the maximum
      * zoom or the number of points is low as specified in the options.
-     * @param features 
-     * @param z 
-     * @param x 
-     * @param y 
-     * @param cz 
-     * @param cx 
-     * @param cy 
+     * @internal
+     * @param features - features to split
+     * @param z - tile zoom level
+     * @param x - tile x coordinate
+     * @param y - tile y coordinate
+     * @param cz - target tile zoom level
+     * @param cx - target tile x coordinate
+     * @param cy - target tile y coordinate
      */
     splitTile(features: GeoJSONVTFeature[], z: number, x: number, y: number, cz?: number, cx?: number, cy?: number) {
 
@@ -178,6 +185,13 @@ class GeoJSONVT {
         }
     }
 
+    /**
+     * Given z, x, and y tile coordinates, returns the corresponding tile with geometries in tile coordinates, much like MVT data is stored.
+     * @param z - tile zoom level
+     * @param x - tile x coordinate
+     * @param y - tile y coordinate
+     * @returns the transformed tile or null if not found
+     */
     getTile(z: number | string, x: number | string, y: number | string): GeoJSONVTTransformedTile | null {
         z = +z;
         x = +x;
