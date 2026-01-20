@@ -52,9 +52,8 @@ export function clip(features: GeoJSONVTFeature[], scale: number, k1: number, k2
             for (const polygon of feature.geometry) {
                 const newPolygon = [];
                 clipLines(polygon, newPolygon, k1, k2, axis, true);
-                if (newPolygon.length) {
-                    (newGeometry).push(newPolygon);
-                }
+                if (!newPolygon.length) continue;
+                newGeometry.push(newPolygon);
             }
             break;
         }
@@ -68,15 +67,14 @@ export function clip(features: GeoJSONVTFeature[], scale: number, k1: number, k2
             continue;
         }
         let type = feature.type;
-        if (type === 'LineString' || feature.type === 'MultiLineString') {
+        if (type === 'LineString' || type === 'MultiLineString') {
             if (newGeometry.length === 1) {
                 type = 'LineString';
                 newGeometry = newGeometry[0];
             } else {
                 type = 'MultiLineString';
             }
-        }
-        if (feature.type === 'Point' || feature.type === 'MultiPoint') {
+        } else if (type === 'Point' || type === 'MultiPoint') {
             type = newGeometry.length === 3 ? 'Point' : 'MultiPoint';
         }
 

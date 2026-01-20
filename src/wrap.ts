@@ -27,9 +27,11 @@ function shiftFeatureCoords(features: GeoJSONVTFeature[], offset: number): GeoJS
         switch (feature.type) {
         case 'Point':
         case 'MultiPoint':
-        case 'LineString':
-            newFeatures.push(createFeature(feature.id, feature.type, shiftCoords(feature.geometry, offset), feature.tags));
+        case 'LineString': {
+            const newGeometry = shiftCoords(feature.geometry, offset);
+            newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
             break;
+        }
         case 'MultiLineString':
         case 'Polygon': {
             const newGeometry = [];
@@ -37,8 +39,8 @@ function shiftFeatureCoords(features: GeoJSONVTFeature[], offset: number): GeoJS
                 newGeometry.push(shiftCoords(line, offset));
             }
             newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-        }
             break;
+        }
         case 'MultiPolygon': {
             const newGeometry = [];
             for (const polygon of feature.geometry) {

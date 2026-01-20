@@ -197,7 +197,9 @@ function applyPropertyUpdates(tags: GeoJSON.GeoJsonProperties, update: GeoJSONVT
     return properties;
 }
 
-// Convert a GeoJSON Source Diff to an idempotent hashed representation using Sets and Maps
+/**
+ * Convert a GeoJSON Source Diff to an idempotent hashed representation using Sets and Maps
+ */
 export function diffToHashed(diff: GeoJSONVTSourceDiff): HashedGeoJSONVTSourceDiff {
     if (!diff) return {
         remove: new Set(),
