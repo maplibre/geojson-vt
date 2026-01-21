@@ -67,6 +67,44 @@ export type PartialGeoJSONVTFeature = {
     maxY: number;
 }
 
+export type GeoJSONVTPointFeature = PartialGeoJSONVTFeature & {
+    type: 'Point';
+    geometry: number[];
+};
+
+export type GeoJSONVTMultiPointFeature = PartialGeoJSONVTFeature & {
+    type: 'MultiPoint';
+    geometry: number[];
+};
+
+export type GeoJSONVTLineStringFeature = PartialGeoJSONVTFeature & {
+    type: 'LineString';
+    geometry: StartEndSizeArray;
+};
+
+export type GeoJSONVTMultiLineStringFeature = PartialGeoJSONVTFeature & {
+    type: 'MultiLineString';
+    geometry: StartEndSizeArray[];
+};
+
+export type GeoJSONVTPolygonFeature = PartialGeoJSONVTFeature & {
+    type: 'Polygon';
+    geometry: StartEndSizeArray[];
+};
+
+export type GeoJSONVTMultiPolygonFeature = PartialGeoJSONVTFeature & {
+    type: 'MultiPolygon';
+    geometry: StartEndSizeArray[][];
+};
+
+export type GeoJSONVTFeature =
+    | GeoJSONVTPointFeature
+    | GeoJSONVTMultiPointFeature
+    | GeoJSONVTLineStringFeature
+    | GeoJSONVTMultiLineStringFeature
+    | GeoJSONVTPolygonFeature
+    | GeoJSONVTMultiPolygonFeature;
+
 export type ClippedQuadrants = {
     tl: GeoJSONVTFeature[] | null;
     bl: GeoJSONVTFeature[] | null;
@@ -91,10 +129,3 @@ export type GeometryTypeMap = {
 }
 
 export type GeometryType = 'Point' | 'MultiPoint' | 'LineString' | 'MultiLineString' | 'Polygon' | 'MultiPolygon';
-
-export type GeoJSONVTFeature = {
-    [K in GeometryType]: PartialGeoJSONVTFeature & {
-        type: K;
-        geometry: GeometryTypeMap[K];
-    }
-}[GeometryType];

@@ -1,6 +1,6 @@
 
 import {createFeature} from './feature';
-import type {GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
+import type {GeoJSONVTFeature, GeoJSONVTPointFeature, GeoJSONVTMultiPointFeature, GeoJSONVTLineStringFeature, GeoJSONVTMultiLineStringFeature, GeoJSONVTPolygonFeature, GeoJSONVTMultiPolygonFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 
 /* clip features between two vertical or horizontal axis-parallel lines:
  *     |        |
@@ -68,20 +68,20 @@ export function clip(features: GeoJSONVTFeature[], scale: number, k1: number, k2
     return clipped;
 }
 
-function clipPointFeature(feature: GeoJSONVTFeature, clipped: GeoJSONVTFeature[], k1: number, k2: number, axis: number) {
+function clipPointFeature(feature: GeoJSONVTPointFeature | GeoJSONVTMultiPointFeature, clipped: GeoJSONVTFeature[], k1: number, k2: number, axis: number) {
     const geom: number[] = [];
 
-    clipPoints(feature.geometry as number[], geom, k1, k2, axis);
+    clipPoints(feature.geometry, geom, k1, k2, axis);
     if (!geom.length) return;
 
     const type = geom.length === 3 ? 'Point' : 'MultiPoint';
     clipped.push(createFeature(feature.id, type, geom, feature.tags));
 }
 
-function clipLineStringFeature(feature: GeoJSONVTFeature, clipped: GeoJSONVTFeature[], k1: number, k2: number, axis: number, options: GeoJSONVTOptions) {
+function clipLineStringFeature(feature: GeoJSONVTLineStringFeature, clipped: GeoJSONVTFeature[], k1: number, k2: number, axis: number, options: GeoJSONVTOptions) {
     const geom: StartEndSizeArray[] = [];
 
-    clipLine(feature.geometry as StartEndSizeArray, geom, k1, k2, axis, false, options.lineMetrics);
+    clipLine(feature.geometry, geom, k1, k2, axis, false, options.lineMetrics);
     if (!geom.length) return;
 
     if (options.lineMetrics) {
@@ -99,10 +99,10 @@ function clipLineStringFeature(feature: GeoJSONVTFeature, clipped: GeoJSONVTFeat
     clipped.push(createFeature(feature.id, feature.type, geom[0], feature.tags));
 }
 
-function clipMultiLineStringFeature(feature: GeoJSONVTFeature, clipped: GeoJSONVTFeature[], k1: number, k2: number, axis: number) {
+function clipMultiLineStringFeature(feature: GeoJSONVTMultiLineStringFeature, clipped: GeoJSONVTFeature[], k1: number, k2: number, axis: number) {
     const geom: StartEndSizeArray[] = [];
 
-    clipLines(feature.geometry as StartEndSizeArray[], geom, k1, k2, axis, false);
+    clipLines(feature.geometry, geom, k1, k2, axis, false);
     if (!geom.length) return;
 
     if (geom.length === 1) {
@@ -113,19 +113,19 @@ function clipMultiLineStringFeature(feature: GeoJSONVTFeature, clipped: GeoJSONV
     clipped.push(createFeature(feature.id, feature.type, geom, feature.tags));
 }
 
-function clipPolygonFeature(feature: GeoJSONVTFeature, clipped: GeoJSONVTFeature[], k1: number, k2: number, axis: number) {
+function clipPolygonFeature(feature: GeoJSONVTPolygonFeature, clipped: GeoJSONVTFeature[], k1: number, k2: number, axis: number) {
     const geom: StartEndSizeArray[] = [];
 
-    clipLines(feature.geometry as StartEndSizeArray[], geom, k1, k2, axis, true);
+    clipLines(feature.geometry, geom, k1, k2, axis, true);
     if (!geom.length) return;
 
     clipped.push(createFeature(feature.id, feature.type, geom, feature.tags));
 }
 
-function clipMultiPolygonFeature(feature: GeoJSONVTFeature, clipped: GeoJSONVTFeature[], k1: number, k2: number, axis: number) {
+function clipMultiPolygonFeature(feature: GeoJSONVTMultiPolygonFeature, clipped: GeoJSONVTFeature[], k1: number, k2: number, axis: number) {
     const geom: StartEndSizeArray[][] = [];
 
-    for (const polygon of feature.geometry as StartEndSizeArray[][]) {
+    for (const polygon of feature.geometry) {
         const newPolygon: StartEndSizeArray[] = [];
 
         clipLines(polygon, newPolygon, k1, k2, axis, true);
