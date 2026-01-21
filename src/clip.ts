@@ -119,9 +119,9 @@ function clipPoints(geom: number[], newGeom: number[], k1: number, k2: number, a
     for (let i = 0; i < geom.length; i += 3) {
         const a = geom[i + axis];
 
-        if (a >= k1 && a <= k2) {
-            addPoint(newGeom, geom[i], geom[i + 1], geom[i + 2]);
-        }
+        if (a < k1 || a > k2) continue;
+
+        addPoint(newGeom, geom[i], geom[i + 1], geom[i + 2]);
     }
 }
 
