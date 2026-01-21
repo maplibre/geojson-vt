@@ -236,7 +236,9 @@ class GeoJSONVT {
             console.log('found parent tile z%d-%d-%d', z0, x0, y0);
             console.time('drilling down');
         }
+
         this.splitTile(parent.source, z0, x0, y0, z, x, y);
+
         if (debug > 1) console.timeEnd('drilling down');
 
         if (!this.tiles[id]) return null;
@@ -247,7 +249,7 @@ class GeoJSONVT {
     /**
      * Invalidates (removes) tiles affected by the provided features
      * @internal
-     * @param features 
+     * @param features - features used to invalidate tiles
      */
     invalidateTiles(features: GeoJSONVTFeature[]) {
         const options = this.options;
@@ -295,6 +297,7 @@ class GeoJSONVT {
 
     /**
      * Calculates the bounding box of all features
+     * @param features - features to calculate bounds for
      * @internal
      */
     private calcFeaturesBounds(features: GeoJSONVTFeature[]): FeatureBounds {
@@ -315,6 +318,8 @@ class GeoJSONVT {
 
     /**
      * Calculates tile bounds including buffer used for clipping features.
+     * @param tile - tile to calculate bounds for
+     * @param k1 - tile buffer clipping value
      * @internal
      */
     private calcTileBounds(tile: GeoJSONVTTile, k1: number): FeatureBounds {
@@ -378,27 +383,29 @@ class GeoJSONVT {
             console.log('invalidating tiles');
             console.time('invalidating');
         }
+
         this.invalidateTiles(affected);
+
         if (debug > 1) console.timeEnd('invalidating');
 
         // recreate the index root tile - ready for getTile calls
-        this.regenerateRootTile();
+        this.regenerateRootTile(source, options);
     }
 
     /**
      * Re-generates the root tile with the updated feature set
      * @internal
      */
-    regenerateRootTile() {
+    regenerateRootTile(source: GeoJSONVTFeature[], options: GeoJSONVTOptions) {
         const [z, x, y] = [0, 0, 0];
-        const rootTile = createTile(this.source, z, x, y, this.options);
-        rootTile.source = this.source;
+        const rootTile = createTile(source, z, x, y, options);
+        rootTile.source = source;
 
         const id = toID(z, x, y);
         this.tiles[id] = rootTile;
         this.tileCoords.push({z, x, y, id});
 
-        if (this.options.debug) {
+        if (options.debug) {
             const key = `z${  z}`;
             this.stats[key] = (this.stats[key] || 0) + 1;
             this.total++;
