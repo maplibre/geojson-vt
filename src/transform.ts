@@ -13,7 +13,9 @@ export type GeoJSONVTTransformedTile = GeoJSONVTTile & {
  * @returns the transformed tile
  */
 export function transformTile(tile: GeoJSONVTTile, extent: number): GeoJSONVTTransformedTile {
-    if (tile.transformed) return tile as GeoJSONVTTransformedTile;
+    if (tile.transformed) {
+        return tile as GeoJSONVTTransformedTile;
+    }
 
     const z2 = 1 << tile.z;
     const tx = tile.x;
@@ -29,17 +31,17 @@ export function transformTile(tile: GeoJSONVTTile, extent: number): GeoJSONVTTra
             for (let j = 0; j < geom.length; j += 2) {
                 (feature.geometry as [number, number][]).push(transformPoint(geom[j] as number, geom[j + 1] as number, extent, z2, tx, ty));
             }
-        } else {
-            for (const singleGeom of geom as number[][]) {
-                const ring: [number, number][] = [];
-                for (let k = 0; k < singleGeom.length; k += 2) {
-                    ring.push(transformPoint(singleGeom[k], singleGeom[k + 1], extent, z2, tx, ty));
-                }
-                (feature.geometry as unknown as [number, number][][]).push(ring);
+            continue;
+        }
+
+        for (const singleGeom of geom as number[][]) {
+            const ring: [number, number][] = [];
+            for (let k = 0; k < singleGeom.length; k += 2) {
+                ring.push(transformPoint(singleGeom[k], singleGeom[k + 1], extent, z2, tx, ty));
             }
+            (feature.geometry as unknown as [number, number][][]).push(ring);
         }
     }
-
     tile.transformed = true;
 
     return tile as GeoJSONVTTransformedTile;
@@ -48,5 +50,6 @@ export function transformTile(tile: GeoJSONVTTile, extent: number): GeoJSONVTTra
 function transformPoint(x: number, y: number, extent: number, z2: number, tx: number, ty: number): [number, number] {
     return [
         Math.round(extent * (x * z2 - tx)),
-        Math.round(extent * (y * z2 - ty))];
+        Math.round(extent * (y * z2 - ty))
+    ];
 }

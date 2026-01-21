@@ -11,8 +11,9 @@ export type SupportedGeometries = GeoJSON.Point | GeoJSON.MultiPoint | GeoJSON.L
  * @returns the created feature
  */
 export function createFeature<T extends GeometryType>(id: number | string | undefined, type: T, geom: GeometryTypeMap[T], tags: GeoJSON.GeoJsonProperties): GeoJSONVTFeature {
-    // This is mosltly for TypeScript type narrowing
+    // This is mostly for TypeScript type narrowing
     const data = { type, geom } as { [K in GeometryType]: { type: K, geom: GeometryTypeMap[K] } }[GeometryType];
+
     const feature = {
         id: id == null ? null : id,
         type: data.type,
@@ -25,26 +26,29 @@ export function createFeature<T extends GeometryType>(id: number | string | unde
     } as GeoJSONVTFeature;
 
     switch (data.type) {
-    case 'Point':
-    case 'MultiPoint':
-    case 'LineString':
-        calcLineBBox(feature, data.geom);
-        break;
-    case 'Polygon':
-        // the outer ring (ie [0]) contains all inner rings
-        calcLineBBox(feature, data.geom[0]);
-        break;
-    case 'MultiLineString':
-        for (const line of data.geom) {
-            calcLineBBox(feature, line);
-        }
-        break;
-    case 'MultiPolygon':
-        for (const polygon of data.geom) {
+        case 'Point':
+        case 'MultiPoint':
+        case 'LineString':
+            calcLineBBox(feature, data.geom);
+            break;
+
+        case 'Polygon':
             // the outer ring (ie [0]) contains all inner rings
-            calcLineBBox(feature, polygon[0]);
-        }
-        break;
+            calcLineBBox(feature, data.geom[0]);
+            break;
+
+        case 'MultiLineString':
+            for (const line of data.geom) {
+                calcLineBBox(feature, line);
+            }
+            break;
+
+        case 'MultiPolygon':
+            for (const polygon of data.geom) {
+                // the outer ring (ie [0]) contains all inner rings
+                calcLineBBox(feature, polygon[0]);
+            }
+            break;
     }
 
     return feature;

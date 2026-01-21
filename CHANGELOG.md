@@ -3,6 +3,7 @@
 - Increase coverage to 100% ([#11](https://github.com/maplibre/geojson-vt/pull/11)) (by [wayofthefuture](https://github.com/wayofthefuture))
 - Move to use switch case stamenets and migrate tests to use vitest ([#16](https://github.com/maplibre/geojson-vt/pull/16)) (by [HarelM](https://github.com/HarelM))
 - Migrate code to typescript and added strict checks ([#15](https://github.com/maplibre/geojson-vt/pull/17), [#15](https://github.com/maplibre/geojson-vt/pull/17)) (by [HarelM](https://github.com/HarelM))
+- Some de-nesting, organizing, and readability improvements. ([#20](https://github.com/maplibre/geojson-vt/pull/20)) (by [wayofthefuture](https://github.com/wayofthefuture))
 - _...Add new stuff here..._
 
 ### 🐞 Bug fixes

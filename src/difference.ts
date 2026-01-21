@@ -213,5 +213,6 @@ export function diffToHashed(diff: GeoJSONVTSourceDiff): HashedGeoJSONVTSourceDi
         add: new Map(diff.add?.map(feature => [feature.id, feature])),
         update: new Map(diff.update?.map(update => [update.id, update]))
     };
+
     return hashed;
 }

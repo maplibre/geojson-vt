@@ -34,6 +34,7 @@ class GeoJSONVT {
     /** @internal */
     public total: number = 0;
     private source?: GeoJSONVTFeature[];
+
     constructor(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
         options = this.options = Object.assign({}, defaultOptions, options);
 
@@ -63,7 +64,9 @@ class GeoJSONVT {
         features = wrap(features, options);
 
         // start slicing from the top tile down
-        if (features.length) this.splitTile(features, 0, 0, 0);
+        if (features.length) {
+            this.splitTile(features, 0, 0, 0);
+        }
 
         // for updateable indexes, store a copy of the original simplified features
         if (options.updateable) {
@@ -148,7 +151,7 @@ class GeoJSONVT {
             // if we slice further down, no need to keep source geometry
             tile.source = null;
 
-            if (features.length === 0) continue;
+            if (!features.length) continue;
 
             if (debug > 1) console.time('clipping');
 
@@ -206,7 +209,9 @@ class GeoJSONVT {
         x = (x + z2) & (z2 - 1); // wrap tile x coordinate
 
         const id = toID(z, x, y);
-        if (this.tiles[id]) return transformTile(this.tiles[id], extent);
+        if (this.tiles[id]) {
+            return transformTile(this.tiles[id], extent);
+        }
 
         if (debug > 1) console.log('drilling down to z%d-%d-%d', z, x, y);
 
@@ -222,7 +227,7 @@ class GeoJSONVT {
             parent = this.tiles[toID(z0, x0, y0)];
         }
 
-        if (!parent || !parent.source) return null;
+        if (!parent?.source) return null;
 
         // if we found a parent tile containing the original geometry, we can drill down from it
         if (debug > 1) {
@@ -232,7 +237,9 @@ class GeoJSONVT {
         this.splitTile(parent.source, z0, x0, y0, z, x, y);
         if (debug > 1) console.timeEnd('drilling down');
 
-        return this.tiles[id] ? transformTile(this.tiles[id], extent) : null;
+        if (!this.tiles[id]) return null;
+
+        return transformTile(this.tiles[id], extent);
     }
 
     /**
@@ -306,7 +313,9 @@ class GeoJSONVT {
         }
 
         // remove tile coords that are no longer in the index
-        if (removedLookup.size) this.tileCoords = this.tileCoords.filter(c => !removedLookup.has(c.id));
+        if (removedLookup.size) {
+            this.tileCoords = this.tileCoords.filter(c => !removedLookup.has(c.id));
+        }
     }
 
     /**
