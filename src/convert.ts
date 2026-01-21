@@ -1,7 +1,7 @@
 
 import {simplify} from './simplify';
 import {createFeature} from './feature';
-import type { GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
+import type {GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 
 /**
  * converts GeoJSON feature into an intermediate projected JSON vector format with simplification data

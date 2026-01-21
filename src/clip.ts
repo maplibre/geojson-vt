@@ -1,6 +1,6 @@
 
 import {createFeature} from './feature';
-import type { GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
+import type {GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 
 /* clip features between two vertical or horizontal axis-parallel lines:
  *     |        |
