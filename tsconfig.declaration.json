@@ -7,6 +7,7 @@
         "declarationMap": true,
         "rootDir": "./src",
         "skipLibCheck": true,
+        "noEmit": false,
     },
     "include": ["./src/**/*.ts"]
 }

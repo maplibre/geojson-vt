@@ -3,7 +3,6 @@
   "version": "5.0.3",
   "description": "Slice GeoJSON data into vector tiles efficiently",
   "type": "module",
-  "exports": "./src/index.js",
   "sideEffects": false,
   "keywords": [
     "spatial",
@@ -13,7 +12,7 @@
   ],
   "author": "Vladimir Agafonkin",
   "module": "dist/geojson-vt.mjs",
-  "main": "dist/geojson-vt-dev.js",
+  "main": "dist/geojson-vt.js",
   "typings": "dist/index.d.ts",
   "jsdelivr": "dist/geojson-vt.js",
   "unpkg": "dist/geojson-vt.js",
