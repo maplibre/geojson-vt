@@ -2,10 +2,10 @@
 import {convert} from './convert';
 import {clip} from './clip';
 import {wrap} from './wrap';
-import {transformTile, type GeoJSONVTTransformedTile} from './transform';
-import {createTile, type GeoJSONVTTile, type GeoJSONVTTileFeature} from './tile';
+import {transformTile, type GeoJSONVTFeature, type GeoJSONVTTile} from './transform';
+import {createTile, type GeoJSONVTInternalTile, type GeoJSONVTInternalTileFeature} from './tile';
 import {applySourceDiff, type GeoJSONVTFeatureDiff, type GeoJSONVTSourceDiff} from './difference';
-import type { GeoJSONVTFeature, GeoJSONVTOptions, GeometryType, GeometryTypeMap, PartialGeoJSONVTFeature, StartEndSizeArray } from './definitions';
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, GeometryType, GeometryTypeMap, PartialGeoJSONVTFeature, StartEndSizeArray } from './definitions';
 
 const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
@@ -27,13 +27,13 @@ const defaultOptions: GeoJSONVTOptions = {
 class GeoJSONVT {
     private options: GeoJSONVTOptions;
     /** @internal */
-    public tiles: {[key: string]: GeoJSONVTTile};
+    public tiles: {[key: string]: GeoJSONVTInternalTile};
     private tileCoords: {z: number, x: number, y: number, id: number}[];
     /** @internal */
     public stats: {[key: string]: number} = {};
     /** @internal */
     public total: number = 0;
-    private source?: GeoJSONVTFeature[];
+    private source?: GeoJSONVTInternalFeature[];
 
     constructor(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
         options = this.options = Object.assign({}, defaultOptions, options);
@@ -96,7 +96,7 @@ class GeoJSONVT {
      * @param cx - target tile x coordinate
      * @param cy - target tile y coordinate
      */
-    splitTile(features: GeoJSONVTFeature[], z: number, x: number, y: number, cz?: number, cx?: number, cy?: number) {
+    splitTile(features: GeoJSONVTInternalFeature[], z: number, x: number, y: number, cz?: number, cx?: number, cy?: number) {
 
         const stack = [features, z, x, y];
         const options = this.options;
@@ -107,7 +107,7 @@ class GeoJSONVT {
             y = stack.pop() as number;
             x = stack.pop() as number;
             z = stack.pop() as number;
-            features = stack.pop() as GeoJSONVTFeature[];
+            features = stack.pop() as GeoJSONVTInternalFeature[];
 
             const z2 = 1 << z;
             const id = toID(z, x, y);
@@ -195,7 +195,7 @@ class GeoJSONVT {
      * @param y - tile y coordinate
      * @returns the transformed tile or null if not found
      */
-    getTile(z: number | string, x: number | string, y: number | string): GeoJSONVTTransformedTile | null {
+    getTile(z: number | string, x: number | string, y: number | string): GeoJSONVTTile | null {
         z = +z;
         x = +x;
         y = +y;
@@ -247,7 +247,7 @@ class GeoJSONVT {
      * @internal
      * @param features 
      */
-    invalidateTiles(features: GeoJSONVTFeature[]) {
+    invalidateTiles(features: GeoJSONVTInternalFeature[]) {
         const options = this.options;
         const {debug} = options;
 
@@ -374,16 +374,17 @@ export default function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOpti
 }
 
 export type { 
-    GeoJSONVTFeature, 
+    GeoJSONVTInternalFeature, 
     GeoJSONVTOptions, 
-    GeoJSONVTTile, 
-    GeoJSONVTTileFeature, 
+    GeoJSONVTInternalTile, 
+    GeoJSONVTInternalTileFeature, 
     GeometryType,
     PartialGeoJSONVTFeature,
     GeoJSONVT,
     GeometryTypeMap,
     StartEndSizeArray,
-    GeoJSONVTTransformedTile,
+    GeoJSONVTTile,
+    GeoJSONVTFeature,
     GeoJSONVTSourceDiff,
     GeoJSONVTFeatureDiff
 };

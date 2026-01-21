@@ -1,8 +1,24 @@
-import type { GeoJSONVTTile } from "./tile";
+import type { GeoJSONVTInternalTile } from "./tile";
 
-export type GeoJSONVTTransformedTile = GeoJSONVTTile & {
+export type GeoJSONVTFeaturePoint = {
+    id? : number | string | undefined;
+    type: 1;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: [number, number][]
+}
+
+export type GeoJSONVTFeatureNonPoint = {
+    id? : number | string | undefined;
+    type: 2 | 3;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: [number, number][][]
+}
+
+export type GeoJSONVTFeature = GeoJSONVTFeaturePoint | GeoJSONVTFeatureNonPoint;
+
+export type GeoJSONVTTile = GeoJSONVTInternalTile & {
     transformed: true;
-    geometry: [number, number][] | [number, number][][];
+    features: GeoJSONVTFeature[]
 }
 
 /**
@@ -12,9 +28,9 @@ export type GeoJSONVTTransformedTile = GeoJSONVTTile & {
  * @param extent - the tile extent (usually 4096)
  * @returns the transformed tile
  */
-export function transformTile(tile: GeoJSONVTTile, extent: number): GeoJSONVTTransformedTile {
+export function transformTile(tile: GeoJSONVTInternalTile, extent: number): GeoJSONVTTile {
     if (tile.transformed) {
-        return tile as GeoJSONVTTransformedTile;
+        return tile as GeoJSONVTTile;
     }
 
     const z2 = 1 << tile.z;
@@ -22,29 +38,28 @@ export function transformTile(tile: GeoJSONVTTile, extent: number): GeoJSONVTTra
     const ty = tile.y;
 
     for (const feature of tile.features) {
-        const geom = feature.geometry;
-        const type = feature.type;
-
-        feature.geometry = [];
-
-        if (type === 1) {
-            for (let j = 0; j < geom.length; j += 2) {
-                (feature.geometry as [number, number][]).push(transformPoint(geom[j] as number, geom[j + 1] as number, extent, z2, tx, ty));
+        if (feature.type === 1) {
+            const pointGeometry: [number, number][] = []
+            for (let j = 0; j < feature.geometry.length; j += 2) {
+                pointGeometry.push(transformPoint(feature.geometry[j], feature.geometry[j + 1], extent, z2, tx, ty));
             }
+            (feature as unknown as GeoJSONVTFeaturePoint).geometry = pointGeometry;
             continue;
         }
 
-        for (const singleGeom of geom as number[][]) {
+        const geometry: [number, number][][] = [];
+        for (const singleGeom of feature.geometry) {
             const ring: [number, number][] = [];
             for (let k = 0; k < singleGeom.length; k += 2) {
                 ring.push(transformPoint(singleGeom[k], singleGeom[k + 1], extent, z2, tx, ty));
             }
-            (feature.geometry as unknown as [number, number][][]).push(ring);
+            geometry.push(ring);
         }
+        (feature as unknown as GeoJSONVTFeatureNonPoint).geometry = geometry;
     }
     tile.transformed = true;
 
-    return tile as GeoJSONVTTransformedTile;
+    return tile as GeoJSONVTTile;
 }
 
 function transformPoint(x: number, y: number, extent: number, z2: number, tx: number, ty: number): [number, number] {

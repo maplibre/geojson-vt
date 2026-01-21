@@ -1,7 +1,7 @@
 
 import {simplify} from './simplify';
 import {createFeature} from './feature';
-import type { GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 
 /**
  * converts GeoJSON feature into an intermediate projected JSON vector format with simplification data
@@ -9,8 +9,8 @@ import type { GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray } from './de
  * @param options
  * @returns
  */
-export function convert(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions): GeoJSONVTFeature[] {
-    const features: GeoJSONVTFeature[] = [];
+export function convert(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
+    const features: GeoJSONVTInternalFeature[] = [];
 
     switch (data.type) {
         case 'FeatureCollection':
@@ -28,7 +28,7 @@ export function convert(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions): GeoJS
     return features;
 }
 
-function convertFeature(features: GeoJSONVTFeature[], geojson: GeoJSON.Feature, options: GeoJSONVTOptions, index?: number) {
+function convertFeature(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, options: GeoJSONVTOptions, index?: number) {
     if (!geojson.geometry) return;
 
     if (geojson.geometry.type === 'GeometryCollection') {
