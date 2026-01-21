@@ -1,4 +1,4 @@
-import type { GeoJSONVTTile } from "./tile";
+import type {GeoJSONVTTile} from './tile';
 
 export type GeoJSONVTTransformedTile = GeoJSONVTTile & {
     transformed: true;

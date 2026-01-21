@@ -1,4 +1,4 @@
-import type { GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray } from "./definitions";
+import type {GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 
 export type GeoJSONVTTileFeature = {
     id? : number | string | undefined;

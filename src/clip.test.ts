@@ -1,7 +1,7 @@
 
 import {test, expect} from 'vitest';
 import {clip} from './clip';
-import type { StartEndSizeArray } from './definitions';
+import type {StartEndSizeArray} from './definitions';
 
 const geom1 = [0,0,0,50,0,0,50,10,0,20,10,0,20,20,0,30,20,0,30,30,0,50,30,0,50,40,0,25,40,0,25,50,0,0,50,0,0,60,0,25,60,0];
 const geom2 = [0,0,0,50,0,0,50,10,0,0,10,0];

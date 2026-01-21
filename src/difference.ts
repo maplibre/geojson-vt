@@ -1,6 +1,6 @@
 import {convert} from './convert';
 import {wrap} from './wrap';
-import type { GeoJSONVTFeature, GeoJSONVTOptions } from './definitions';
+import type {GeoJSONVTFeature, GeoJSONVTOptions} from './definitions';
 
 export type GeoJSONVTSourceDiff = {
     /**
