@@ -37,13 +37,13 @@ function shiftFeatureCoords(features: GeoJSONVTFeature[], offset: number): GeoJS
 
             case 'MultiLineString':
             case 'Polygon': {
-                const newGeometry = shiftLinesGeometry(geometry as StartEndSizeArray[], offset);
+                const newGeometry = shiftLines(geometry as StartEndSizeArray[], offset);
                 newFeatures.push(createFeature(id, type, newGeometry, tags));
                 continue;
             }
 
             case 'MultiPolygon': {
-                const newGeometry = shiftPolygonsGeometry(geometry as StartEndSizeArray[][], offset);
+                const newGeometry = shiftPolygons(geometry as StartEndSizeArray[][], offset);
                 newFeatures.push(createFeature(id, type, newGeometry, tags));
                 continue;
             }
@@ -53,7 +53,7 @@ function shiftFeatureCoords(features: GeoJSONVTFeature[], offset: number): GeoJS
     return newFeatures;
 }
 
-function shiftLinesGeometry(lines: StartEndSizeArray[], offset: number): StartEndSizeArray[] {
+function shiftLines(lines: StartEndSizeArray[], offset: number): StartEndSizeArray[] {
     const geom = [];
 
     for (const line of lines) {
@@ -63,7 +63,7 @@ function shiftLinesGeometry(lines: StartEndSizeArray[], offset: number): StartEn
     return geom;
 }
 
-function shiftPolygonsGeometry(polygons: StartEndSizeArray[][], offset: number): StartEndSizeArray[][] {
+function shiftPolygons(polygons: StartEndSizeArray[][], offset: number): StartEndSizeArray[][] {
     const geom = [];
 
     for (const polygon of polygons) {
