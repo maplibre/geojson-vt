@@ -2,8 +2,8 @@
 import {convert} from './convert';
 import {clip} from './clip';
 import {wrap} from './wrap';
-import {transformTile, type GeoJSONVTFeature, type GeoJSONVTTile} from './transform';
-import {createTile, type GeoJSONVTInternalTile, type GeoJSONVTInternalTileFeature} from './tile';
+import {transformTile, type GeoJSONVTFeature, type GeoJSONVTFeatureNonPoint, type GeoJSONVTFeaturePoint, type GeoJSONVTTile} from './transform';
+import {createTile, type GeoJSONVTInternalTile, type GeoJSONVTInternalTileFeature, type GeoJSONVTInternalTileFeaturePoint, type GeoJSONVTInternalTileFeaturNonPoint} from './tile';
 import {applySourceDiff, type GeoJSONVTFeatureDiff, type GeoJSONVTSourceDiff} from './difference';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, GeometryType, GeometryTypeMap, PartialGeoJSONVTFeature, StartEndSizeArray } from './definitions';
 
@@ -386,5 +386,9 @@ export type {
     GeoJSONVTTile,
     GeoJSONVTFeature,
     GeoJSONVTSourceDiff,
-    GeoJSONVTFeatureDiff
+    GeoJSONVTFeatureDiff,
+    GeoJSONVTFeaturePoint,
+    GeoJSONVTFeatureNonPoint,
+    GeoJSONVTInternalTileFeaturePoint,
+    GeoJSONVTInternalTileFeaturNonPoint
 };
