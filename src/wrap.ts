@@ -24,44 +24,59 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
     const newFeatures = [];
 
     for (const feature of features) {
-        switch (feature.type) {
+        const {id, type, geometry, tags} = feature;
+
+        switch (type) {
             case 'Point':
             case 'MultiPoint':
             case 'LineString': {
-                const newGeometry = shiftCoords(feature.geometry, offset);
-
-                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                const newGeometry = shiftCoords(geometry as StartEndSizeArray, offset);
+                newFeatures.push(createFeature(id, type, newGeometry, tags));
                 continue;
             }
 
             case 'MultiLineString':
             case 'Polygon': {
-                const newGeometry = [];
-                for (const line of feature.geometry) {
-                    newGeometry.push(shiftCoords(line, offset));
-                }
-
-                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                const newGeometry = shiftLinesGeometry(geometry as StartEndSizeArray[], offset);
+                newFeatures.push(createFeature(id, type, newGeometry, tags));
                 continue;
             }
 
             case 'MultiPolygon': {
-                const newGeometry = [];
-                for (const polygon of feature.geometry) {
-                    const newPolygon = [];
-                    for (const line of polygon) {
-                        newPolygon.push(shiftCoords(line, offset));
-                    }
-                    newGeometry.push(newPolygon);
-                }
-
-                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                const newGeometry = shiftPolygonsGeometry(geometry as StartEndSizeArray[][], offset);
+                newFeatures.push(createFeature(id, type, newGeometry, tags));
                 continue;
             }
         }
     }
 
     return newFeatures;
+}
+
+function shiftLinesGeometry(lines: StartEndSizeArray[], offset: number): StartEndSizeArray[] {
+    const geom = [];
+
+    for (const line of lines) {
+        geom.push(shiftCoords(line, offset));
+    }
+
+    return geom;
+}
+
+function shiftPolygonsGeometry(polygons: StartEndSizeArray[][], offset: number): StartEndSizeArray[][] {
+    const geom = [];
+
+    for (const polygon of polygons) {
+        const newPolygon = [];
+
+        for (const line of polygon) {
+            newPolygon.push(shiftCoords(line, offset));
+        }
+
+        geom.push(newPolygon);
+    }
+
+    return geom;
 }
 
 function shiftCoords(points: StartEndSizeArray, offset: number): number[] | StartEndSizeArray {
