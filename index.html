@@ -22,7 +22,7 @@ retaining the minimum level of detail appropriate for each zoom level
 <p>Here's <strong>geojson-vt</strong> action in <a href="https://github.com/maplibre/maplibre-gl-js">MapLibre GL JS</a>,
 dynamically loading a 100Mb US zip codes GeoJSON with 5.4 million points:</p>
 <p><img src="https://cloud.githubusercontent.com/assets/25395/5360312/86028d8e-7f91-11e4-811f-87f24acb09ca.gif" alt=""></p>
-<p>There's a convenient <a href="http://maplibre.github.io/geojson-vt/debug/">debug page</a> to test out <strong>geojson-vt</strong> on different data.
+<p>There's a convenient <a href="http://maplibre.org/geojson-vt/debug/">debug page</a> to test out <strong>geojson-vt</strong> on different data.
 Just drag any GeoJSON on the page, watching the console.</p>
 <p><img src="https://cloud.githubusercontent.com/assets/25395/5363235/41955c6e-7fa8-11e4-9575-a66ef54cb6d9.gif" alt=""></p>
 <h3 id="usage" class="tsd-anchor-link">Usage<a href="#usage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
@@ -46,12 +46,12 @@ although the defaults are sensible and work well for most use cases.</p>
 <p>All properties in the diff are optional, but at least one operation should be specified. Remove operations are applied before add/update operations.</p>
 <p>To use <code>updateData</code>, the index must be created with the <code>updateable: true</code> option.</p>
 <h3 id="install" class="tsd-anchor-link">Install<a href="#install" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>Install using NPM (<code>npm install geojson-vt</code>), then:</p>
-<pre><code class="js"><span class="hl-0">// import as a ES module</span><br/><span class="hl-7">import</span><span class="hl-2"> </span><span class="hl-3">geojsonvt</span><span class="hl-2"> </span><span class="hl-7">from</span><span class="hl-2"> </span><span class="hl-6">&#39;geojson-vt&#39;</span><span class="hl-2">;</span><br/><br/><span class="hl-0">// import from a CDN in the browser:</span><br/><span class="hl-7">import</span><span class="hl-2"> </span><span class="hl-3">geojsonvt</span><span class="hl-2"> </span><span class="hl-7">from</span><span class="hl-2"> </span><span class="hl-6">&#39;https://esm.run/geojson-vt&#39;</span><span class="hl-2">;</span>
+<p>Install using NPM (<code>npm install @maplibre/geojson-vt</code>), then:</p>
+<pre><code class="js"><span class="hl-0">// import as a ES module</span><br/><span class="hl-7">import</span><span class="hl-2"> </span><span class="hl-3">geojsonvt</span><span class="hl-2"> </span><span class="hl-7">from</span><span class="hl-2"> </span><span class="hl-6">&#39;@maplibre/geojson-vt&#39;</span><span class="hl-2">;</span><br/><br/><span class="hl-0">// import from a CDN in the browser:</span><br/><span class="hl-7">import</span><span class="hl-2"> </span><span class="hl-3">geojsonvt</span><span class="hl-2"> </span><span class="hl-7">from</span><span class="hl-2"> </span><span class="hl-6">&#39;https://esm.run/@maplibre/geojson-vt&#39;</span><span class="hl-2">;</span>
 </code><button type="button">Copy</button></pre>
 
 <p>Or use a browser build directly:</p>
-<pre><code class="html"><span class="hl-8">&lt;</span><span class="hl-9">script</span><span class="hl-10"> </span><span class="hl-11">src</span><span class="hl-10">=</span><span class="hl-12">&quot;https://unpkg.com/geojson-vt/geojson-vt.js&quot;</span><span class="hl-8">&gt;&lt;/</span><span class="hl-9">script</span><span class="hl-8">&gt;</span>
+<pre><code class="html"><span class="hl-8">&lt;</span><span class="hl-9">script</span><span class="hl-10"> </span><span class="hl-11">src</span><span class="hl-10">=</span><span class="hl-12">&quot;https://unpkg.com/@maplibre/geojson-vt/geojson-vt.js&quot;</span><span class="hl-8">&gt;&lt;/</span><span class="hl-9">script</span><span class="hl-8">&gt;</span>
 </code><button type="button">Copy</button></pre>
 
 <h3 id="getting-involved" class="tsd-anchor-link">Getting Involved<a href="#getting-involved" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
