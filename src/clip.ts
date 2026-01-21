@@ -63,12 +63,12 @@ export function clip(features: GeoJSONVTFeature[], scale: number, k1: number, k2
                     continue;
                 }
 
-                if (lineGeometry.length === 1) {
-                    clipped.push(createFeature(feature.id, feature.type, lineGeometry[0], feature.tags));
+                if (lineGeometry.length > 1) {
+                    clipped.push(createFeature(feature.id, "MultiLineString", lineGeometry, feature.tags));
                     continue;
                 }
 
-                clipped.push(createFeature(feature.id, "MultiLineString", lineGeometry, feature.tags));
+                clipped.push(createFeature(feature.id, feature.type, lineGeometry[0], feature.tags));
                 continue;
             }
 
