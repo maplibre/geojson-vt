@@ -67,6 +67,20 @@ export type PartialGeoJSONVTFeature = {
     maxY: number;
 }
 
+export type ClippedQuadrants = {
+    tl: GeoJSONVTFeature[] | null;
+    bl: GeoJSONVTFeature[] | null;
+    tr: GeoJSONVTFeature[] | null;
+    br: GeoJSONVTFeature[] | null;
+}
+
+export type FeatureBounds = {
+    minX: number,
+    maxX: number,
+    minY: number,
+    maxY: number
+};
+
 export type GeometryTypeMap = {
     Point: number[];
     MultiPoint: number[];

@@ -1,11 +1,10 @@
-
 import {convert} from './convert';
 import {clip} from './clip';
 import {wrap} from './wrap';
 import {transformTile, type GeoJSONVTTransformedTile} from './transform';
 import {createTile, type GeoJSONVTTile, type GeoJSONVTTileFeature} from './tile';
 import {applySourceDiff, type GeoJSONVTFeatureDiff, type GeoJSONVTSourceDiff} from './difference';
-import type { GeoJSONVTFeature, GeoJSONVTOptions, GeometryType, GeometryTypeMap, PartialGeoJSONVTFeature, StartEndSizeArray } from './definitions';
+import type { GeoJSONVTFeature, GeoJSONVTOptions, GeometryType, GeometryTypeMap, PartialGeoJSONVTFeature, ClippedQuadrants, FeatureBounds, StartEndSizeArray } from './definitions';
 
 const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
@@ -119,16 +118,8 @@ class GeoJSONVT {
                 tile = this.tiles[id] = createTile(features, z, x, y, options);
                 this.tileCoords.push({z, x, y, id});
 
-                if (debug) {
-                    if (debug > 1) {
-                        console.log('tile z%d-%d-%d (features: %d, points: %d, simplified: %d)',
-                            z, x, y, tile.numFeatures, tile.numPoints, tile.numSimplified);
-                        console.timeEnd('creation');
-                    }
-                    const key = `z${  z}`;
-                    this.stats[key] = (this.stats[key] || 0) + 1;
-                    this.total++;
-                }
+                if (debug > 1) console.timeEnd('creation');
+                if (debug) this.logCreation(z, x, y, tile);
             }
 
             // save reference to original geometry in tile so that we can drill down later if we stop now
@@ -155,29 +146,7 @@ class GeoJSONVT {
 
             if (debug > 1) console.time('clipping');
 
-            // values we'll use for clipping
-            const k1 = 0.5 * options.buffer / options.extent;
-            const k2 = 0.5 - k1;
-            const k3 = 0.5 + k1;
-            const k4 = 1 + k1;
-
-            let tl = null;
-            let bl = null;
-            let tr = null;
-            let br = null;
-
-            const left  = clip(features, z2, x - k1, x + k3, 0, tile.minX, tile.maxX, options);
-            const right = clip(features, z2, x + k2, x + k4, 0, tile.minX, tile.maxX, options);
-
-            if (left) {
-                tl = clip(left, z2, y - k1, y + k3, 1, tile.minY, tile.maxY, options);
-                bl = clip(left, z2, y + k2, y + k4, 1, tile.minY, tile.maxY, options);
-            }
-
-            if (right) {
-                tr = clip(right, z2, y - k1, y + k3, 1, tile.minY, tile.maxY, options);
-                br = clip(right, z2, y + k2, y + k4, 1, tile.minY, tile.maxY, options);
-            }
+            const {tl, bl, tr, br} = this.clipQuadrants(features, z2, x, y, tile, options);
 
             if (debug > 1) console.timeEnd('clipping');
 
@@ -186,6 +155,38 @@ class GeoJSONVT {
             stack.push(tr || [], z + 1, x * 2 + 1, y * 2);
             stack.push(br || [], z + 1, x * 2 + 1, y * 2 + 1);
         }
+    }
+
+    /**
+     * Calculates clip boundaries and clips features into four quadrants
+     * @internal
+     */
+    private clipQuadrants(features: GeoJSONVTFeature[], z2: number, x: number, y: number, tile: GeoJSONVTTile, options: GeoJSONVTOptions): ClippedQuadrants {
+        // values we'll use for clipping
+        const k1 = 0.5 * options.buffer / options.extent;
+        const k2 = 0.5 - k1;
+        const k3 = 0.5 + k1;
+        const k4 = 1 + k1;
+
+        let tl = null;
+        let bl = null;
+        let tr = null;
+        let br = null;
+
+        const left  = clip(features, z2, x - k1, x + k3, 0, tile.minX, tile.maxX, options);
+        const right = clip(features, z2, x + k2, x + k4, 0, tile.minX, tile.maxX, options);
+
+        if (left) {
+            tl = clip(left, z2, y - k1, y + k3, 1, tile.minY, tile.maxY, options);
+            bl = clip(left, z2, y + k2, y + k4, 1, tile.minY, tile.maxY, options);
+        }
+
+        if (right) {
+            tr = clip(right, z2, y - k1, y + k3, 1, tile.minY, tile.maxY, options);
+            br = clip(right, z2, y + k2, y + k4, 1, tile.minY, tile.maxY, options);
+        }
+
+        return {tl, bl, tr, br};
     }
 
     /**
@@ -209,6 +210,7 @@ class GeoJSONVT {
         x = (x + z2) & (z2 - 1); // wrap tile x coordinate
 
         const id = toID(z, x, y);
+
         if (this.tiles[id]) {
             return transformTile(this.tiles[id], extent);
         }
@@ -251,18 +253,7 @@ class GeoJSONVT {
         const options = this.options;
         const {debug} = options;
 
-        // calculate bounding box of all features for trivial reject
-        let minX = Infinity;
-        let maxX = -Infinity;
-        let minY = Infinity;
-        let maxY = -Infinity;
-
-        for (const feature of features) {
-            minX = Math.min(minX, feature.minX);
-            maxX = Math.max(maxX, feature.maxX);
-            minY = Math.min(minY, feature.minY);
-            maxY = Math.max(maxY, feature.maxY);
-        }
+        const {minX, maxX, minY, maxY} = this.calcFeaturesBounds(features);
 
         // tile buffer clipping value - not halved as in splitTile above because checking against tile's own extent
         const k1 = options.buffer / options.extent;
@@ -275,12 +266,8 @@ class GeoJSONVT {
             const tile = this.tiles[id];
 
             // calculate tile bounds including buffer
-            const z2 = 1 << tile.z;
-            const tileMinX = (tile.x     - k1) / z2;
-            const tileMaxX = (tile.x + 1 + k1) / z2;
-            const tileMinY = (tile.y     - k1) / z2;
-            const tileMaxY = (tile.y + 1 + k1) / z2;
-
+            const {minX: tileMinX, maxX: tileMaxX, minY: tileMinY, maxY: tileMaxY} = this.calcTileBounds(tile, k1);
+            
             // trivial reject if feature bounds don't intersect tile
             if (maxX < tileMinX || minX >= tileMaxX) continue;
             if (maxY < tileMinY || minY >= tileMaxY) continue;
@@ -295,24 +282,76 @@ class GeoJSONVT {
             }
             if (!intersects) continue;
 
-            if (debug) {
-                if (debug > 1) {
-                    console.log('invalidate tile z%d-%d-%d (features: %d, points: %d, simplified: %d)',
-                        tile.z, tile.x, tile.y, tile.numFeatures, tile.numPoints, tile.numSimplified);
-                }
-                const key = `z${  tile.z}`;
-                this.stats[key] = (this.stats[key] || 0) - 1;
-                this.total--;
-            }
+            if (debug) this.logInvalidation(tile);
 
             delete this.tiles[id];
             removedLookup.add(id);
         }
+        if (!removedLookup.size) return;
 
         // remove tile coords that are no longer in the index
-        if (removedLookup.size) {
-            this.tileCoords = this.tileCoords.filter(c => !removedLookup.has(c.id));
+        this.tileCoords = this.tileCoords.filter(c => !removedLookup.has(c.id));
+    }
+
+    /**
+     * Calculates the bounding box of all features
+     * @internal
+     */
+    private calcFeaturesBounds(features: GeoJSONVTFeature[]): FeatureBounds {
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
+
+        for (const feature of features) {
+            minX = Math.min(minX, feature.minX);
+            maxX = Math.max(maxX, feature.maxX);
+            minY = Math.min(minY, feature.minY);
+            maxY = Math.max(maxY, feature.maxY);
         }
+
+        return {minX, maxX, minY, maxY};
+    }
+
+    /**
+     * Calculates tile bounds including buffer used for clipping features.
+     * @internal
+     */
+    private calcTileBounds(tile: GeoJSONVTTile, k1: number): FeatureBounds {
+        const z2 = 1 << tile.z;
+
+        return {
+            minX: (tile.x     - k1) / z2,
+            maxX: (tile.x + 1 + k1) / z2,
+            minY: (tile.y     - k1) / z2,
+            maxY: (tile.y + 1 + k1) / z2
+        };
+    }
+
+    /**
+     * @internal
+     */
+    logCreation(z: number, x: number, y: number, tile: GeoJSONVTTile) {
+        if (this.options.debug > 1) {
+            console.log('tile z%d-%d-%d (features: %d, points: %d, simplified: %d)', z, x, y, tile.numFeatures, tile.numPoints, tile.numSimplified);
+        }
+
+        const key = `z${  z}`;
+        this.stats[key] = (this.stats[key] || 0) + 1;
+        this.total++;
+    }
+
+    /**
+     * @internal
+     */
+    logInvalidation(tile: GeoJSONVTTile) {
+        if (this.options.debug > 1) {
+            console.log('invalidate tile z%d-%d-%d (features: %d, points: %d, simplified: %d)', tile.z, tile.x, tile.y, tile.numFeatures, tile.numPoints, tile.numSimplified);
+        }
+
+        const key = `z${  tile.z}`;
+        this.stats[key] = (this.stats[key] || 0) - 1;
+        this.total--;
     }
 
     /**
@@ -339,22 +378,27 @@ class GeoJSONVT {
             console.log('invalidating tiles');
             console.time('invalidating');
         }
-
         this.invalidateTiles(affected);
-
         if (debug > 1) console.timeEnd('invalidating');
 
-        // re-generate root tile with updated feature set
+        // recreate the index root tile - ready for getTile calls
+        this.regenerateRootTile();
+    }
+
+    /**
+     * Re-generates the root tile with the updated feature set
+     * @internal
+     */
+    regenerateRootTile() {
         const [z, x, y] = [0, 0, 0];
         const rootTile = createTile(this.source, z, x, y, this.options);
         rootTile.source = this.source;
 
-        // update tile index with new root tile - ready for getTile calls
         const id = toID(z, x, y);
         this.tiles[id] = rootTile;
         this.tileCoords.push({z, x, y, id});
 
-        if (debug) {
+        if (this.options.debug) {
             const key = `z${  z}`;
             this.stats[key] = (this.stats[key] || 0) + 1;
             this.total++;
