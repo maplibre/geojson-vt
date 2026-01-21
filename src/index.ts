@@ -282,19 +282,16 @@ class GeoJSONVT {
             const tileMaxY = (tile.y + 1 + k1) / z2;
 
             // trivial reject if feature bounds don't intersect tile
-            if (maxX < tileMinX || minX >= tileMaxX ||
-                maxY < tileMinY || minY >= tileMaxY) {
-                continue;
-            }
+            if (maxX < tileMinX || minX >= tileMaxX) continue;
+            if (maxY < tileMinY || minY >= tileMaxY) continue;
 
             // check if any feature intersects with the tile
             let intersects = false;
             for (const feature of features) {
-                if (feature.maxX >= tileMinX && feature.minX < tileMaxX &&
-                    feature.maxY >= tileMinY && feature.minY < tileMaxY) {
-                    intersects = true;
-                    break;
-                }
+                if (feature.maxX < tileMinX || feature.minX >= tileMaxX) continue;
+                if (feature.maxY < tileMinY || feature.minY >= tileMaxY) continue;
+                intersects = true;
+                break;
             }
             if (!intersects) continue;
 
