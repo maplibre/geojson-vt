@@ -3,6 +3,9 @@ import {clip} from './clip';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 import {createFeature} from './feature';
 
+/**
+ * Wraps GeoJSONVT features around the antimeridian to handle tiled geographic projections.
+ */
 export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
     const buffer = options.buffer / options.extent;
     let merged = features;
@@ -20,6 +23,9 @@ export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOpt
     return merged;
 }
 
+/**
+ * Shifts the coordinates of a collection of GeoJSONVTFeatures by a specified offset.
+ */
 function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number): GeoJSONVTInternalFeature[] {
     const newFeatures = [];
 
@@ -53,6 +59,11 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
     return newFeatures;
 }
 
+/**
+ * Shifts the coordinates of a collection of LineStrings by a specified offset.
+ * @param lines
+ * @param offset
+ */
 function shiftLines(lines: StartEndSizeArray[], offset: number): StartEndSizeArray[] {
     const geom = [];
 
@@ -63,6 +74,9 @@ function shiftLines(lines: StartEndSizeArray[], offset: number): StartEndSizeArr
     return geom;
 }
 
+/**
+ * Shifts the coordinates of a collection of Polygons by a specified offset.
+ */
 function shiftPolygons(polygons: StartEndSizeArray[][], offset: number): StartEndSizeArray[][] {
     const geom = [];
 
@@ -79,6 +93,9 @@ function shiftPolygons(polygons: StartEndSizeArray[][], offset: number): StartEn
     return geom;
 }
 
+/**
+ * Shifts the coordinates of a collection of points by a specified offset.
+ */
 function shiftCoords(points: StartEndSizeArray, offset: number): number[] | StartEndSizeArray {
     const newPoints: StartEndSizeArray = [];
     newPoints.size = points.size;
