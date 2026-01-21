@@ -256,7 +256,7 @@ class GeoJSONVT {
         const options = this.options;
         const {debug} = options;
 
-        const {minX, maxX, minY, maxY} = this.calcFeaturesBounds(features);
+        const allFeaturesBounds = this.calcFeaturesBounds(features);
 
         // tile buffer clipping value - not halved as in splitTile above because checking against tile's own extent
         const k1 = options.buffer / options.extent;
@@ -269,17 +269,16 @@ class GeoJSONVT {
             const tile = this.tiles[id];
 
             // calculate tile bounds including buffer
-            const {minX: tileMinX, maxX: tileMaxX, minY: tileMinY, maxY: tileMaxY} = this.calcTileBounds(tile, k1);
+            const tileBounds = this.calcBufferedTileBounds(tile, k1);
 
-            // trivial reject if feature bounds don't intersect tile
-            if (maxX < tileMinX || minX >= tileMaxX) continue;
-            if (maxY < tileMinY || minY >= tileMaxY) continue;
+            // trivial reject if bounds of all features don't intersect tile
+            if (!this.boundsIntersect(allFeaturesBounds, tileBounds)) continue;
 
             // check if any feature intersects with the tile
             let intersects = false;
             for (const feature of features) {
-                if (feature.maxX < tileMinX || feature.minX >= tileMaxX) continue;
-                if (feature.maxY < tileMinY || feature.minY >= tileMaxY) continue;
+                const bounds = getFeatureBounds(feature);
+                if (!this.boundsIntersect(bounds, tileBounds)) continue;
                 intersects = true;
                 break;
             }
@@ -297,11 +296,25 @@ class GeoJSONVT {
     }
 
     /**
+     * Determines if two bounding boxes intersect
+     * @internal
+     */
+    private boundsIntersect(b1: BoundLimits, b2: BoundLimits): boolean {
+        if (b1.maxX < b2.minX || b1.minX >= b2.maxX) {
+            return false;
+        }
+        if (b1.maxY < b2.minY || b1.minY >= b2.maxY) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Calculates the bounding box of all features
      * @param features - features to calculate bounds for
      * @internal
      */
-    private calcFeaturesBounds(features: GeoJSONVTFeature[]): FeatureBounds {
+    private calcFeaturesBounds(features: GeoJSONVTFeature[]): BoundLimits {
         let minX = Infinity;
         let maxX = -Infinity;
         let minY = Infinity;
@@ -323,7 +336,7 @@ class GeoJSONVT {
      * @param k1 - tile buffer clipping value
      * @internal
      */
-    private calcTileBounds(tile: GeoJSONVTTile, k1: number): FeatureBounds {
+    private calcBufferedTileBounds(tile: GeoJSONVTTile, k1: number): BoundLimits {
         const z2 = 1 << tile.z;
 
         return {
@@ -337,7 +350,7 @@ class GeoJSONVT {
     /**
      * @internal
      */
-    logCreation(z: number, x: number, y: number, tile: GeoJSONVTTile) {
+    private logCreation(z: number, x: number, y: number, tile: GeoJSONVTTile) {
         if (this.options.debug > 1) {
             console.log('tile z%d-%d-%d (features: %d, points: %d, simplified: %d)', z, x, y, tile.numFeatures, tile.numPoints, tile.numSimplified);
         }
@@ -350,7 +363,7 @@ class GeoJSONVT {
     /**
      * @internal
      */
-    logInvalidation(tile: GeoJSONVTTile) {
+    private logInvalidation(tile: GeoJSONVTTile) {
         if (this.options.debug > 1) {
             console.log('invalidate tile z%d-%d-%d (features: %d, points: %d, simplified: %d)', tile.z, tile.x, tile.y, tile.numFeatures, tile.numPoints, tile.numSimplified);
         }

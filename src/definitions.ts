@@ -74,7 +74,7 @@ export type ClippedQuadrants = {
     br: GeoJSONVTFeature[] | null;
 }
 
-export type FeatureBounds = {
+export type BoundLimits = {
     minX: number,
     maxX: number,
     minY: number,
@@ -90,7 +90,7 @@ export type GeometryTypeMap = {
     MultiPolygon: StartEndSizeArray[][];
 }
 
-export type GeometryType = "Point" | "MultiPoint" | "LineString" | "MultiLineString" | "Polygon" | "MultiPolygon";
+export type GeometryType = 'Point' | 'MultiPoint' | 'LineString' | 'MultiLineString' | 'Polygon' | 'MultiPolygon';
 
 export type GeoJSONVTInternalFeature = {
     [K in GeometryType]: PartialGeoJSONVTFeature & {
