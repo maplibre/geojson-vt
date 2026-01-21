@@ -3,6 +3,13 @@
   "version": "5.0.3",
   "description": "Slice GeoJSON data into vector tiles efficiently",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/geojson-vt.mjs",
+      "default": "./dist/geojson-vt.js"
+    }
+  },
   "sideEffects": false,
   "keywords": [
     "spatial",
