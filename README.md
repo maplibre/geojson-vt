@@ -30,7 +30,7 @@ dynamically loading a 100Mb US zip codes GeoJSON with 5.4 million points:
 
 ![](https://cloud.githubusercontent.com/assets/25395/5360312/86028d8e-7f91-11e4-811f-87f24acb09ca.gif)
 
-There's a convenient [debug page](http://maplibre.github.io/geojson-vt/debug/) to test out **geojson-vt** on different data.
+There's a convenient [debug page](http://maplibre.org/geojson-vt/debug/) to test out **geojson-vt** on different data.
 Just drag any GeoJSON on the page, watching the console.
 
 ![](https://cloud.githubusercontent.com/assets/25395/5363235/41955c6e-7fa8-11e4-9575-a66ef54cb6d9.gif)
@@ -107,20 +107,20 @@ To use `updateData`, the index must be created with the `updateable: true` optio
 
 ### Install
 
-Install using NPM (`npm install geojson-vt`), then:
+Install using NPM (`npm install @maplibre/geojson-vt`), then:
 
 ```js
 // import as a ES module
-import geojsonvt from 'geojson-vt';
+import geojsonvt from '@maplibre/geojson-vt';
 
 // import from a CDN in the browser:
-import geojsonvt from 'https://esm.run/geojson-vt';
+import geojsonvt from 'https://esm.run/@maplibre/geojson-vt';
 ```
 
 Or use a browser build directly:
 
 ```html
-<script src="https://unpkg.com/geojson-vt/geojson-vt.js"></script>
+<script src="https://unpkg.com/@maplibre/geojson-vt/geojson-vt.js"></script>
 ```
 
 ### Getting Involved

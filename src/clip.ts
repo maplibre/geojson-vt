@@ -1,6 +1,6 @@
 
 import {createFeature} from './feature';
-import type { GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 
 /* clip features between two vertical or horizontal axis-parallel lines:
  *     |        |
@@ -12,7 +12,7 @@ import type { GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray } from './de
  * axis: 0 for x, 1 for y
  * minAll and maxAll: minimum and maximum coordinate value for all features
  */
-export function clip(features: GeoJSONVTFeature[], scale: number, k1: number, k2: number, axis: number, minAll: number, maxAll: number, options: GeoJSONVTOptions): GeoJSONVTFeature[] | null {
+export function clip(features: GeoJSONVTInternalFeature[], scale: number, k1: number, k2: number, axis: number, minAll: number, maxAll: number, options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] | null {
     k1 /= scale;
     k2 /= scale;
 
@@ -24,7 +24,7 @@ export function clip(features: GeoJSONVTFeature[], scale: number, k1: number, k2
         return null;
     }
 
-    const clipped: GeoJSONVTFeature[] = [];
+    const clipped: GeoJSONVTInternalFeature[] = [];
 
     for (const feature of features) {
         const min = axis === 0 ? feature.minX : feature.minY;

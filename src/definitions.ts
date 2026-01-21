@@ -78,7 +78,7 @@ export type GeometryTypeMap = {
 
 export type GeometryType = "Point" | "MultiPoint" | "LineString" | "MultiLineString" | "Polygon" | "MultiPolygon";
 
-export type GeoJSONVTFeature = {
+export type GeoJSONVTInternalFeature = {
     [K in GeometryType]: PartialGeoJSONVTFeature & {
         type: K;
         geometry: GeometryTypeMap[K];

@@ -1,9 +1,9 @@
 
 import {clip} from './clip';
-import type { GeoJSONVTFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 import {createFeature} from './feature';
 
-export function wrap(features: GeoJSONVTFeature[], options: GeoJSONVTOptions): GeoJSONVTFeature[] {
+export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
     const buffer = options.buffer / options.extent;
     let merged = features;
 
@@ -20,7 +20,7 @@ export function wrap(features: GeoJSONVTFeature[], options: GeoJSONVTOptions): G
     return merged;
 }
 
-function shiftFeatureCoords(features: GeoJSONVTFeature[], offset: number): GeoJSONVTFeature[] {
+function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number): GeoJSONVTInternalFeature[] {
     const newFeatures = [];
 
     for (const feature of features) {

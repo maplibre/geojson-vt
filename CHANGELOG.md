@@ -1,6 +1,7 @@
 ## main
 ### ✨ Features and improvements
-- _...Add new stuff here..._
+- Fix external types names and definition after the typescript migration ([#25](https://github.com/maplibre/geojson-vt/pull/25)) (by [HarelM](https://github.com/HarelM))
+_...Add new stuff here..._
 
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
