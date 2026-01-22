@@ -1,4 +1,4 @@
-import type { GeoJSONVTInternalTile } from "./tile";
+import type { GeoJSONVTInternalTile } from './tile';
 
 export type GeoJSONVTFeaturePoint = {
     id? : number | string | undefined;

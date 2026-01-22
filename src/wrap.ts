@@ -1,6 +1,6 @@
 
 import {clip} from './clip';
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
+import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 import {createFeature} from './feature';
 
 /**

@@ -1,4 +1,4 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from "./definitions";
+import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 
 export type GeoJSONVTInternalTileFeaturePoint = {
     id? : number | string | undefined;
@@ -7,13 +7,13 @@ export type GeoJSONVTInternalTileFeaturePoint = {
     geometry: number[];
 }
 
-export type GeoJSONVTInternalTileFeaturNonPoint = {
+export type GeoJSONVTInternalTileFeatureNonPoint = {
     id? : number | string | undefined;
     type: 2 | 3;
     tags: GeoJSON.GeoJsonProperties | null;
     geometry: number[][];
 }
-export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeaturNonPoint;
+export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeatureNonPoint;
 
 export type GeoJSONVTInternalTile = {
     features: GeoJSONVTInternalTileFeature[];
@@ -66,17 +66,17 @@ export function createTile(features: GeoJSONVTInternalFeature[], z: number, tx: 
     return tile;
 }
 
-function addFeature(tile: GeoJSONVTTile, feature: GeoJSONVTFeature, tolerance: number, options: GeoJSONVTOptions) {
+function addFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalFeature, tolerance: number, options: GeoJSONVTOptions) {
     updateTileBounds(tile, feature);
 
     const simplified = simplifyGeometry(feature, tile, tolerance);
     if (!simplified.length) return;
 
-    const tileFeature: GeoJSONVTTileFeature = {
+    const tileFeature = {
         geometry: simplified,
         type: getFeatureType(feature.type),
         tags: getFeatureTags(feature, options)
-    };
+    } as GeoJSONVTInternalTileFeature;
 
     if (feature.id !== null) {
         tileFeature.id = feature.id;
@@ -85,14 +85,14 @@ function addFeature(tile: GeoJSONVTTile, feature: GeoJSONVTFeature, tolerance: n
     tile.features.push(tileFeature);
 }
 
-function updateTileBounds(tile: GeoJSONVTTile, feature: GeoJSONVTFeature): void {
+function updateTileBounds(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalFeature): void {
     tile.minX = Math.min(tile.minX, feature.minX);
     tile.minY = Math.min(tile.minY, feature.minY);
     tile.maxX = Math.max(tile.maxX, feature.maxX);
     tile.maxY = Math.max(tile.maxY, feature.maxY);
 }
 
-function simplifyGeometry(feature: GeoJSONVTFeature, tile: GeoJSONVTTile, tolerance: number): number[] | number[][] {
+function simplifyGeometry(feature: GeoJSONVTInternalFeature, tile: GeoJSONVTInternalTile, tolerance: number): number[] | number[][] {
     const simplified: number[] | number[][] = [];
     const {type, geometry} = feature;
 
@@ -126,7 +126,7 @@ function simplifyGeometry(feature: GeoJSONVTFeature, tile: GeoJSONVTTile, tolera
     return simplified;
 }
 
-function addPoint(simplified: number[], geometry: number[], tile: GeoJSONVTTile): void {
+function addPoint(simplified: number[], geometry: number[], tile: GeoJSONVTInternalTile): void {
     for (let i = 0; i < geometry.length; i += 3) {
         simplified.push(geometry[i], geometry[i + 1]);
         tile.numPoints++;
@@ -157,7 +157,7 @@ function addLine(result: number[][], geom: StartEndSizeArray, tile: GeoJSONVTInt
     result.push(ring);
 }
 
-function getFeatureTags(feature: GeoJSONVTFeature, options: GeoJSONVTOptions): GeoJSON.GeoJsonProperties | null {
+function getFeatureTags(feature: GeoJSONVTInternalFeature, options: GeoJSONVTOptions): GeoJSON.GeoJsonProperties | null {
     let tags = feature.tags || null;
 
     if (feature.type === 'LineString' && options.lineMetrics) {

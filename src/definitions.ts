@@ -97,7 +97,7 @@ export type GeoJSONVTMultiPolygonFeature = PartialGeoJSONVTFeature & {
     geometry: StartEndSizeArray[][];
 };
 
-export type GeoJSONVTFeature =
+export type GeoJSONVTInternalFeature =
     | GeoJSONVTPointFeature
     | GeoJSONVTMultiPointFeature
     | GeoJSONVTLineStringFeature
@@ -106,10 +106,10 @@ export type GeoJSONVTFeature =
     | GeoJSONVTMultiPolygonFeature;
 
 export type ClippedQuadrants = {
-    tl: GeoJSONVTFeature[] | null;
-    bl: GeoJSONVTFeature[] | null;
-    tr: GeoJSONVTFeature[] | null;
-    br: GeoJSONVTFeature[] | null;
+    tl: GeoJSONVTInternalFeature[] | null;
+    bl: GeoJSONVTInternalFeature[] | null;
+    tr: GeoJSONVTInternalFeature[] | null;
+    br: GeoJSONVTInternalFeature[] | null;
 }
 
 export type BoundLimits = {
@@ -130,9 +130,9 @@ export type GeometryTypeMap = {
 
 export type GeometryType = 'Point' | 'MultiPoint' | 'LineString' | 'MultiLineString' | 'Polygon' | 'MultiPolygon';
 
-export type GeoJSONVTInternalFeature = {
-    [K in GeometryType]: PartialGeoJSONVTFeature & {
-        type: K;
-        geometry: GeometryTypeMap[K];
-    }
-}[GeometryType];
+// export type GeoJSONVTInternalFeature = {
+//     [K in GeometryType]: PartialGeoJSONVTFeature & {
+//         type: K;
+//         geometry: GeometryTypeMap[K];
+//     }
+// }[GeometryType];
