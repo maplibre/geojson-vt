@@ -1,17 +1,20 @@
 import type { GeoJSONVTInternalTile } from './tile';
 
+type PointGeometry = [number, number][];
+type NonPointGeometry = [number, number][][];
+
 export type GeoJSONVTFeaturePoint = {
     id? : number | string | undefined;
     type: 1;
     tags: GeoJSON.GeoJsonProperties | null;
-    geometry: [number, number][]
+    geometry: PointGeometry
 }
 
 export type GeoJSONVTFeatureNonPoint = {
     id? : number | string | undefined;
     type: 2 | 3;
     tags: GeoJSON.GeoJsonProperties | null;
-    geometry: [number, number][][]
+    geometry: NonPointGeometry
 }
 
 export type GeoJSONVTFeature = GeoJSONVTFeaturePoint | GeoJSONVTFeatureNonPoint;
@@ -39,19 +42,19 @@ export function transformTile(tile: GeoJSONVTInternalTile, extent: number): GeoJ
 
     for (const feature of tile.features) {
         if (feature.type === 1) {
-            const pointGeometry: [number, number][] = []
-            for (let j = 0; j < feature.geometry.length; j += 2) {
-                pointGeometry.push(transformPoint(feature.geometry[j], feature.geometry[j + 1], extent, z2, tx, ty));
+            const geometry: PointGeometry = [];
+            for (let i = 0; i < feature.geometry.length; i += 2) {
+                geometry.push(transformPoint(feature.geometry[i], feature.geometry[i + 1], extent, z2, tx, ty));
             }
-            (feature as unknown as GeoJSONVTFeaturePoint).geometry = pointGeometry;
+            (feature as unknown as GeoJSONVTFeaturePoint).geometry = geometry;
             continue;
         }
 
-        const geometry: [number, number][][] = [];
+        const geometry: NonPointGeometry = [];
         for (const singleGeom of feature.geometry) {
-            const ring: [number, number][] = [];
-            for (let k = 0; k < singleGeom.length; k += 2) {
-                ring.push(transformPoint(singleGeom[k], singleGeom[k + 1], extent, z2, tx, ty));
+            const ring: PointGeometry = [];
+            for (let i = 0; i < singleGeom.length; i += 2) {
+                ring.push(transformPoint(singleGeom[i], singleGeom[i + 1], extent, z2, tx, ty));
             }
             geometry.push(ring);
         }
