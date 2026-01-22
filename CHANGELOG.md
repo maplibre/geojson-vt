@@ -5,11 +5,11 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
-- Fix missing typescript declaration files ([#27](https://github.com/maplibre/geojson-vt/pull/27)) (by [HarelM](https://github.com/HarelM))
 ## 5.0.4
+
 ### ✨ Features and improvements
 
-### 🐞 Bug fixes
+- Fix missing typescript declaration files ([#27](https://github.com/maplibre/geojson-vt/pull/27)) (by [HarelM](https://github.com/HarelM))
 
 ## 5.0.3
 
