@@ -35,8 +35,7 @@ function convertFeature(features: GVTFeature[], geojson: GeoJSON.Feature, option
     const {geometry, properties} = geojson;
 
     if (geometry.type === 'GeometryCollection') {
-        const geom: GeoJSON.GeometryCollection = geometry;
-        convertGeometryCollection(features, geojson, geom, options, index);
+        convertGeometryCollection(features, geojson, geometry, options, index);
         return;
     }
 
@@ -48,33 +47,27 @@ function convertFeature(features: GVTFeature[], geojson: GeoJSON.Feature, option
 
     switch (geometry.type) {
         case 'Point': {
-            const geom: GeoJSON.Point = geometry;
-            convertPointFeature(features, id, geom, properties);
+            convertPointFeature(features, id, geometry, properties);
             break;
         }
         case 'MultiPoint': {
-            const geom: GeoJSON.MultiPoint = geometry;
-            convertMultiPointFeature(features, id, geom, properties);
+            convertMultiPointFeature(features, id, geometry, properties);
             break;
         }
         case 'LineString': {
-            const geom: GeoJSON.LineString = geometry;
-            convertLineStringFeature(features, id, geom, tolerance, properties);
+            convertLineStringFeature(features, id, geometry, tolerance, properties);
             break;
         }
         case 'MultiLineString': {
-            const geom: GeoJSON.MultiLineString = geometry;
-            convertMultiLineStringFeature(features, id, geom, tolerance, options, properties);
+            convertMultiLineStringFeature(features, id, geometry, tolerance, options, properties);
             break;
         }
         case 'Polygon': {
-            const geom: GeoJSON.Polygon = geometry;
-            convertPolygonFeature(features, id, geom, tolerance, properties);
+            convertPolygonFeature(features, id, geometry, tolerance, properties);
             break;
         }
         case 'MultiPolygon': {
-            const geom: GeoJSON.MultiPolygon = geometry;
-            convertMultiPolygonFeature(features, id, geom, tolerance, properties);
+            convertMultiPolygonFeature(features, id, geometry, tolerance, properties);
             break;
         }
         default:

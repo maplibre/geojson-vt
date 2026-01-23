@@ -3,7 +3,7 @@ import {convert} from './convert';
 import {clip} from './clip';
 import {wrap} from './wrap';
 import {getFeatureBounds} from './feature';
-import {transformTile, type TransformedFeature, type TransformedTile, type TransformedPointFeature, type TransformedNonPointFeature} from './transform';
+import {transformTile, type TransformedFeature, type TransformedTile} from './transform';
 import {createTile, type GVTTile} from './tile';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
 import type {GVTFeature, GeoJSONVTOptions, BoundLimits, ClippedQuadrants} from './definitions';
@@ -441,7 +441,5 @@ export type {
     GeoJSONVT,
     GeoJSONVTOptions,
     TransformedTile as GeoJSONVTTile,
-    TransformedFeature as GeoJSONVTFeature,
-    TransformedPointFeature as GeoJSONVTPointFeature,
-    TransformedNonPointFeature as GeoJSONVTNonPointFeature
+    TransformedFeature as GeoJSONVTFeature
 };
