@@ -117,21 +117,3 @@ export type BoundLimits = {
     minY: number,
     maxY: number
 };
-
-export type GeometryTypeMap = {
-    Point: number[];
-    MultiPoint: number[];
-    LineString: StartEndSizeArray;
-    MultiLineString: StartEndSizeArray[];
-    Polygon: StartEndSizeArray[];
-    MultiPolygon: StartEndSizeArray[][];
-}
-
-export type GeometryType = 'Point' | 'MultiPoint' | 'LineString' | 'MultiLineString' | 'Polygon' | 'MultiPolygon';
-
-// export type GVTFeature = {
-//     [K in GeometryType]: PartialGVTFeature & {
-//         type: K;
-//         geometry: GeometryTypeMap[K];
-//     }
-// }[GeometryType];
