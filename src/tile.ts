@@ -1,17 +1,23 @@
 import type {GVTFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 
+type GVTTilePoint = number[];
+type GVTTileNonPoint = number[][];
+
+type GVTPointTypes = 'Point' | 'MultiPoint';
+type GVTNonPointTypes = 'LineString' | 'MultiLineString' | 'Polygon' | 'MultiPolygon';
+
 export type GVTTilePointFeature = {
     id? : number | string | undefined;
     type: 1;
     tags: GeoJSON.GeoJsonProperties | null;
-    geometry: number[];
+    geometry: GVTTilePoint;
 }
 
 export type GVTTileNonPointFeature = {
     id? : number | string | undefined;
     type: 2 | 3;
     tags: GeoJSON.GeoJsonProperties | null;
-    geometry: number[][];
+    geometry: GVTTileNonPoint;
 }
 export type GVTTileFeature = GVTTilePointFeature | GVTTileNonPointFeature;
 
@@ -43,12 +49,12 @@ export type GVTTile = {
 export function createTile(features: GVTFeature[], z: number, tx: number, ty: number, options: GeoJSONVTOptions): GVTTile {
     const tolerance = z === options.maxZoom ? 0 : options.tolerance / ((1 << z) * options.extent);
 
-    const tile = {
-        features: [] as GVTTileFeature[],
+    const tile: GVTTile = {
+        features: [],
         numPoints: 0,
         numSimplified: 0,
         numFeatures: features.length,
-        source: null as GVTFeature[] | null,
+        source: null,
         x: tx,
         y: ty,
         z,
@@ -67,49 +73,61 @@ export function createTile(features: GVTFeature[], z: number, tx: number, ty: nu
 }
 
 function addFeature(tile: GVTTile, feature: GVTFeature, tolerance: number, options: GeoJSONVTOptions) {
-    updateTileBounds(tile, feature);
-
-    const simplified = simplifyGeometry(feature, tile, tolerance);
-    if (!simplified.length) return;
-
-    const tileFeature = {
-        geometry: simplified,
-        type: getFeatureType(feature.type),
-        tags: getFeatureTags(feature, options)
-    } as GVTTileFeature;
-
-    if (feature.id !== null) {
-        tileFeature.id = feature.id;
-    }
-
-    tile.features.push(tileFeature);
-}
-
-function updateTileBounds(tile: GVTTile, feature: GVTFeature): void {
+    // Update the tile bounds with respect to the current feature
     tile.minX = Math.min(tile.minX, feature.minX);
     tile.minY = Math.min(tile.minY, feature.minY);
     tile.maxX = Math.max(tile.maxX, feature.maxX);
     tile.maxY = Math.max(tile.maxY, feature.maxY);
+
+    const tags = getFeatureTags(feature, options);
+    const id = feature.id !== null ? feature.id : undefined;
+
+    if (feature.type === 'Point' || feature.type === 'MultiPoint') {
+        addPointFeature(tile, feature, tags, id);
+    } else {
+        addNonPointFeature(tile, feature, tolerance, tags, id);
+    }
 }
 
-function simplifyGeometry(feature: GVTFeature, tile: GVTTile, tolerance: number): number[] | number[][] {
-    const simplified: number[] | number[][] = [];
+function addPointFeature(tile: GVTTile, feature: GVTFeature & {type: GVTPointTypes}, tags: GeoJSON.GeoJsonProperties | null, id: number | string | undefined) {
+    const geometry = simplifyPointGeometry(feature, tile);
+    if (!geometry.length) return;
+
+    const tileFeature: GVTTilePointFeature = {type: 1, geometry, tags};
+    if (id !== undefined) tileFeature.id = id;
+
+    tile.features.push(tileFeature);
+}
+
+function addNonPointFeature(tile: GVTTile, feature: GVTFeature & {type: GVTNonPointTypes}, tolerance: number, tags: GeoJSON.GeoJsonProperties | null, id: number | string | undefined) {
+    const geometry = simplifyNonPointGeometry(feature, tile, tolerance);
+    if (!geometry.length) return;
+
+    const tileFeature: GVTTileNonPointFeature = {type: getNonPointFeatureType(feature.type), geometry, tags};
+    if (id !== undefined) tileFeature.id = id;
+
+    tile.features.push(tileFeature);
+}
+
+function simplifyPointGeometry(feature: GVTFeature & {type: GVTPointTypes}, tile: GVTTile): GVTTilePoint {
+    const simplified: GVTTilePoint = [];
+    addPoint(simplified, feature.geometry, tile);
+    return simplified;
+}
+
+function simplifyNonPointGeometry(feature: GVTFeature & {type: GVTNonPointTypes}, tile: GVTTile, tolerance: number): GVTTileNonPoint {
+    const simplified: GVTTileNonPoint = [];
     const {type, geometry} = feature;
 
     switch (type) {
-        case 'Point':
-        case 'MultiPoint':
-            addPoint(simplified as number[], geometry, tile);
-            break;
-
         case 'LineString':
-            addLine(simplified as number[][], geometry, tile, tolerance, false, false);
+            addLine(simplified, geometry, tile, tolerance, false, false);
             break;
 
         case 'MultiLineString':
         case 'Polygon':
             for (let i = 0; i < geometry.length; i++) {
-                addLine(simplified as number[][], geometry[i], tile, tolerance, type === 'Polygon', i === 0);
+                addLine(simplified, geometry[i], tile, tolerance, type === 'Polygon', i === 0);
             }
             break;
 
@@ -117,7 +135,7 @@ function simplifyGeometry(feature: GVTFeature, tile: GVTTile, tolerance: number)
             for (let k = 0; k < geometry.length; k++) {
                 const polygon = geometry[k];
                 for (let i = 0; i < polygon.length; i++) {
-                    addLine(simplified as number[][], polygon[i], tile, tolerance, true, i === 0);
+                    addLine(simplified, polygon[i], tile, tolerance, true, i === 0);
                 }
             }
             break;
@@ -126,7 +144,7 @@ function simplifyGeometry(feature: GVTFeature, tile: GVTTile, tolerance: number)
     return simplified;
 }
 
-function addPoint(simplified: number[], geometry: number[], tile: GVTTile): void {
+function addPoint(simplified: GVTTilePoint, geometry: GVTTilePoint, tile: GVTTile): void {
     for (let i = 0; i < geometry.length; i += 3) {
         simplified.push(geometry[i], geometry[i + 1]);
         tile.numPoints++;
@@ -134,7 +152,7 @@ function addPoint(simplified: number[], geometry: number[], tile: GVTTile): void
     }
 }
 
-function addLine(result: number[][], geom: StartEndSizeArray, tile: GVTTile, tolerance: number, isPolygon: boolean, isOuter: boolean) {
+function addLine(result: GVTTileNonPoint, geom: StartEndSizeArray, tile: GVTTile, tolerance: number, isPolygon: boolean, isOuter: boolean) {
     const sqTolerance = tolerance * tolerance;
 
     if (tolerance > 0 && (geom.size < (isPolygon ? sqTolerance : tolerance))) {
@@ -171,14 +189,11 @@ function getFeatureTags(feature: GVTFeature, options: GeoJSONVTOptions): GeoJSON
     return tags;
 }
 
-function getFeatureType(featureType: string): 1 | 2 | 3 {
+function getNonPointFeatureType(featureType: GVTNonPointTypes): 2 | 3 {
     if (featureType === 'Polygon' || featureType === 'MultiPolygon') {
         return 3;
     }
-    if (featureType === 'LineString' || featureType === 'MultiLineString') {
-        return 2;
-    }
-    return 1;
+    return 2;
 }
 
 function rewind(ring: number[], clockwise: boolean) {
