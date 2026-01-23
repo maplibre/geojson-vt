@@ -19,7 +19,7 @@ export type TransformedNonPointFeature = {
 
 export type TransformedFeature = TransformedPointFeature | TransformedNonPointFeature;
 
-export type TransformedTile = Omit<GVTTile, 'features' | 'transformed'> & {
+export type TransformedTile = GVTTile & {
     transformed: true;
     features: TransformedFeature[]
 }
