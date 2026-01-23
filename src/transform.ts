@@ -3,6 +3,7 @@ import type { GVTTile, GVTTileFeature, GVTTilePointFeature, GVTTileNonPointFeatu
 type TransformedPoint = [number, number][];
 type TransformedNonPoint = [number, number][][];
 
+/** Represents a transformed point feature for tile output */
 export type TransformedPointFeature = {
     id? : number | string | undefined;
     type: 1;
@@ -10,6 +11,7 @@ export type TransformedPointFeature = {
     geometry: TransformedPoint
 }
 
+/** Represents a transformed non-point feature for tile output */
 export type TransformedNonPointFeature = {
     id? : number | string | undefined;
     type: 2 | 3;

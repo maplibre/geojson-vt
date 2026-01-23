@@ -19,8 +19,11 @@ export type GVTTileNonPointFeature = {
     tags: GeoJSON.GeoJsonProperties | null;
     geometry: GVTTileNonPoint;
 }
+
+/** Represents a tile feature object containing geometry and metadata */
 export type GVTTileFeature = GVTTilePointFeature | GVTTileNonPointFeature;
 
+/** Represents a tile object containing features and metadata */
 export type GVTTile = {
     features: GVTTileFeature[];
     numPoints: number;

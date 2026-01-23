@@ -2,6 +2,7 @@ import {convert} from './convert';
 import {wrap} from './wrap';
 import type {GVTFeature, GeoJSONVTOptions} from './definitions';
 
+/** Represents a source diff object for feature updates and additions */
 export type GeoJSONVTSourceDiff = {
     /**
      * If true, clear all existing features
