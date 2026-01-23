@@ -1,5 +1,5 @@
 
-import {createFeature} from './feature';
+import {createPointFeature, createMultiPointFeature, createLineStringFeature, createMultiLineStringFeature, createPolygonFeature, createMultiPolygonFeature} from './feature';
 import type {GVTFeature, GeoJSONVTOptions, StartEndSizeArray, GVTPointFeature, GVTMultiPointFeature, GVTLineStringFeature, GVTMultiLineStringFeature, GVTPolygonFeature, GVTMultiPolygonFeature} from './definitions';
 
 /* clip features between two vertical or horizontal axis-parallel lines:
@@ -74,8 +74,11 @@ function clipPointFeature(feature: GVTPointFeature | GVTMultiPointFeature, clipp
     clipPoints(feature.geometry, geom, k1, k2, axis);
     if (!geom.length) return;
 
-    const type = geom.length === 3 ? 'Point' : 'MultiPoint';
-    clipped.push(createFeature(feature.id, type, geom, feature.tags));
+    if (geom.length === 3) {
+        clipped.push(createPointFeature(feature.id, geom, feature.tags));
+    } else {
+        clipped.push(createMultiPointFeature(feature.id, geom, feature.tags));
+    }
 }
 
 function clipLineStringFeature(feature: GVTLineStringFeature, clipped: GVTFeature[], k1: number, k2: number, axis: number, options: GeoJSONVTOptions) {
@@ -86,17 +89,17 @@ function clipLineStringFeature(feature: GVTLineStringFeature, clipped: GVTFeatur
 
     if (options.lineMetrics) {
         for (const line of geom) {
-            clipped.push(createFeature(feature.id, feature.type, line, feature.tags));
+            clipped.push(createLineStringFeature(feature.id, line, feature.tags));
         }
         return;
     }
 
     if (geom.length > 1) {
-        clipped.push(createFeature(feature.id, 'MultiLineString', geom, feature.tags));
+        clipped.push(createMultiLineStringFeature(feature.id, geom, feature.tags));
         return;
     }
 
-    clipped.push(createFeature(feature.id, feature.type, geom[0], feature.tags));
+    clipped.push(createLineStringFeature(feature.id, geom[0], feature.tags));
 }
 
 function clipMultiLineStringFeature(feature: GVTMultiLineStringFeature, clipped: GVTFeature[], k1: number, k2: number, axis: number) {
@@ -106,11 +109,11 @@ function clipMultiLineStringFeature(feature: GVTMultiLineStringFeature, clipped:
     if (!geom.length) return;
 
     if (geom.length === 1) {
-        clipped.push(createFeature(feature.id, 'LineString', geom[0], feature.tags));
+        clipped.push(createLineStringFeature(feature.id, geom[0], feature.tags));
         return;
     }
 
-    clipped.push(createFeature(feature.id, feature.type, geom, feature.tags));
+    clipped.push(createMultiLineStringFeature(feature.id, geom, feature.tags));
 }
 
 function clipPolygonFeature(feature: GVTPolygonFeature, clipped: GVTFeature[], k1: number, k2: number, axis: number) {
@@ -119,7 +122,7 @@ function clipPolygonFeature(feature: GVTPolygonFeature, clipped: GVTFeature[], k
     clipLines(feature.geometry, geom, k1, k2, axis, true);
     if (!geom.length) return;
 
-    clipped.push(createFeature(feature.id, feature.type, geom, feature.tags));
+    clipped.push(createPolygonFeature(feature.id, geom, feature.tags));
 }
 
 function clipMultiPolygonFeature(feature: GVTMultiPolygonFeature, clipped: GVTFeature[], k1: number, k2: number, axis: number) {
@@ -135,7 +138,7 @@ function clipMultiPolygonFeature(feature: GVTMultiPolygonFeature, clipped: GVTFe
     }
     if (!geom.length) return;
 
-    clipped.push(createFeature(feature.id, feature.type, geom, feature.tags));
+    clipped.push(createMultiPolygonFeature(feature.id, geom, feature.tags));
 }
 
 function clipPoints(geom: number[], newGeom: number[], k1: number, k2: number, axis: number) {

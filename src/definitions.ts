@@ -58,7 +58,7 @@ export type GeoJSONVTOptions = {
 export type StartEndSizeArray = number[] & { start?: number; end?: number; size?: number };
 
 export type PartialGVTFeature = {
-    id?: number | string | undefined;
+    id?: number | string | null;
     tags: GeoJSON.GeoJsonProperties;
     minX: number;
     minY: number;
