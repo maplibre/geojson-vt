@@ -46,30 +46,30 @@ function convertFeature(features: GVTFeature[], geojson: GeoJSON.Feature, option
     const tolerance = Math.pow(options.tolerance / ((1 << options.maxZoom) * options.extent), 2);
 
     switch (geometry.type) {
-        case 'Point': {
+        case 'Point':
             convertPointFeature(features, id, geometry, properties);
             break;
-        }
-        case 'MultiPoint': {
+
+        case 'MultiPoint':
             convertMultiPointFeature(features, id, geometry, properties);
             break;
-        }
-        case 'LineString': {
+
+        case 'LineString':
             convertLineStringFeature(features, id, geometry, tolerance, properties);
             break;
-        }
-        case 'MultiLineString': {
+
+        case 'MultiLineString':
             convertMultiLineStringFeature(features, id, geometry, tolerance, options, properties);
             break;
-        }
-        case 'Polygon': {
+
+        case 'Polygon':
             convertPolygonFeature(features, id, geometry, tolerance, properties);
             break;
-        }
-        case 'MultiPolygon': {
+
+        case 'MultiPolygon':
             convertMultiPolygonFeature(features, id, geometry, tolerance, properties);
             break;
-        }
+
         default:
             throw new Error('Input data is not a valid GeoJSON object.');
     }

@@ -22,9 +22,6 @@ export type GVTTileNonPointFeature = {
 
 export type GVTTileFeature = GVTTilePointFeature | GVTTileNonPointFeature;
 
-/**
- * A tile object representing a geojson-vt tile.
- */
 export type GVTTile = {
     features: GVTTileFeature[];
     numPoints: number;
