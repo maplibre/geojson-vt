@@ -1,6 +1,4 @@
-import type {GeoJSONVTInternalFeature, GeometryType, GeometryTypeMap, BoundLimits, StartEndSizeArray} from './definitions';
-
-export type SupportedGeometries = GeoJSON.Point | GeoJSON.MultiPoint | GeoJSON.LineString | GeoJSON.MultiLineString | GeoJSON.Polygon | GeoJSON.MultiPolygon;
+import type {GVTFeature, GeometryType, GeometryTypeMap, BoundLimits, StartEndSizeArray} from './definitions';
 
 /**
  * 
@@ -10,7 +8,7 @@ export type SupportedGeometries = GeoJSON.Point | GeoJSON.MultiPoint | GeoJSON.L
  * @param tags - the feature's properties
  * @returns the created feature
  */
-export function createFeature<T extends GeometryType>(id: number | string | undefined, type: T, geom: GeometryTypeMap[T], tags: GeoJSON.GeoJsonProperties): GeoJSONVTInternalFeature {
+export function createFeature<T extends GeometryType>(id: number | string | undefined, type: T, geom: GeometryTypeMap[T], tags: GeoJSON.GeoJsonProperties): GVTFeature {
     const feature = {
         id: id == null ? null : id,
         type: type,
@@ -20,7 +18,7 @@ export function createFeature<T extends GeometryType>(id: number | string | unde
         minY: Infinity,
         maxX: -Infinity,
         maxY: -Infinity
-    } as GeoJSONVTInternalFeature;
+    } as GVTFeature;
 
     switch (type) {
         case 'Point':
@@ -51,12 +49,12 @@ export function createFeature<T extends GeometryType>(id: number | string | unde
     return feature;
 }
 
-export function getFeatureBounds(feature: GeoJSONVTInternalFeature): BoundLimits {
+export function getFeatureBounds(feature: GVTFeature): BoundLimits {
     const {minX, maxX, minY, maxY} = feature;
     return {minX, maxX, minY, maxY};
 }
 
-function calcLineBBox(feature: GeoJSONVTInternalFeature, geom: number[] | StartEndSizeArray) {
+function calcLineBBox(feature: GVTFeature, geom: number[] | StartEndSizeArray) {
     for (let i = 0; i < geom.length; i += 3) {
         feature.minX = Math.min(feature.minX, geom[i]);
         feature.minY = Math.min(feature.minY, geom[i + 1]);

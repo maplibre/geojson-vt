@@ -1,12 +1,12 @@
 
 import {clip} from './clip';
-import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
+import type {GVTFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 import {createFeature} from './feature';
 
 /**
  * Wraps GeoJSONVT features around the antimeridian to handle tiled geographic projections.
  */
-export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
+export function wrap(features: GVTFeature[], options: GeoJSONVTOptions): GVTFeature[] {
     const buffer = options.buffer / options.extent;
     let merged = features;
 
@@ -26,7 +26,7 @@ export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOpt
 /**
  * Shifts the coordinates of a collection of GeoJSONVTFeatures by a specified offset.
  */
-function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number): GeoJSONVTInternalFeature[] {
+function shiftFeatureCoords(features: GVTFeature[], offset: number): GVTFeature[] {
     const newFeatures = [];
 
     for (const feature of features) {

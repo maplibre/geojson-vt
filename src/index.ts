@@ -3,10 +3,10 @@ import {convert} from './convert';
 import {clip} from './clip';
 import {wrap} from './wrap';
 import {getFeatureBounds} from './feature';
-import {transformTile, type GeoJSONVTFeature, type GeoJSONVTFeatureNonPoint, type GeoJSONVTFeaturePoint, type GeoJSONVTTile} from './transform';
-import {createTile, type GeoJSONVTInternalTile, type GeoJSONVTInternalTileFeature, type GeoJSONVTInternalTileFeaturePoint, type GeoJSONVTInternalTileFeatureNonPoint} from './tile';
-import {applySourceDiff, type GeoJSONVTFeatureDiff, type GeoJSONVTSourceDiff} from './difference';
-import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, GeometryType, GeometryTypeMap, PartialGeoJSONVTFeature, StartEndSizeArray, BoundLimits, ClippedQuadrants} from './definitions';
+import {transformTile, type TransformedFeature, type TransformedTile} from './transform';
+import {createTile, type GVTTile} from './tile';
+import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
+import type {GVTFeature, GeoJSONVTOptions, BoundLimits, ClippedQuadrants} from './definitions';
 
 const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
@@ -28,13 +28,13 @@ const defaultOptions: GeoJSONVTOptions = {
 class GeoJSONVT {
     private options: GeoJSONVTOptions;
     /** @internal */
-    public tiles: {[key: string]: GeoJSONVTInternalTile};
+    public tiles: {[key: string]: GVTTile};
     private tileCoords: {z: number, x: number, y: number, id: number}[];
     /** @internal */
     public stats: {[key: string]: number} = {};
     /** @internal */
     public total: number = 0;
-    private source?: GeoJSONVTInternalFeature[];
+    private source?: GVTFeature[];
 
     constructor(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
         options = this.options = Object.assign({}, defaultOptions, options);
@@ -97,7 +97,7 @@ class GeoJSONVT {
      * @param cx - target tile x coordinate
      * @param cy - target tile y coordinate
      */
-    splitTile(features: GeoJSONVTInternalFeature[], z: number, x: number, y: number, cz?: number, cx?: number, cy?: number) {
+    splitTile(features: GVTFeature[], z: number, x: number, y: number, cz?: number, cx?: number, cy?: number) {
 
         const stack = [features, z, x, y];
         const options = this.options;
@@ -108,7 +108,7 @@ class GeoJSONVT {
             y = stack.pop() as number;
             x = stack.pop() as number;
             z = stack.pop() as number;
-            features = stack.pop() as GeoJSONVTInternalFeature[];
+            features = stack.pop() as GVTFeature[];
 
             const z2 = 1 << z;
             const id = toID(z, x, y);
@@ -163,7 +163,7 @@ class GeoJSONVT {
      * Calculates clip boundaries and clips features into four quadrants
      * @internal
      */
-    private clipQuadrants(features: GeoJSONVTInternalFeature[], z2: number, x: number, y: number, tile: GeoJSONVTInternalTile, options: GeoJSONVTOptions): ClippedQuadrants {
+    private clipQuadrants(features: GVTFeature[], z2: number, x: number, y: number, tile: GVTTile, options: GeoJSONVTOptions): ClippedQuadrants {
         // values we'll use for clipping
         const k1 = 0.5 * options.buffer / options.extent;
         const k2 = 0.5 - k1;
@@ -198,7 +198,7 @@ class GeoJSONVT {
      * @param y - tile y coordinate
      * @returns the transformed tile or null if not found
      */
-    getTile(z: number | string, x: number | string, y: number | string): GeoJSONVTTile | null {
+    getTile(z: number | string, x: number | string, y: number | string): TransformedTile | null {
         z = +z;
         x = +x;
         y = +y;
@@ -253,7 +253,7 @@ class GeoJSONVT {
      * @internal
      * @param features - features used to invalidate tiles
      */
-    invalidateTiles(features: GeoJSONVTInternalFeature[]) {
+    invalidateTiles(features: GVTFeature[]) {
         const options = this.options;
         const {debug} = options;
 
@@ -315,7 +315,7 @@ class GeoJSONVT {
      * @param features - features to calculate bounds for
      * @internal
      */
-    private calcFeaturesBounds(features: GeoJSONVTInternalFeature[]): BoundLimits {
+    private calcFeaturesBounds(features: GVTFeature[]): BoundLimits {
         let minX = Infinity;
         let maxX = -Infinity;
         let minY = Infinity;
@@ -337,7 +337,7 @@ class GeoJSONVT {
      * @param k1 - tile buffer clipping value
      * @internal
      */
-    private calcBufferedTileBounds(tile: GeoJSONVTInternalTile, k1: number): BoundLimits {
+    private calcBufferedTileBounds(tile: GVTTile, k1: number): BoundLimits {
         const z2 = 1 << tile.z;
 
         return {
@@ -351,7 +351,7 @@ class GeoJSONVT {
     /**
      * @internal
      */
-    private logCreation(z: number, x: number, y: number, tile: GeoJSONVTInternalTile) {
+    private logCreation(z: number, x: number, y: number, tile: GVTTile) {
         if (this.options.debug > 1) {
             console.log('tile z%d-%d-%d (features: %d, points: %d, simplified: %d)', z, x, y, tile.numFeatures, tile.numPoints, tile.numSimplified);
         }
@@ -364,7 +364,7 @@ class GeoJSONVT {
     /**
      * @internal
      */
-    private logInvalidation(tile: GeoJSONVTInternalTile) {
+    private logInvalidation(tile: GVTTile) {
         if (this.options.debug > 1) {
             console.log('invalidate tile z%d-%d-%d (features: %d, points: %d, simplified: %d)', tile.z, tile.x, tile.y, tile.numFeatures, tile.numPoints, tile.numSimplified);
         }
@@ -411,7 +411,7 @@ class GeoJSONVT {
      * Re-generates the root tile with the updated feature set
      * @internal
      */
-    regenerateRootTile(source: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions) {
+    regenerateRootTile(source: GVTFeature[], options: GeoJSONVTOptions) {
         const [z, x, y] = [0, 0, 0];
         const rootTile = createTile(source, z, x, y, options);
         rootTile.source = source;
@@ -436,22 +436,10 @@ export default function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOpti
     return new GeoJSONVT(data, options);
 }
 
-export type { 
-    GeoJSONVTInternalFeature,
-    GeoJSONVTOptions, 
-    GeoJSONVTInternalTile,
-    GeoJSONVTInternalTileFeature,
-    GeometryType,
-    PartialGeoJSONVTFeature,
+//TEMPORARILY REDUCING EXPORTS UNTIL TYPES ARE BETTER UNDERSTOOD.
+export type {
     GeoJSONVT,
-    GeometryTypeMap,
-    StartEndSizeArray,
-    GeoJSONVTTile,
-    GeoJSONVTFeature,
-    GeoJSONVTSourceDiff,
-    GeoJSONVTFeatureDiff,
-    GeoJSONVTFeaturePoint,
-    GeoJSONVTFeatureNonPoint,
-    GeoJSONVTInternalTileFeaturePoint,
-    GeoJSONVTInternalTileFeatureNonPoint
+    GeoJSONVTOptions,
+    TransformedTile as GeoJSONVTTile,
+    TransformedFeature as GeoJSONVTFeature
 };

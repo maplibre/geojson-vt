@@ -1,6 +1,6 @@
 import {convert} from './convert';
 import {wrap} from './wrap';
-import type {GeoJSONVTInternalFeature, GeoJSONVTOptions} from './definitions';
+import type {GVTFeature, GeoJSONVTOptions} from './definitions';
 
 export type GeoJSONVTSourceDiff = {
     /**
@@ -61,13 +61,13 @@ type HashedGeoJSONVTSourceDiff = {
  * @param options 
  * @returns 
  */
-export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: GeoJSONVTSourceDiff, options: GeoJSONVTOptions) {
+export function applySourceDiff(source: GVTFeature[], dataDiff: GeoJSONVTSourceDiff, options: GeoJSONVTOptions) {
 
     // convert diff to sets/maps for o(1) lookups
     const diff = diffToHashed(dataDiff);
 
     // collection for features that will be affected by this update
-    let affected: GeoJSONVTInternalFeature[] = [];
+    let affected: GVTFeature[] = [];
 
     // full removal - clear everything before applying diff
     if (diff.removeAll) {
@@ -136,7 +136,7 @@ export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: Ge
 }
 
 // return an updated geojsonvt simplified feature
-function getUpdatedFeature(vtFeature: GeoJSONVTInternalFeature, update: GeoJSONVTFeatureDiff, options: GeoJSONVTOptions): GeoJSONVTInternalFeature | null {
+function getUpdatedFeature(vtFeature: GVTFeature, update: GeoJSONVTFeatureDiff, options: GeoJSONVTOptions): GVTFeature | null {
     const changeGeometry = !!update.newGeometry;
 
     const changeProps =

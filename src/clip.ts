@@ -1,6 +1,6 @@
 
 import {createFeature} from './feature';
-import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray, GeoJSONVTPointFeature, GeoJSONVTMultiPointFeature, GeoJSONVTLineStringFeature, GeoJSONVTMultiLineStringFeature, GeoJSONVTPolygonFeature, GeoJSONVTMultiPolygonFeature} from './definitions';
+import type {GVTFeature, GeoJSONVTOptions, StartEndSizeArray, GVTPointFeature, GVTMultiPointFeature, GVTLineStringFeature, GVTMultiLineStringFeature, GVTPolygonFeature, GVTMultiPolygonFeature} from './definitions';
 
 /* clip features between two vertical or horizontal axis-parallel lines:
  *     |        |
@@ -12,7 +12,7 @@ import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray, GeoJ
  * axis: 0 for x, 1 for y
  * minAll and maxAll: minimum and maximum coordinate value for all features
  */
-export function clip(features: GeoJSONVTInternalFeature[], scale: number, k1: number, k2: number, axis: number, minAll: number, maxAll: number, options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] | null {
+export function clip(features: GVTFeature[], scale: number, k1: number, k2: number, axis: number, minAll: number, maxAll: number, options: GeoJSONVTOptions): GVTFeature[] | null {
     k1 /= scale;
     k2 /= scale;
 
@@ -24,7 +24,7 @@ export function clip(features: GeoJSONVTInternalFeature[], scale: number, k1: nu
         return null;
     }
 
-    const clipped: GeoJSONVTInternalFeature[] = [];
+    const clipped: GVTFeature[] = [];
 
     for (const feature of features) {
         const min = axis === 0 ? feature.minX : feature.minY;
@@ -68,7 +68,7 @@ export function clip(features: GeoJSONVTInternalFeature[], scale: number, k1: nu
     return clipped;
 }
 
-function clipPointFeature(feature: GeoJSONVTPointFeature | GeoJSONVTMultiPointFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+function clipPointFeature(feature: GVTPointFeature | GVTMultiPointFeature, clipped: GVTFeature[], k1: number, k2: number, axis: number) {
     const geom: number[] = [];
 
     clipPoints(feature.geometry, geom, k1, k2, axis);
@@ -78,7 +78,7 @@ function clipPointFeature(feature: GeoJSONVTPointFeature | GeoJSONVTMultiPointFe
     clipped.push(createFeature(feature.id, type, geom, feature.tags));
 }
 
-function clipLineStringFeature(feature: GeoJSONVTLineStringFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number, options: GeoJSONVTOptions) {
+function clipLineStringFeature(feature: GVTLineStringFeature, clipped: GVTFeature[], k1: number, k2: number, axis: number, options: GeoJSONVTOptions) {
     const geom: StartEndSizeArray[] = [];
 
     clipLine(feature.geometry, geom, k1, k2, axis, false, options.lineMetrics);
@@ -99,7 +99,7 @@ function clipLineStringFeature(feature: GeoJSONVTLineStringFeature, clipped: Geo
     clipped.push(createFeature(feature.id, feature.type, geom[0], feature.tags));
 }
 
-function clipMultiLineStringFeature(feature: GeoJSONVTMultiLineStringFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+function clipMultiLineStringFeature(feature: GVTMultiLineStringFeature, clipped: GVTFeature[], k1: number, k2: number, axis: number) {
     const geom: StartEndSizeArray[] = [];
 
     clipLines(feature.geometry, geom, k1, k2, axis, false);
@@ -113,7 +113,7 @@ function clipMultiLineStringFeature(feature: GeoJSONVTMultiLineStringFeature, cl
     clipped.push(createFeature(feature.id, feature.type, geom, feature.tags));
 }
 
-function clipPolygonFeature(feature: GeoJSONVTPolygonFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+function clipPolygonFeature(feature: GVTPolygonFeature, clipped: GVTFeature[], k1: number, k2: number, axis: number) {
     const geom: StartEndSizeArray[] = [];
 
     clipLines(feature.geometry, geom, k1, k2, axis, true);
@@ -122,7 +122,7 @@ function clipPolygonFeature(feature: GeoJSONVTPolygonFeature, clipped: GeoJSONVT
     clipped.push(createFeature(feature.id, feature.type, geom, feature.tags));
 }
 
-function clipMultiPolygonFeature(feature: GeoJSONVTMultiPolygonFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+function clipMultiPolygonFeature(feature: GVTMultiPolygonFeature, clipped: GVTFeature[], k1: number, k2: number, axis: number) {
     const geom: StartEndSizeArray[][] = [];
 
     for (const polygon of feature.geometry) {
