@@ -1,27 +1,8 @@
-import type { GVTTile, GVTTileFeature, GVTTilePointFeature, GVTTileNonPointFeature } from './tile';
-
-type TransformedPoint = [number, number][];
-type TransformedNonPoint = [number, number][][];
-
-export type TransformedPointFeature = {
-    id? : number | string | undefined;
-    type: 1;
-    tags: GeoJSON.GeoJsonProperties | null;
-    geometry: TransformedPoint
-}
-
-export type TransformedNonPointFeature = {
-    id? : number | string | undefined;
-    type: 2 | 3;
-    tags: GeoJSON.GeoJsonProperties | null;
-    geometry: TransformedNonPoint
-}
-
-export type TransformedFeature = TransformedPointFeature | TransformedNonPointFeature;
+import type {GVTTile, GVTTileFeature, GVTTilePointFeature, GVTTileNonPointFeature, GVTTilePoint, GVTTileNonPoint, TransformedPoint, TransformedNonPoint} from './tile';
 
 export type TransformedTile = Omit<GVTTile, 'transformed' | 'features'> & {
     transformed: true;
-    features: TransformedFeature[];
+    features: GVTTileFeature[];
 }
 
 /**
@@ -36,68 +17,53 @@ export function transformTile(tile: GVTTile, extent: number): TransformedTile {
     const tx = tile.x;
     const ty = tile.y;
 
-    const transformed: TransformedTile = {
-        ...tile,
-        transformed: true,
-        features: []
-    };
-    for (const feature of tile.features) {
-        transformed.features.push(transformFeature(feature, extent, z2, tx, ty));
+    const transformed = tile as TransformedTile;
+    for (const feature of transformed.features) {
+        if (feature.type === 1) {
+            transformPointFeature(feature, extent, z2, tx, ty);
+        } else {
+            transformNonPointFeature(feature, extent, z2, tx, ty);
+        }
     }
+    transformed.transformed = true;
 
     return transformed;
 }
 
 /**
- * Transforms a single feature from mercator-projected space into (extent x extent) tile space.
- */
-function transformFeature(feature: GVTTileFeature, extent: number, z2: number, tx: number, ty: number): TransformedFeature {
-    if (feature.type === 1) {
-        return transformPointFeature(feature, extent, z2, tx, ty);
-    }
-    return transformNonPointFeature(feature, extent, z2, tx, ty);
-}
-
-/**
  * Transforms a single point feature from mercator-projected space into (extent x extent) tile space.
  */
-function transformPointFeature(feature: GVTTilePointFeature, extent: number, z2: number, tx: number, ty: number): TransformedPointFeature {
-    const newFeature: TransformedPointFeature = {
-        id: feature.id,
-        type: 1,
-        tags: feature.tags,
-        geometry: []
-    };
+function transformPointFeature(feature: GVTTilePointFeature, extent: number, z2: number, tx: number, ty: number): GVTTilePointFeature {
+    const transformed = feature as GVTTilePointFeature & {geometry: TransformedPoint};
 
-    for (let i = 0; i < feature.geometry.length; i += 2) {
-        newFeature.geometry.push(transformPoint(feature.geometry[i], feature.geometry[i + 1], extent, z2, tx, ty));
+    const geometry = feature.geometry as GVTTilePoint;
+    const point: TransformedPoint = [];
+    for (let i = 0; i < geometry.length; i += 2) {
+        point.push(transformPoint(geometry[i], geometry[i + 1], extent, z2, tx, ty));
     }
+    transformed.geometry = point;
 
-    return newFeature;
+    return transformed;
 }
 
 /**
  * Transforms a single non-point feature from mercator-projected space into (extent x extent) tile space.
  */
-function transformNonPointFeature(feature: GVTTileNonPointFeature, extent: number, z2: number, tx: number, ty: number): TransformedNonPointFeature {
-    const newFeature: TransformedNonPointFeature = {
-        id: feature.id,
-        type: feature.type,
-        tags: feature.tags,
-        geometry: []
-    };
+function transformNonPointFeature(feature: GVTTileNonPointFeature, extent: number, z2: number, tx: number, ty: number): GVTTileNonPointFeature {
+    const transformed = feature as GVTTileNonPointFeature & {geometry: TransformedNonPoint};
 
-    for (const geom of feature.geometry) {
+    const geometry = feature.geometry as GVTTileNonPoint;
+    const nonPoint: TransformedNonPoint = [];
+    for (const geom of geometry) {
         const ring: TransformedPoint = [];
-        
         for (let i = 0; i < geom.length; i += 2) {
             ring.push(transformPoint(geom[i], geom[i + 1], extent, z2, tx, ty));
         }
-        
-        newFeature.geometry.push(ring);
+        nonPoint.push(ring);
     }
+    transformed.geometry = nonPoint;
 
-    return newFeature;
+    return transformed;
 }
 
 function transformPoint(x: number, y: number, extent: number, z2: number, tx: number, ty: number): [number, number] {

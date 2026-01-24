@@ -2,8 +2,8 @@
 import {convert} from './convert';
 import {clip} from './clip';
 import {wrap} from './wrap';
-import {transformTile, type TransformedFeature, type TransformedTile} from './transform';
-import {createTile, type GVTTile} from './tile';
+import {transformTile, type TransformedTile} from './transform';
+import {createTile, type GVTTile, type GVTTileFeature} from './tile';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
 import type {GVTFeature, GeoJSONVTOptions, BoundLimits, ClippedQuadrants} from './definitions';
 
@@ -216,12 +216,10 @@ class GeoJSONVT {
 
         const tile = this.tiles[id];
         if (tile.transformed === true) {
-            return tile;
+            return tile as TransformedTile;
         }
 
-        const transformed = transformTile(tile, this.options.extent);
-        this.tiles[id] = transformed;
-        return transformed;
+        return transformTile(tile, this.options.extent);
     }
 
     /**
@@ -451,5 +449,5 @@ export type {
     GeoJSONVT,
     GeoJSONVTOptions,
     TransformedTile as GeoJSONVTTile,
-    TransformedFeature as GeoJSONVTFeature
+    GVTTileFeature as GeoJSONVTFeature
 };

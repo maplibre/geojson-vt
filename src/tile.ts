@@ -1,7 +1,10 @@
 import type {GVTFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 
-type GVTTilePoint = number[];
-type GVTTileNonPoint = number[][];
+export type GVTTilePoint = number[];
+export type GVTTileNonPoint = number[][];
+
+export type TransformedPoint = [number, number][];
+export type TransformedNonPoint = [number, number][][];
 
 type GVTPointTypes = 'Point' | 'MultiPoint';
 type GVTNonPointTypes = 'LineString' | 'MultiLineString' | 'Polygon' | 'MultiPolygon';
@@ -10,20 +13,20 @@ export type GVTTilePointFeature = {
     id? : number | string | undefined;
     type: 1;
     tags: GeoJSON.GeoJsonProperties | null;
-    geometry: GVTTilePoint;
+    geometry: GVTTilePoint | TransformedPoint;
 }
 
 export type GVTTileNonPointFeature = {
     id? : number | string | undefined;
     type: 2 | 3;
     tags: GeoJSON.GeoJsonProperties | null;
-    geometry: GVTTileNonPoint;
+    geometry: GVTTileNonPoint | TransformedNonPoint;
 }
 
 export type GVTTileFeature = GVTTilePointFeature | GVTTileNonPointFeature;
 
 export type GVTTile = {
-    transformed: false;
+    transformed: boolean;
     features: GVTTileFeature[];
     numPoints: number;
     numSimplified: number;
