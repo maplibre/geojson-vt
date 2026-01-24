@@ -87,11 +87,6 @@ export function createMultiPolygonFeature(id: number | string | undefined, geom:
     return feature;
 }
 
-export function getFeatureBounds(feature: GVTFeature): BoundLimits {
-    const {minX, maxX, minY, maxY} = feature;
-    return {minX, maxX, minY, maxY};
-}
-
 function calcLineBBox(feature: GVTFeature, geom: number[] | StartEndSizeArray) {
     for (let i = 0; i < geom.length; i += 3) {
         feature.minX = Math.min(feature.minX, geom[i]);

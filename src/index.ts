@@ -2,7 +2,6 @@
 import {convert} from './convert';
 import {clip} from './clip';
 import {wrap} from './wrap';
-import {getFeatureBounds} from './feature';
 import {transformTile, type TransformedFeature, type TransformedTile} from './transform';
 import {createTile, type GVTTile} from './tile';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
@@ -297,7 +296,10 @@ class GeoJSONVT {
      */
     private anyFeatureIntersectsTile(features: GVTFeature[], tileBounds: BoundLimits): boolean {
         for (const feature of features) {
-            if (this.boundsIntersect(getFeatureBounds(feature), tileBounds)) {
+            const {minX, maxX, minY, maxY} = feature;
+            const featureBounds = {minX, maxX, minY, maxY};
+
+            if (this.boundsIntersect(featureBounds, tileBounds)) {
                 return true;
             }
         }
