@@ -277,7 +277,14 @@ class GeoJSONVT {
             // trivial reject for encompassing bounds of all features
             if (!this.boundsIntersect(encompassBounds, tileBounds)) continue;
 
-            if (!this.anyFeatureIntersectsTile(features, tileBounds)) continue;
+            // check if any feature intersects with the tile
+            let intersects = false;
+            for (const feature of features) {
+                if (!this.boundsIntersect(feature, tileBounds)) continue;
+                intersects = true;
+                break;
+            }
+            if (!intersects) continue;
 
             if (debug) this.logInvalidation(tile);
             delete this.tiles[id];
@@ -287,21 +294,6 @@ class GeoJSONVT {
 
         // remove tile coords that are no longer in the index
         this.tileCoords = this.tileCoords.filter(c => !removedLookup.has(c.id));
-    }
-
-    /**
-     * Checks if any feature intersects with the given tile bounds
-     */
-    private anyFeatureIntersectsTile(features: GVTFeature[], tileBounds: BoundLimits): boolean {
-        for (const feature of features) {
-            const {minX, maxX, minY, maxY} = feature;
-            const featureBounds = {minX, maxX, minY, maxY};
-
-            if (this.boundsIntersect(featureBounds, tileBounds)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

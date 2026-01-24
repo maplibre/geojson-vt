@@ -1,7 +1,7 @@
 
 import {clip} from './clip';
 import type {GVTFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
-import {createPointFeature, createMultiPointFeature, createLineStringFeature, createMultiLineStringFeature, createPolygonFeature, createMultiPolygonFeature} from './feature';
+import {createFeature} from './feature';
 
 /**
  * Wraps GeoJSONVT features around the antimeridian to handle tiled geographic projections.
@@ -31,39 +31,29 @@ function shiftFeatureCoords(features: GVTFeature[], offset: number): GVTFeature[
 
     for (const feature of features) {
         switch (feature.type) {
-            case 'Point': {
-                const geometry = shiftCoords(feature.geometry, offset);
-                newFeatures.push(createPointFeature(feature.id, geometry, feature.tags));
-                break;
-            }
-
+            case 'Point':
             case 'MultiPoint': {
                 const geometry = shiftCoords(feature.geometry, offset);
-                newFeatures.push(createMultiPointFeature(feature.id, geometry, feature.tags));
+                newFeatures.push(createFeature(feature.type, feature.id, geometry, feature.tags));
                 break;
             }
 
             case 'LineString': {
                 const geometry = shiftLineCoords(feature.geometry, offset);
-                newFeatures.push(createLineStringFeature(feature.id, geometry, feature.tags));
+                newFeatures.push(createFeature(feature.type, feature.id, geometry, feature.tags));
                 break;
             }
 
-            case 'MultiLineString': {
-                const geometry = shiftLines(feature.geometry, offset);
-                newFeatures.push(createMultiLineStringFeature(feature.id, geometry, feature.tags));
-                break;
-            }
-
+            case 'MultiLineString':
             case 'Polygon': {
                 const geometry = shiftLines(feature.geometry, offset);
-                newFeatures.push(createPolygonFeature(feature.id, geometry, feature.tags));
+                newFeatures.push(createFeature(feature.type, feature.id, geometry, feature.tags));
                 break;
             }
 
             case 'MultiPolygon': {
                 const geometry = shiftPolygons(feature.geometry, offset);
-                newFeatures.push(createMultiPolygonFeature(feature.id, geometry, feature.tags));
+                newFeatures.push(createFeature(feature.type, feature.id, geometry, feature.tags));
                 break;
             }
         }
@@ -105,7 +95,7 @@ function shiftPolygons(polygons: StartEndSizeArray[][], offset: number): StartEn
 }
 
 /**
- * Shifts the coordinates of a lines (with start/end/size metadata) by a specified offset.
+ * Shifts the coordinates of a line (with start/end/size metadata) by a specified offset.
  */
 function shiftLineCoords(points: StartEndSizeArray, offset: number): StartEndSizeArray {
     const newPoints: StartEndSizeArray = [];

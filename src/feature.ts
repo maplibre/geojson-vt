@@ -1,6 +1,23 @@
 
 import type {GVTFeature, GVTPointFeature, GVTMultiPointFeature, GVTLineStringFeature, GVTMultiLineStringFeature, GVTPolygonFeature, GVTMultiPolygonFeature, BoundLimits, StartEndSizeArray} from './definitions';
 
+type FeatureTypeMap = {
+    Point: GVTPointFeature;
+    MultiPoint: GVTMultiPointFeature;
+    LineString: GVTLineStringFeature;
+    MultiLineString: GVTMultiLineStringFeature;
+    Polygon: GVTPolygonFeature;
+    MultiPolygon: GVTMultiPolygonFeature;
+};
+
+type FeatureGeometry = {
+    [K in keyof FeatureTypeMap]: FeatureTypeMap[K]['geometry'];
+};
+
+function toGeom<T>(g: FeatureGeometry[keyof FeatureGeometry]): T {
+    return <T>g;
+}
+
 const infiniteBounds: BoundLimits = {
     minX: Infinity,
     minY: Infinity,
@@ -8,7 +25,41 @@ const infiniteBounds: BoundLimits = {
     maxY: -Infinity
 };
 
-export function createPointFeature(id: number | string | undefined, geom: number[], tags: GeoJSON.GeoJsonProperties): GVTPointFeature {
+export function createFeature<T extends GVTFeature['type']>(type: T, id: number | string | undefined, geometry: FeatureGeometry[T], tags: GeoJSON.GeoJsonProperties): GVTFeature {
+    switch (type) {
+        case 'Point': {
+            const geom = toGeom<number[]>(geometry);
+            return createPointFeature(id, geom, tags);
+        }
+
+        case 'MultiPoint': {
+            const geom = toGeom<number[]>(geometry);
+            return createMultiPointFeature(id, geom, tags);
+        }
+
+        case 'LineString': {
+            const geom = toGeom<StartEndSizeArray>(geometry);
+            return createLineStringFeature(id, geom, tags);
+        }
+
+        case 'MultiLineString': {
+            const geom = toGeom<StartEndSizeArray[]>(geometry);
+            return createMultiLineStringFeature(id, geom, tags);
+        }
+
+        case 'Polygon': {
+            const geom = toGeom<StartEndSizeArray[]>(geometry);
+            return createPolygonFeature(id, geom, tags);
+        }
+
+        case 'MultiPolygon': {
+            const geom = toGeom<StartEndSizeArray[][]>(geometry);
+            return createMultiPolygonFeature(id, geom, tags);
+        }
+    }
+}
+
+function createPointFeature(id: number | string | undefined, geom: number[], tags: GeoJSON.GeoJsonProperties): GVTPointFeature {
     const feature: GVTPointFeature = {
         id: id ?? null,
         type: 'Point',
@@ -20,7 +71,7 @@ export function createPointFeature(id: number | string | undefined, geom: number
     return feature;
 }
 
-export function createMultiPointFeature(id: number | string | undefined, geom: number[], tags: GeoJSON.GeoJsonProperties): GVTMultiPointFeature {
+function createMultiPointFeature(id: number | string | undefined, geom: number[], tags: GeoJSON.GeoJsonProperties): GVTMultiPointFeature {
     const feature: GVTMultiPointFeature = {
         id: id ?? null,
         type: 'MultiPoint',
@@ -32,7 +83,7 @@ export function createMultiPointFeature(id: number | string | undefined, geom: n
     return feature;
 }
 
-export function createLineStringFeature(id: number | string | undefined, geom: StartEndSizeArray, tags: GeoJSON.GeoJsonProperties): GVTLineStringFeature {
+function createLineStringFeature(id: number | string | undefined, geom: StartEndSizeArray, tags: GeoJSON.GeoJsonProperties): GVTLineStringFeature {
     const feature: GVTLineStringFeature = {
         id: id ?? null,
         type: 'LineString',
@@ -44,7 +95,7 @@ export function createLineStringFeature(id: number | string | undefined, geom: S
     return feature;
 }
 
-export function createMultiLineStringFeature(id: number | string | undefined, geom: StartEndSizeArray[], tags: GeoJSON.GeoJsonProperties): GVTMultiLineStringFeature {
+function createMultiLineStringFeature(id: number | string | undefined, geom: StartEndSizeArray[], tags: GeoJSON.GeoJsonProperties): GVTMultiLineStringFeature {
     const feature: GVTMultiLineStringFeature = {
         id: id ?? null,
         type: 'MultiLineString',
@@ -58,7 +109,7 @@ export function createMultiLineStringFeature(id: number | string | undefined, ge
     return feature;
 }
 
-export function createPolygonFeature(id: number | string | undefined, geom: StartEndSizeArray[], tags: GeoJSON.GeoJsonProperties): GVTPolygonFeature {
+function createPolygonFeature(id: number | string | undefined, geom: StartEndSizeArray[], tags: GeoJSON.GeoJsonProperties): GVTPolygonFeature {
     const feature: GVTPolygonFeature = {
         id: id ?? null,
         type: 'Polygon',
@@ -71,7 +122,7 @@ export function createPolygonFeature(id: number | string | undefined, geom: Star
     return feature;
 }
 
-export function createMultiPolygonFeature(id: number | string | undefined, geom: StartEndSizeArray[][], tags: GeoJSON.GeoJsonProperties): GVTMultiPolygonFeature {
+function createMultiPolygonFeature(id: number | string | undefined, geom: StartEndSizeArray[][], tags: GeoJSON.GeoJsonProperties): GVTMultiPolygonFeature {
     const feature: GVTMultiPolygonFeature = {
         id: id ?? null,
         type: 'MultiPolygon',

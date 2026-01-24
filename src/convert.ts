@@ -1,6 +1,6 @@
 import {simplify} from './simplify';
 import type {GVTFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
-import {createPointFeature, createMultiPointFeature, createLineStringFeature, createMultiLineStringFeature, createPolygonFeature, createMultiPolygonFeature} from './feature';
+import {createFeature} from './feature';
 
 /**
  * converts GeoJSON feature into an intermediate projected JSON vector format with simplification data
@@ -99,7 +99,7 @@ function convertGeometryCollection(features: GVTFeature[], geojson: GeoJSON.Feat
 function convertPointFeature(features: GVTFeature[], id: number | string | undefined, geom: GeoJSON.Point, properties: GeoJSON.GeoJsonProperties) {
     const out: number[] = [];
     out.push(projectX(geom.coordinates[0]), projectY(geom.coordinates[1]), 0);
-    features.push(createPointFeature(id, out, properties));
+    features.push(createFeature('Point', id, out, properties));
 }
 
 function convertMultiPointFeature(features: GVTFeature[], id: number | string | undefined, geom: GeoJSON.MultiPoint, properties: GeoJSON.GeoJsonProperties) {
@@ -107,13 +107,13 @@ function convertMultiPointFeature(features: GVTFeature[], id: number | string | 
     for (const coords of geom.coordinates) {
         out.push(projectX(coords[0]), projectY(coords[1]), 0);
     }
-    features.push(createMultiPointFeature(id, out, properties));
+    features.push(createFeature('MultiPoint', id, out, properties));
 }
 
 function convertLineStringFeature(features: GVTFeature[], id: number | string | undefined, geom: GeoJSON.LineString, tolerance: number, properties: GeoJSON.GeoJsonProperties) {
     const out: StartEndSizeArray = [];
     convertLine(geom.coordinates, out, tolerance, false);
-    features.push(createLineStringFeature(id, out, properties));
+    features.push(createFeature('LineString', id, out, properties));
 }
 
 function convertMultiLineStringFeature(features: GVTFeature[], id: number | string | undefined, geom: GeoJSON.MultiLineString, tolerance: number, options: GeoJSONVTOptions, properties: GeoJSON.GeoJsonProperties) {
@@ -122,19 +122,19 @@ function convertMultiLineStringFeature(features: GVTFeature[], id: number | stri
         for (const line of geom.coordinates) {
             const out: StartEndSizeArray = [];
             convertLine(line, out, tolerance, false);
-            features.push(createLineStringFeature(id, out, properties));
+            features.push(createFeature('LineString', id, out, properties));
         }
     } else {
         const out: StartEndSizeArray[] = [];
         convertLines(geom.coordinates, out, tolerance, false);
-        features.push(createMultiLineStringFeature(id, out, properties));
+        features.push(createFeature('MultiLineString', id, out, properties));
     }
 }
 
 function convertPolygonFeature(features: GVTFeature[], id: number | string | undefined, geom: GeoJSON.Polygon, tolerance: number, properties: GeoJSON.GeoJsonProperties) {
     const out: StartEndSizeArray[] = [];
     convertLines(geom.coordinates, out, tolerance, true);
-    features.push(createPolygonFeature(id, out, properties));
+    features.push(createFeature('Polygon', id, out, properties));
 }
 
 function convertMultiPolygonFeature(features: GVTFeature[], id: number | string | undefined, geom: GeoJSON.MultiPolygon, tolerance: number, properties: GeoJSON.GeoJsonProperties) {
@@ -144,7 +144,7 @@ function convertMultiPolygonFeature(features: GVTFeature[], id: number | string 
         convertLines(polygon, polygonOut, tolerance, true);
         out.push(polygonOut);
     }
-    features.push(createMultiPolygonFeature(id, out, properties));
+    features.push(createFeature('MultiPolygon', id, out, properties));
 }
 
 function convertLine(ring: GeoJSON.Position[], out: StartEndSizeArray, tolerance: number, isPolygon: boolean) {

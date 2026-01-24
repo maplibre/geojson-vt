@@ -76,6 +76,19 @@ test('getTile: polygon clipping on the boundary', () => {
     }]);
 });
 
+test('getTile: returns null when ancestor exists but has no source', () => {
+    const index = geojsonvt({
+        type: 'Point',
+        coordinates: [0, 0]
+    });
+
+    // Manually clear source on the root tile
+    index.tiles[0].source = null;
+
+    // Request a deeper tile within the same quadrant
+    expect(index.getTile(5, 16, 16)).toBeNull();
+});
+
 function getJSON(name: string) {
     return JSON.parse(fs.readFileSync(new URL(`fixtures/${name}`, import.meta.url), 'utf-8'));
 }
