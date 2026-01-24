@@ -248,7 +248,7 @@ class GeoJSONVT {
         return this.convertTile(this.tiles[id], extent);
     }
 
-    convertTile(tile: TransformedTile | GVTTile, extent: number): TransformedTile {
+    convertTile(tile: GVTTile | TransformedTile, extent: number): TransformedTile {
         if (tile.transformed === true) {
             return tile;
         }
