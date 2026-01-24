@@ -269,7 +269,7 @@ class GeoJSONVT {
         // tile buffer clipping value - not halved as in splitTile above because checking against tile's own extent
         const k1 = buffer / extent;
 
-        const allFeaturesBounds = this.calcFeaturesBounds(features);
+        const encompassBounds = this.encompassingBounds(features);
         const removedLookup = new Set();
 
         // iterate through existing tiles and remove ones affected by features
@@ -277,8 +277,8 @@ class GeoJSONVT {
             const tile = this.tiles[id];
             const tileBounds = this.calcBufferedTileBounds(tile, k1);
 
-            // trivial reject for encompassing feature bounds
-            if (!this.boundsIntersect(allFeaturesBounds, tileBounds)) continue;
+            // trivial reject for encompassing bounds of all features
+            if (!this.boundsIntersect(encompassBounds, tileBounds)) continue;
 
             if (!this.anyFeatureIntersectsTile(features, tileBounds)) continue;
 
@@ -323,7 +323,7 @@ class GeoJSONVT {
      * @param features - features to calculate bounds for
      * @internal
      */
-    private calcFeaturesBounds(features: GVTFeature[]): BoundLimits {
+    private encompassingBounds(features: GVTFeature[]): BoundLimits {
         let minX = Infinity;
         let maxX = -Infinity;
         let minY = Infinity;
