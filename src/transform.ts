@@ -19,9 +19,9 @@ export type TransformedNonPointFeature = {
 
 export type TransformedFeature = TransformedPointFeature | TransformedNonPointFeature;
 
-export type TransformedTile = GVTTile & {
+export type TransformedTile = Omit<GVTTile, 'transformed' | 'features'> & {
     transformed: true;
-    features: TransformedFeature[]
+    features: TransformedFeature[];
 }
 
 /**
@@ -31,26 +31,21 @@ export type TransformedTile = GVTTile & {
  * @param extent - the tile extent (usually 4096)
  * @returns the transformed tile
  */
-export function transformTile(tile: GVTTile | TransformedTile, extent: number): TransformedTile {
-    if (tile.transformed) {
-        return tile as TransformedTile;
-    }
-    const gvtTile = tile as GVTTile;
-
+export function transformTile(tile: GVTTile, extent: number): TransformedTile {
     const z2 = 1 << tile.z;
     const tx = tile.x;
     const ty = tile.y;
 
-    const newTile: TransformedTile = {
-        ...gvtTile,
+    const transformed: TransformedTile = {
+        ...tile,
         transformed: true,
         features: []
     };
-    for (const feature of gvtTile.features) {
-        newTile.features.push(transformFeature(feature, extent, z2, tx, ty));
+    for (const feature of tile.features) {
+        transformed.features.push(transformFeature(feature, extent, z2, tx, ty));
     }
 
-    return newTile;
+    return transformed;
 }
 
 /**

@@ -214,7 +214,7 @@ class GeoJSONVT {
         const id = toID(z, x, y);
 
         if (this.tiles[id]) {
-            return transformTile(this.tiles[id], extent);
+            return this.convertTile(this.tiles[id], extent);
         }
 
         if (debug > 1) console.log('drilling down to z%d-%d-%d', z, x, y);
@@ -245,7 +245,14 @@ class GeoJSONVT {
 
         if (!this.tiles[id]) return null;
 
-        return transformTile(this.tiles[id], extent);
+        return this.convertTile(this.tiles[id], extent);
+    }
+
+    convertTile(tile: TransformedTile | GVTTile, extent: number): TransformedTile {
+        if (tile.transformed === true) {
+            return tile;
+        }
+        return transformTile(tile, extent);
     }
 
     /**

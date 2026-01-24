@@ -23,6 +23,7 @@ export type GVTTileNonPointFeature = {
 export type GVTTileFeature = GVTTilePointFeature | GVTTileNonPointFeature;
 
 export type GVTTile = {
+    transformed: false;
     features: GVTTileFeature[];
     numPoints: number;
     numSimplified: number;
@@ -30,7 +31,6 @@ export type GVTTile = {
     x: number;
     y: number;
     z: number;
-    transformed: boolean;
     minX: number;
     minY: number;
     maxX: number;
@@ -51,6 +51,7 @@ export function createTile(features: GVTFeature[], z: number, tx: number, ty: nu
     const tolerance = z === options.maxZoom ? 0 : options.tolerance / ((1 << z) * options.extent);
 
     const tile: GVTTile = {
+        transformed: false,
         features: [],
         numPoints: 0,
         numSimplified: 0,
@@ -59,7 +60,6 @@ export function createTile(features: GVTFeature[], z: number, tx: number, ty: nu
         x: tx,
         y: ty,
         z,
-        transformed: false,
         minX: 2,
         minY: 1,
         maxX: -1,
