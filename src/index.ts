@@ -28,7 +28,7 @@ const defaultOptions: GeoJSONVTOptions = {
 class GeoJSONVT {
     private options: GeoJSONVTOptions;
     /** @internal */
-    public tiles: {[key: string]: GVTTile};
+    public tiles: {[key: string]: GVTTile | TransformedTile};
     private tileCoords: {z: number, x: number, y: number, id: number}[];
     /** @internal */
     public stats: {[key: string]: number} = {};
@@ -163,7 +163,7 @@ class GeoJSONVT {
      * Calculates clip boundaries and clips features into four quadrants
      * @internal
      */
-    private clipQuadrants(features: GVTFeature[], z2: number, x: number, y: number, tile: GVTTile, options: GeoJSONVTOptions): ClippedQuadrants {
+    private clipQuadrants(features: GVTFeature[], z2: number, x: number, y: number, tile: GVTTile | TransformedTile, options: GeoJSONVTOptions): ClippedQuadrants {
         // values we'll use for clipping
         const k1 = 0.5 * options.buffer / options.extent;
         const k2 = 0.5 - k1;
@@ -203,9 +203,6 @@ class GeoJSONVT {
         x = +x;
         y = +y;
 
-        const options = this.options;
-        const {extent, debug} = options;
-
         if (z < 0 || z > 24) return null;
 
         const z2 = 1 << z;
@@ -213,46 +210,52 @@ class GeoJSONVT {
 
         const id = toID(z, x, y);
 
-        if (this.tiles[id]) {
-            return this.convertTile(this.tiles[id], extent);
+        if (!this.tiles[id]) {
+            this.drillDownFromAncestor(z, x, y);
+            if (!this.tiles[id]) return null;
         }
 
-        if (debug > 1) console.log('drilling down to z%d-%d-%d', z, x, y);
+        const tile = this.tiles[id];
+        if (tile.transformed === true) {
+            return tile;
+        }
+
+        const transformed = transformTile(tile, this.options.extent);
+        this.tiles[id] = transformed;
+        return transformed;
+    }
+
+    /**
+     * Finds the closest ancestor tile containing the original geometry, then drills down from it to generate the requested tile.
+     * @internal
+     */
+    private drillDownFromAncestor(z: number, x: number, y: number) {
+        const {debug} = this.options;
+
+        if (debug > 1) console.log('seeking ancestor for z%d-%d-%d', z, x, y);
 
         let z0 = z;
         let x0 = x;
         let y0 = y;
-        let parent;
+        let ancestor;
 
-        while (!parent && z0 > 0) {
+        while (!ancestor && z0 > 0) {
             z0--;
             x0 = x0 >> 1;
             y0 = y0 >> 1;
-            parent = this.tiles[toID(z0, x0, y0)];
+            ancestor = this.tiles[toID(z0, x0, y0)];
         }
+        if (!ancestor?.source) return;
 
-        if (!parent?.source) return null;
-
-        // if we found a parent tile containing the original geometry, we can drill down from it
+        // if we found an ancestor tile containing the original geometry, we can drill down from it
         if (debug > 1) {
-            console.log('found parent tile z%d-%d-%d', z0, x0, y0);
+            console.log('found ancestor tile z%d-%d-%d', z0, x0, y0);
             console.time('drilling down');
         }
 
-        this.splitTile(parent.source, z0, x0, y0, z, x, y);
+        this.splitTile(ancestor.source, z0, x0, y0, z, x, y);
 
         if (debug > 1) console.timeEnd('drilling down');
-
-        if (!this.tiles[id]) return null;
-
-        return this.convertTile(this.tiles[id], extent);
-    }
-
-    convertTile(tile: GVTTile | TransformedTile, extent: number): TransformedTile {
-        if (tile.transformed === true) {
-            return tile;
-        }
-        return transformTile(tile, extent);
     }
 
     /**
@@ -344,7 +347,7 @@ class GeoJSONVT {
      * @param k1 - tile buffer clipping value
      * @internal
      */
-    private calcBufferedTileBounds(tile: GVTTile, k1: number): BoundLimits {
+    private calcBufferedTileBounds(tile: GVTTile | TransformedTile, k1: number): BoundLimits {
         const z2 = 1 << tile.z;
 
         return {
@@ -371,7 +374,7 @@ class GeoJSONVT {
     /**
      * @internal
      */
-    private logInvalidation(tile: GVTTile) {
+    private logInvalidation(tile: GVTTile | TransformedTile) {
         if (this.options.debug > 1) {
             console.log('invalidate tile z%d-%d-%d (features: %d, points: %d, simplified: %d)', tile.z, tile.x, tile.y, tile.numFeatures, tile.numPoints, tile.numSimplified);
         }
