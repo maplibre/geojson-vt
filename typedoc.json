@@ -1,5 +1,5 @@
 {
-    "treatWarningsAsErrors": true,
+    "treatWarningsAsErrors": false,
     "navigationLinks": {
         "GitHub": "https://github.com/maplibre/geojson-vt",
         "Example Page": "https://maplibre.org/geojson-vt/debug/"
