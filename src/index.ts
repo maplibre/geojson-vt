@@ -264,8 +264,7 @@ class GeoJSONVT {
      * @param features - features used to invalidate tiles
      */
     invalidateTiles(features: GVTFeature[]) {
-        const options = this.options;
-        const {buffer, extent, debug} = options;
+        const {buffer, extent, debug} = this.options;
 
         // tile buffer clipping value - not halved as in splitTile above because checking against tile's own extent
         const k1 = buffer / extent;
@@ -278,10 +277,9 @@ class GeoJSONVT {
             const tile = this.tiles[id];
             const tileBounds = this.calcBufferedTileBounds(tile, k1);
 
-            // trivial reject if bounds of all features don't intersect tile
+            // trivial reject for encompassing feature bounds
             if (!this.boundsIntersect(allFeaturesBounds, tileBounds)) continue;
 
-            // check if any feature intersects with the tile
             if (!this.anyFeatureIntersectsTile(features, tileBounds)) continue;
 
             if (debug) this.logInvalidation(tile);
