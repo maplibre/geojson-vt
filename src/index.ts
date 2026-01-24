@@ -265,38 +265,26 @@ class GeoJSONVT {
      */
     invalidateTiles(features: GVTFeature[]) {
         const options = this.options;
-        const {debug} = options;
-
-        const allFeaturesBounds = this.calcFeaturesBounds(features);
+        const {buffer, extent, debug} = options;
 
         // tile buffer clipping value - not halved as in splitTile above because checking against tile's own extent
-        const k1 = options.buffer / options.extent;
+        const k1 = buffer / extent;
 
-        // track removed tile ids for o(1) lookup
+        const allFeaturesBounds = this.calcFeaturesBounds(features);
         const removedLookup = new Set();
 
-        // iterate through existing tiles and remove ones that are affected by features
+        // iterate through existing tiles and remove ones affected by features
         for (const id in this.tiles) {
             const tile = this.tiles[id];
-
-            // calculate tile bounds including buffer
             const tileBounds = this.calcBufferedTileBounds(tile, k1);
 
             // trivial reject if bounds of all features don't intersect tile
             if (!this.boundsIntersect(allFeaturesBounds, tileBounds)) continue;
 
             // check if any feature intersects with the tile
-            let intersects = false;
-            for (const feature of features) {
-                const bounds = getFeatureBounds(feature);
-                if (!this.boundsIntersect(bounds, tileBounds)) continue;
-                intersects = true;
-                break;
-            }
-            if (!intersects) continue;
+            if (!this.anyFeatureIntersectsTile(features, tileBounds)) continue;
 
             if (debug) this.logInvalidation(tile);
-
             delete this.tiles[id];
             removedLookup.add(id);
         }
@@ -304,6 +292,18 @@ class GeoJSONVT {
 
         // remove tile coords that are no longer in the index
         this.tileCoords = this.tileCoords.filter(c => !removedLookup.has(c.id));
+    }
+
+    /**
+     * Checks if any feature intersects with the given tile bounds
+     */
+    private anyFeatureIntersectsTile(features: GVTFeature[], tileBounds: BoundLimits): boolean {
+        for (const feature of features) {
+            if (this.boundsIntersect(getFeatureBounds(feature), tileBounds)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
