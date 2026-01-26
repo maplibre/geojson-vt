@@ -1,15 +1,25 @@
 import Point from '@mapbox/point-geometry';
-import type {TileFeature, AnyProps} from 'supercluster';
-import type {GeoJSONVTFeature} from '@maplibre/geojson-vt';
-import type {
-    VectorTileFeatureLike,
-    VectorTileLayerLike,
-    VectorTileLike,
-} from "./types";
+import type {GeoJSONVTFeature} from './transform';
 
-export { VectorTileFeatureLike, VectorTileLayerLike, VectorTileLike };
+export interface VectorTileFeatureLike {
+    type: 0 | 1 | 2 | 3;
+    properties: Record<string, number | string | boolean>;
+    id: number | undefined;
+    extent: number;
+    loadGeometry(): Point[][];
+}
 
-export type Feature = TileFeature<AnyProps, AnyProps> | GeoJSONVTFeature;
+export interface VectorTileLayerLike {
+    version: number;
+    name: string;
+    extent: number;
+    length: number;
+    feature(i: number): VectorTileFeatureLike;
+}
+
+export interface VectorTileLike {
+    layers: Record<string, VectorTileLayerLike>;
+}
 
 export interface GeoJSONOptions {
     version: number;
@@ -17,13 +27,13 @@ export interface GeoJSONOptions {
 }
 
 class FeatureWrapper implements VectorTileFeatureLike {
-    feature: Feature;
+    feature: GeoJSONVTFeature;
     type: VectorTileFeatureLike['type'];
     properties: VectorTileFeatureLike['properties'];
     id: VectorTileFeatureLike['id'];
     extent: VectorTileFeatureLike['extent'];
 
-    constructor(feature: Feature, extent: number) {
+    constructor(feature: GeoJSONVTFeature, extent: number) {
         this.feature = feature;
         this.type = feature.type;
         this.properties = feature.tags ? feature.tags : {};
@@ -62,13 +72,13 @@ export const GEOJSON_TILE_LAYER_NAME = "_geojsonTileLayer";
 
 export class GeoJSONWrapper implements VectorTileLayerLike {
     layers: Record<string, VectorTileLayerLike>;
-    features: Feature[];
+    features: GeoJSONVTFeature[];
     version: VectorTileLayerLike['version'];
     name: VectorTileLayerLike['name'];
     extent: VectorTileLayerLike['extent'];
     length: VectorTileLayerLike['length'];
 
-    constructor(features: Feature[], options?: GeoJSONOptions) {
+    constructor(features: GeoJSONVTFeature[], options?: GeoJSONOptions) {
         this.layers = { [GEOJSON_TILE_LAYER_NAME]: this };
         this.name = GEOJSON_TILE_LAYER_NAME;
         this.version = options ? options.version : 1;
