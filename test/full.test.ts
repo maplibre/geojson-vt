@@ -2,7 +2,7 @@
 import {test, expect} from 'vitest';
 import fs from 'fs';
 
-import geojsonvt, {type GeoJSONVTOptions, type GeoJSONVTInternalTileFeature } from '../src';
+import geojsonvt, {type GeoJSONVTOptions, type GeoJSONVTInternalTileFeature, type GeoJSONVTTile } from '../src';
 
 testTiles('us-states.json', 'us-states-tiles.json', {indexMaxZoom: 7, indexMaxPoints: 200});
 testTiles('dateline.json', 'dateline-tiles.json', {indexMaxZoom: 0, indexMaxPoints: 10000});
@@ -56,7 +56,7 @@ function genTiles(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
     for (const id in index.tiles) {
         const tile = index.tiles[id];
         const z = tile.z;
-        output[`z${z}-${tile.x}-${tile.y}`] = index.getTile(z, tile.x, tile.y).features;
+        output[`z${z}-${tile.x}-${tile.y}`] = (index.getTile(z, tile.x, tile.y) as GeoJSONVTTile).features;
     }
 
     return output;

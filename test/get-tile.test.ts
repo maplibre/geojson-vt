@@ -2,7 +2,7 @@
 import {test, expect} from 'vitest';
 import fs from 'fs';
 
-import geojsonvt from '../src';
+import geojsonvt, {type GeoJSONVTTile} from '../src';
 
 const square = [{
     geometry: [[[-64, 4160], [-64, -64], [4160, -64], [4160, 4160], [-64, 4160]]],
@@ -17,10 +17,10 @@ test('getTile: us-states.json', () => {
     console.log = function () {};
     const index = geojsonvt(getJSON('us-states.json'), {debug: 2});
 
-    expect(index.getTile(7, 37, 48).features).toEqual(getJSON('us-states-z7-37-48.json'));
-    expect(index.getTile('7', '37', '48').features).toEqual(getJSON('us-states-z7-37-48.json'));
+    expect((index.getTile(7, 37, 48) as GeoJSONVTTile).features).toEqual(getJSON('us-states-z7-37-48.json'));
+    expect((index.getTile('7', '37', '48') as GeoJSONVTTile).features).toEqual(getJSON('us-states-z7-37-48.json'));
 
-    expect(index.getTile(9, 148, 192).features).toEqual(square);
+    expect((index.getTile(9, 148, 192) as GeoJSONVTTile).features).toEqual(square);
 
     expect(index.getTile(11, 800, 400)).toBeNull();
     expect(index.getTile(-5, 123.25, 400.25)).toBeNull();
@@ -40,7 +40,7 @@ test('getTile: unbuffered tile left/right edges', () => {
     });
 
     expect(index.getTile(2, 1, 1)).toBe(null);
-    expect(index.getTile(2, 2, 1).features).toEqual([{geometry: [[[0, 0], [0, 4096]]], type: 2, tags: null}]);
+    expect((index.getTile(2, 2, 1) as GeoJSONVTTile).features).toEqual([{geometry: [[[0, 0], [0, 4096]]], type: 2, tags: null}]);
 });
 
 test('getTile: unbuffered tile top/bottom edges', () => {
@@ -51,8 +51,8 @@ test('getTile: unbuffered tile top/bottom edges', () => {
         buffer: 0
     });
 
-    expect(index.getTile(2, 1, 0).features).toEqual([{geometry: [[[0, 4096], [4096, 4096]]], type: 2, tags: null}]);
-    expect(index.getTile(2, 1, 1).features).toEqual([]);
+    expect((index.getTile(2, 1, 0) as GeoJSONVTTile).features).toEqual([{geometry: [[[0, 4096], [4096, 4096]]], type: 2, tags: null}]);
+    expect((index.getTile(2, 1, 1) as GeoJSONVTTile).features).toEqual([]);
 });
 
 test('getTile: polygon clipping on the boundary', () => {
@@ -69,7 +69,7 @@ test('getTile: polygon clipping on the boundary', () => {
         buffer: 1024
     });
 
-    expect(index.getTile(5, 19, 9).features).toEqual([{
+    expect((index.getTile(5, 19, 9) as GeoJSONVTTile).features).toEqual([{
         geometry: [[[3072, 3072], [5120, 3072], [5120, 5120], [3072, 5120], [3072, 3072]]],
         type: 3,
         tags: null
