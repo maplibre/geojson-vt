@@ -21,7 +21,7 @@ export interface VectorTileLike {
     layers: Record<string, VectorTileLayerLike>;
 }
 
-export interface GeoJSONOptions {
+export interface GeoJSONWrapperOptions {
     version: number;
     extent: number;
 }
@@ -78,7 +78,7 @@ export class GeoJSONWrapper implements VectorTileLayerLike {
     extent: VectorTileLayerLike['extent'];
     length: VectorTileLayerLike['length'];
 
-    constructor(features: GeoJSONVTFeature[], options?: GeoJSONOptions) {
+    constructor(features: GeoJSONVTFeature[], options?: GeoJSONWrapperOptions) {
         this.layers = { [GEOJSON_TILE_LAYER_NAME]: this };
         this.name = GEOJSON_TILE_LAYER_NAME;
         this.version = options ? options.version : 1;

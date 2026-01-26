@@ -6,7 +6,7 @@ import {transformTile, type GeoJSONVTFeature, type GeoJSONVTFeatureNonPoint, typ
 import {createTile, type GeoJSONVTInternalTile, type GeoJSONVTInternalTileFeature, type GeoJSONVTInternalTileFeaturePoint, type GeoJSONVTInternalTileFeaturNonPoint} from './tile';
 import {applySourceDiff, type GeoJSONVTFeatureDiff, type GeoJSONVTSourceDiff} from './difference';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, GeometryType, GeometryTypeMap, PartialGeoJSONVTFeature, StartEndSizeArray } from './definitions';
-import {GeoJSONWrapper, type VectorTileLike} from './geojson_wrapper';
+import {GeoJSONWrapper, type GeoJSONWrapperOptions, type VectorTileFeatureLike, type VectorTileLayerLike, type VectorTileLike} from './geojson_wrapper';
 
 const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
@@ -401,5 +401,10 @@ export type {
     GeoJSONVTFeaturePoint,
     GeoJSONVTFeatureNonPoint,
     GeoJSONVTInternalTileFeaturePoint,
-    GeoJSONVTInternalTileFeaturNonPoint
+    GeoJSONVTInternalTileFeaturNonPoint,
+    GeoJSONWrapper,
+    GeoJSONWrapperOptions,
+    VectorTileFeatureLike,
+    VectorTileLayerLike,
+    VectorTileLike
 };
