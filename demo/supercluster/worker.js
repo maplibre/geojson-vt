@@ -3,6 +3,7 @@
 importScripts('../../dist/geojson-vt-dev.js');
 
 const Supercluster = geojsonvt.Supercluster;
+const GeoJSONVT = geojsonvt.GeoJSONVT;
 
 const now = Date.now();
 
@@ -11,14 +12,26 @@ let index;
 getJSON('../../test/fixtures/places.json', (geojson) => {
     console.log(`loaded ${geojson.features.length} points JSON in ${(Date.now() - now) / 1000}s`);
 
-    index = new Supercluster({
-        log: true,
-        radius: 60,
-        extent: 256,
-        maxZoom: 17
-    }).load(geojson.features);
+    // old method - using the class directly
+    // index = new Supercluster({
+    //     log: true,
+    //     radius: 60,
+    //     extent: 256,
+    //     maxZoom: 17
+    // }).load(geojson.features);
 
-    console.log(index.getTile(0, 0, 0));
+    // new method - using updateable geojsonvt
+    index = new GeoJSONVT(geojson, {
+        updateable: true,
+        clusterOptions: {
+            log: true,
+            radius: 60,
+            extent: 256,
+            maxZoom: 17
+        }
+    });
+
+    console.log(index.getTile(0, 0, 0, true));
 
     postMessage({ready: true});
 });
@@ -26,11 +39,11 @@ getJSON('../../test/fixtures/places.json', (geojson) => {
 self.onmessage = function (e) {
     if (e.data.getClusterExpansionZoom) {
         postMessage({
-            expansionZoom: index.getClusterExpansionZoom(e.data.getClusterExpansionZoom),
+            expansionZoom: index.superCluster.getClusterExpansionZoom(e.data.getClusterExpansionZoom),
             center: e.data.center
         });
     } else if (e.data) {
-        postMessage(index.getClusters(e.data.bbox, e.data.zoom));
+        postMessage(index.superCluster.getClusters(e.data.bbox, e.data.zoom));
     }
 };
 
