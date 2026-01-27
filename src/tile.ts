@@ -1,4 +1,4 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, StartEndSizeArray } from "./definitions";
 
 export type GeoJSONVTInternalTileFeaturePoint = {
     id? : number | string | undefined;
@@ -7,13 +7,13 @@ export type GeoJSONVTInternalTileFeaturePoint = {
     geometry: number[];
 }
 
-export type GeoJSONVTInternalTileFeaturNonPoint = {
+export type GeoJSONVTInternalTileFeatureNonPoint = {
     id? : number | string | undefined;
     type: 2 | 3;
     tags: GeoJSON.GeoJsonProperties | null;
     geometry: number[][];
 }
-export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeaturNonPoint;
+export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeatureNonPoint;
 
 export type GeoJSONVTInternalTile = {
     features: GeoJSONVTInternalTileFeature[];
@@ -72,81 +72,100 @@ function addFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalFeatu
     tile.maxX = Math.max(tile.maxX, feature.maxX);
     tile.maxY = Math.max(tile.maxY, feature.maxY);
 
-    let tags = feature.tags || null;
-
-    let tileFeature: GeoJSONVTInternalTileFeature;
-
     switch (feature.type) {
         case 'Point':
-        case 'MultiPoint': {
-            const geometry: number[] = [];
-            for (let i = 0; i < feature.geometry.length; i += 3) {
-                geometry.push(feature.geometry[i] , feature.geometry[i + 1]);
-                tile.numPoints++;
-                tile.numSimplified++;
-            }
-            if (!geometry.length) return;
-            tileFeature = {
-                type: 1,
-                tags: tags,
-                geometry: geometry
-            }
-            break;
-        }
-        case 'LineString': {
-            const geometry: number[][] = [];
-            addLine(geometry, feature.geometry, tile, tolerance, false, false);
-            if (!geometry.length) return;
-            if (options.lineMetrics) {
-                tags = {};
-                for (const key in feature.tags) tags[key] = feature.tags[key];
-                // HM TODO: replace with geojsonvt
-                tags['mapbox_clip_start'] = feature.geometry.start / feature.geometry.size;
-                tags['mapbox_clip_end'] = feature.geometry.end / feature.geometry.size;
-            }
-            tileFeature = {
-                type: 2,
-                tags: tags,
-                geometry: geometry
-            }
-            break;
-        }
+        case 'MultiPoint': 
+            addPointsTileFeature(tile, feature);
+            return;
+        case 'LineString':
+            addLineTileFeautre(tile, feature, tolerance, options);
+            return;
         case 'MultiLineString':
-        case 'Polygon': {
-            const geometry: number[][] = [];
-            for (let i = 0; i < feature.geometry.length; i++) {
-                addLine(geometry, feature.geometry[i], tile, tolerance, feature.type === 'Polygon', i === 0);
-            }
-            if (!geometry.length) return;
-            tileFeature = {
-                type: feature.type === 'Polygon' ? 3 : 2,
-                tags: tags,
-                geometry: geometry
-            }
-            break;
-        }
-        case 'MultiPolygon': {
-            const geometry: number[][] = [];
-            for (let k = 0; k < feature.geometry.length; k++) {
-                const polygon = feature.geometry[k];
-                for (let i = 0; i < polygon.length; i++) {
-                    addLine(geometry, polygon[i], tile, tolerance, true, i === 0);
-                }
-            }
-            if (!geometry.length) return;
-            tileFeature = {
-                type: 3,
-                tags: tags,
-                geometry: geometry
-            }
-            break;
-        }
+        case 'Polygon':
+            addLinesTileFeature(tile, feature, tolerance);
+            return;
+        case 'MultiPolygon': 
+            addMultiPolygonTileFeature(tile, feature, tolerance);
+            return;
     }
+}
 
+function addPointsTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalPointFeature | GeoJSONVTInternalMultiPointFeature) {
+    const geometry: number[] = [];
+    for (let i = 0; i < feature.geometry.length; i += 3) {
+        geometry.push(feature.geometry[i] , feature.geometry[i + 1]);
+        tile.numPoints++;
+        tile.numSimplified++;
+    }
+    if (!geometry.length) return;
+    const tileFeature: GeoJSONVTInternalTileFeature = {
+        type: 1,
+        tags: feature.tags || null,
+        geometry: geometry
+    };
     if (feature.id !== null) {
         tileFeature.id = feature.id;
     }
+    tile.features.push(tileFeature);
+}
 
+function addLineTileFeautre(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalLineStringFeature, tolerance: number, options: GeoJSONVTOptions) {
+    const geometry: number[][] = [];
+    addLine(geometry, feature.geometry, tile, tolerance, false, false);
+    if (!geometry.length) return;
+    let tags = feature.tags || null;
+    if (options.lineMetrics) {
+        tags = {};
+        for (const key in feature.tags) tags[key] = feature.tags[key];
+        // HM TODO: replace with geojsonvt
+        tags['mapbox_clip_start'] = feature.geometry.start / feature.geometry.size;
+        tags['mapbox_clip_end'] = feature.geometry.end / feature.geometry.size;
+    }
+    const tileFeature: GeoJSONVTInternalTileFeature = {
+        type: 2,
+        tags: tags,
+        geometry: geometry
+    }
+    if (feature.id !== null) {
+        tileFeature.id = feature.id;
+    }
+    tile.features.push(tileFeature);
+}
+
+function addLinesTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalPolygonFeature | GeoJSONVTInternalMultiLineStringFeature, tolerance: number) {
+    const geometry: number[][] = [];
+    for (let i = 0; i < feature.geometry.length; i++) {
+        addLine(geometry, feature.geometry[i], tile, tolerance, feature.type === 'Polygon', i === 0);
+    }
+    if (!geometry.length) return;
+    const tileFeature: GeoJSONVTInternalTileFeature = {
+        type: feature.type === 'Polygon' ? 3 : 2,
+        tags: feature.tags || null,
+        geometry: geometry
+    }
+    if (feature.id !== null) {
+        tileFeature.id = feature.id;
+    }
+    tile.features.push(tileFeature);
+}
+
+function addMultiPolygonTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalMultiPolygonFeature, tolerance: number) {
+    const geometry: number[][] = [];
+    for (let k = 0; k < feature.geometry.length; k++) {
+        const polygon = feature.geometry[k];
+        for (let i = 0; i < polygon.length; i++) {
+            addLine(geometry, polygon[i], tile, tolerance, true, i === 0);
+        }
+    }
+    if (!geometry.length) return;
+    const tileFeature: GeoJSONVTInternalTileFeature = {
+        type: 3,
+        tags: feature.tags || null,
+        geometry: geometry
+    }
+    if (feature.id !== null) {
+        tileFeature.id = feature.id;
+    }
     tile.features.push(tileFeature);
 }
 
