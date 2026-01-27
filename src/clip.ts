@@ -1,6 +1,6 @@
 
 import {createFeature} from './feature';
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 
 /* clip features between two vertical or horizontal axis-parallel lines:
  *     |        |
@@ -42,69 +42,27 @@ export function clip(features: GeoJSONVTInternalFeature[], scale: number, k1: nu
         switch (feature.type) {
             case 'Point':
             case 'MultiPoint': {
-                const pointGeometry: number[] = [];
-                clipPoints(feature.geometry, pointGeometry, k1, k2, axis);
-                if (!pointGeometry.length) continue;
-
-                const type = pointGeometry.length === 3 ? 'Point' : 'MultiPoint';
-                clipped.push(createFeature(feature.id, type, pointGeometry, feature.tags));
+                clipPointFeature(feature, clipped, k1, k2, axis);
                 continue;
             }
 
             case 'LineString': {
-                const lineGeometry: StartEndSizeArray[] = [];
-                clipLine(feature.geometry, lineGeometry, k1, k2, axis, false, options.lineMetrics);
-                if (!lineGeometry.length) continue;
-
-                if (options.lineMetrics) {
-                    for (const line of lineGeometry) {
-                        clipped.push(createFeature(feature.id, feature.type, line, feature.tags));
-                    }
-                    continue;
-                }
-
-                if (lineGeometry.length > 1) {
-                    clipped.push(createFeature(feature.id, "MultiLineString", lineGeometry, feature.tags));
-                    continue;
-                }
-
-                clipped.push(createFeature(feature.id, feature.type, lineGeometry[0], feature.tags));
+                clipLineStringFeature(feature, clipped, k1, k2, axis, options);
                 continue;
             }
 
             case 'MultiLineString': {
-                const multiLineGeometry: StartEndSizeArray[] = [];
-                clipLines(feature.geometry, multiLineGeometry, k1, k2, axis, false);
-                if (!multiLineGeometry.length) continue;
-
-                if (multiLineGeometry.length === 1) {
-                    clipped.push(createFeature(feature.id, "LineString", multiLineGeometry[0], feature.tags));
-                    continue;
-                }
-
-                clipped.push(createFeature(feature.id, feature.type, multiLineGeometry, feature.tags));
+                clipMultiLineStringFeature(feature, clipped, k1, k2, axis);
                 continue;
             }
 
             case 'Polygon': {
-                const polygonGeometry: StartEndSizeArray[] = [];
-                clipLines(feature.geometry, polygonGeometry, k1, k2, axis, true);
-                if (!polygonGeometry.length) continue;
-
-                clipped.push(createFeature(feature.id, feature.type, polygonGeometry, feature.tags));
+                clipPolygonFeature(feature, clipped, k1, k2, axis);
                 continue;
             }
 
             case 'MultiPolygon': {
-                const multiPolygonGeometry: StartEndSizeArray[][] = [];
-                for (const polygon of feature.geometry) {
-                    const newPolygon: StartEndSizeArray[] = [];
-                    clipLines(polygon, newPolygon, k1, k2, axis, true);
-                    if (newPolygon.length) multiPolygonGeometry.push(newPolygon);
-                }
-                if (!multiPolygonGeometry.length) continue;
-
-                clipped.push(createFeature(feature.id, feature.type, multiPolygonGeometry, feature.tags));
+                clipMultiPolygonFeature(feature, clipped, k1, k2, axis);
                 continue;
             }
         }
@@ -113,6 +71,76 @@ export function clip(features: GeoJSONVTInternalFeature[], scale: number, k1: nu
     if (!clipped.length) return null;
 
     return clipped;
+}
+
+function clipPointFeature(feature: GeoJSONVTInternalPointFeature | GeoJSONVTInternalMultiPointFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+    const geom: number[] = [];
+
+    clipPoints(feature.geometry, geom, k1, k2, axis);
+    if (!geom.length) return;
+
+    const type = geom.length === 3 ? 'Point' : 'MultiPoint';
+    clipped.push(createFeature(feature.id, type, geom, feature.tags));
+}
+
+function clipLineStringFeature(feature: GeoJSONVTInternalLineStringFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number, options: GeoJSONVTOptions) {
+    const geom: StartEndSizeArray[] = [];
+
+    clipLine(feature.geometry, geom, k1, k2, axis, false, options.lineMetrics);
+    if (!geom.length) return;
+
+    if (options.lineMetrics) {
+        for (const line of geom) {
+            clipped.push(createFeature(feature.id, 'LineString', line, feature.tags));
+        }
+        return;
+    }
+
+    if (geom.length > 1) {
+        clipped.push(createFeature(feature.id, 'MultiLineString', geom, feature.tags));
+        return;
+    }
+
+    clipped.push(createFeature(feature.id, 'LineString', geom[0], feature.tags));
+}
+
+function clipMultiLineStringFeature(feature: GeoJSONVTInternalMultiLineStringFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+    const geom: StartEndSizeArray[] = [];
+
+    clipLines(feature.geometry, geom, k1, k2, axis, false);
+    if (!geom.length) return;
+
+    if (geom.length === 1) {
+        clipped.push(createFeature(feature.id, 'LineString', geom[0], feature.tags));
+        return;
+    }
+
+    clipped.push(createFeature(feature.id,'MultiLineString', geom, feature.tags));
+}
+
+function clipPolygonFeature(feature: GeoJSONVTInternalPolygonFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+    const geom: StartEndSizeArray[] = [];
+
+    clipLines(feature.geometry, geom, k1, k2, axis, true);
+    if (!geom.length) return;
+
+    clipped.push(createFeature(feature.id, 'Polygon', geom, feature.tags));
+}
+
+function clipMultiPolygonFeature(feature: GeoJSONVTInternalMultiPolygonFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+    const geom: StartEndSizeArray[][] = [];
+
+    for (const polygon of feature.geometry) {
+        const newPolygon: StartEndSizeArray[] = [];
+
+        clipLines(polygon, newPolygon, k1, k2, axis, true);
+        if (!newPolygon.length) continue;
+
+        geom.push(newPolygon);
+    }
+    if (!geom.length) return;
+
+    clipped.push(createFeature(feature.id, 'MultiPolygon', geom, feature.tags));
 }
 
 function clipPoints(geom: number[], newGeom: number[], k1: number, k2: number, axis: number) {

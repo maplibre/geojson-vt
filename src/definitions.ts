@@ -67,20 +67,40 @@ export type PartialGeoJSONVTFeature = {
     maxY: number;
 }
 
-export type GeometryTypeMap = {
-    Point: number[];
-    MultiPoint: number[];
-    LineString: StartEndSizeArray;
-    MultiLineString: StartEndSizeArray[];
-    Polygon: StartEndSizeArray[];
-    MultiPolygon: StartEndSizeArray[][];
-}
+export type GeoJSONVTInternalPointFeature = PartialGeoJSONVTFeature & {
+    type: 'Point';
+    geometry: number[];
+};
 
-export type GeometryType = "Point" | "MultiPoint" | "LineString" | "MultiLineString" | "Polygon" | "MultiPolygon";
+export type GeoJSONVTInternalMultiPointFeature = PartialGeoJSONVTFeature & {
+    type: 'MultiPoint';
+    geometry: number[];
+};
 
-export type GeoJSONVTInternalFeature = {
-    [K in GeometryType]: PartialGeoJSONVTFeature & {
-        type: K;
-        geometry: GeometryTypeMap[K];
-    }
-}[GeometryType];
+export type GeoJSONVTInternalLineStringFeature = PartialGeoJSONVTFeature & {
+    type: 'LineString';
+    geometry: StartEndSizeArray;
+};
+
+export type GeoJSONVTInternalMultiLineStringFeature = PartialGeoJSONVTFeature & {
+    type: 'MultiLineString';
+    geometry: StartEndSizeArray[];
+};
+
+export type GeoJSONVTInternalPolygonFeature = PartialGeoJSONVTFeature & {
+    type: 'Polygon';
+    geometry: StartEndSizeArray[];
+};
+
+export type GeoJSONVTInternalMultiPolygonFeature = PartialGeoJSONVTFeature & {
+    type: 'MultiPolygon';
+    geometry: StartEndSizeArray[][];
+};
+
+export type GeoJSONVTInternalFeature =
+    | GeoJSONVTInternalPointFeature
+    | GeoJSONVTInternalMultiPointFeature
+    | GeoJSONVTInternalLineStringFeature
+    | GeoJSONVTInternalMultiLineStringFeature
+    | GeoJSONVTInternalPolygonFeature
+    | GeoJSONVTInternalMultiPolygonFeature;
