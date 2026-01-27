@@ -1,26 +1,95 @@
-
 import KDBush from 'kdbush';
 
-const defaultOptions = {
-    minZoom: 0,   // min zoom to generate clusters on
-    maxZoom: 16,  // max zoom level to cluster the points on
-    minPoints: 2, // minimum points to form a cluster
-    radius: 40,   // cluster radius in pixels
-    extent: 512,  // tile extent (radius is calculated relative to it)
-    nodeSize: 64, // size of the KD-tree leaf node, affects performance
-    log: false,   // whether to log timing info
-
-    // whether to generate numeric ids for input features (in vector tiles)
-    generateId: false,
-
-    // a reduce function for calculating custom cluster properties
-    reduce: null, // (accumulated, props) => { accumulated.sum += props.sum; }
-
-    // properties to use for individual points when running the reducer
-    map: props => props // props => ({sum: props.my_value})
+export type SuperclusterOptions = {
+    /**
+     * Min zoom to generate clusters on
+     * @default 0
+     */
+    minZoom?: number;
+    /**
+     * Max zoom level to cluster the points on
+     * @default 16
+     */
+    maxZoom?: number;
+    /**
+     * Minimum points to form a cluster
+     * @default 2
+     */
+    minPoints?: number;
+    /**
+     * Cluster radius in pixels
+     * @default 40
+     */
+    radius?: number;
+    /**
+     * Tile extent (radius is calculated relative to it)
+     * @default 512
+     */
+    extent?: number;
+    /**
+     * Size of the KD-tree leaf node, affects performance
+     * @default 64
+     */
+    nodeSize?: number;
+    /**
+     * Whether to log timing info
+     * @default false
+     */
+    log?: boolean;
+    /**
+     * Whether to generate numeric ids for input features (in vector tiles)
+     * @default false
+     */
+    generateId?: boolean;
+    /**
+     * A reduce function for calculating custom cluster properties
+     * @default null
+     */
+    reduce?: ((accumulated: Record<string, unknown>, props: Record<string, unknown>) => void) | null;
+    /**
+     * Properties to use for individual points when running the reducer
+     * @default props => props
+     */
+    map?: (props: GeoJSON.GeoJsonProperties) => Record<string, unknown>;
 };
 
-const fround = Math.fround || (tmp => ((x) => { tmp[0] = +x; return tmp[0]; }))(new Float32Array(1));
+export type ClusterProperties = {
+    cluster: true;
+    cluster_id: number;
+    point_count: number;
+    point_count_abbreviated: string | number;
+    [key: string]: unknown;
+};
+
+export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
+
+export type SuperclusterTileFeature = {
+    type: 1;
+    geometry: [[number, number]];
+    tags: GeoJSON.GeoJsonProperties | ClusterProperties;
+    id?: number | string;
+};
+
+export type SuperclusterTile = {
+    features: SuperclusterTileFeature[];
+};
+
+type KDBushWithData = Omit<KDBush, 'data'> & { data: number[] };
+
+const defaultOptions: Required<SuperclusterOptions> = {
+    minZoom: 0,
+    maxZoom: 16,
+    minPoints: 2,
+    radius: 40,
+    extent: 512,
+    nodeSize: 64,
+    log: false,
+    generateId: false,
+    reduce: null,
+    map: (props) => props as Record<string, unknown>
+};
+
+const fround = Math.fround || ((tmp) => ((x: number) => { tmp[0] = +x; return tmp[0]; }))(new Float32Array(1));
 
 const OFFSET_ZOOM = 2;
 const OFFSET_ID = 3;
@@ -29,25 +98,32 @@ const OFFSET_NUM = 5;
 const OFFSET_PROP = 6;
 
 export default class Supercluster {
-    constructor(options) {
-        this.options = Object.assign(Object.create(defaultOptions), options);
+    options: Required<SuperclusterOptions>;
+    trees: KDBushWithData[];
+    stride: number;
+    clusterProps: Record<string, unknown>[];
+    points: GeoJSON.Feature<GeoJSON.Point>[];
+
+    constructor(options?: SuperclusterOptions) {
+        this.options = Object.assign(Object.create(defaultOptions), options) as Required<SuperclusterOptions>;
         this.trees = new Array(this.options.maxZoom + 1);
         this.stride = this.options.reduce ? 7 : 6;
         this.clusterProps = [];
+        this.points = [];
     }
 
-    load(points) {
+    load(points: GeoJSON.Feature<GeoJSON.Point>[]): this {
         const {log, minZoom, maxZoom} = this.options;
 
         if (log) console.time('total time');
 
-        const timerId = `prepare ${  points.length  } points`;
+        const timerId = `prepare ${points.length} points`;
         if (log) console.time(timerId);
 
         this.points = points;
 
         // generate a cluster object for each point and index input points into a KD-tree
-        const data = [];
+        const data: number[] = [];
 
         for (let i = 0; i < points.length; i++) {
             const p = points[i];
@@ -86,7 +162,7 @@ export default class Supercluster {
         return this;
     }
 
-    getClusters(bbox, zoom) {
+    getClusters(bbox: [number, number, number, number], zoom: number): (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] {
         let minLng = ((bbox[0] + 180) % 360 + 360) % 360 - 180;
         const minLat = Math.max(-90, Math.min(90, bbox[1]));
         let maxLng = bbox[2] === 180 ? 180 : ((bbox[2] + 180) % 360 + 360) % 360 - 180;
@@ -104,7 +180,7 @@ export default class Supercluster {
         const tree = this.trees[this._limitZoom(zoom)];
         const ids = tree.range(lngX(minLng), latY(maxLat), lngX(maxLng), latY(minLat));
         const data = tree.data;
-        const clusters = [];
+        const clusters: (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] = [];
         for (const id of ids) {
             const k = this.stride * id;
             clusters.push(data[k + OFFSET_NUM] > 1 ? getClusterJSON(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]]);
@@ -112,7 +188,7 @@ export default class Supercluster {
         return clusters;
     }
 
-    getChildren(clusterId) {
+    getChildren(clusterId: number): (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] {
         const originId = this._getOriginId(clusterId);
         const originZoom = this._getOriginZoom(clusterId);
         const errorMsg = 'No cluster with the specified id.';
@@ -127,7 +203,7 @@ export default class Supercluster {
         const x = data[originId * this.stride];
         const y = data[originId * this.stride + 1];
         const ids = tree.within(x, y, r);
-        const children = [];
+        const children: (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] = [];
         for (const id of ids) {
             const k = id * this.stride;
             if (data[k + OFFSET_PARENT] === clusterId) {
@@ -140,17 +216,17 @@ export default class Supercluster {
         return children;
     }
 
-    getLeaves(clusterId, limit, offset) {
+    getLeaves(clusterId: number, limit?: number, offset?: number): GeoJSON.Feature<GeoJSON.Point>[] {
         limit = limit || 10;
         offset = offset || 0;
 
-        const leaves = [];
+        const leaves: GeoJSON.Feature<GeoJSON.Point>[] = [];
         this._appendLeaves(leaves, clusterId, limit, offset, 0);
 
         return leaves;
     }
 
-    getTile(z, x, y) {
+    getTile(z: number, x: number, y: number): SuperclusterTile | null {
         const tree = this.trees[this._limitZoom(z)];
         const z2 = Math.pow(2, z);
         const {extent, radius} = this.options;
@@ -158,7 +234,7 @@ export default class Supercluster {
         const top = (y - p) / z2;
         const bottom = (y + 1 + p) / z2;
 
-        const tile = {
+        const tile: SuperclusterTile = {
             features: []
         };
 
@@ -180,22 +256,22 @@ export default class Supercluster {
         return tile.features.length ? tile : null;
     }
 
-    getClusterExpansionZoom(clusterId) {
+    getClusterExpansionZoom(clusterId: number): number {
         let expansionZoom = this._getOriginZoom(clusterId) - 1;
         while (expansionZoom <= this.options.maxZoom) {
             const children = this.getChildren(clusterId);
             expansionZoom++;
             if (children.length !== 1) break;
-            clusterId = children[0].properties.cluster_id;
+            clusterId = (children[0].properties as ClusterProperties).cluster_id;
         }
         return expansionZoom;
     }
 
-    _appendLeaves(result, clusterId, limit, offset, skipped) {
+    _appendLeaves(result: GeoJSON.Feature<GeoJSON.Point>[], clusterId: number, limit: number, offset: number, skipped: number): number {
         const children = this.getChildren(clusterId);
 
         for (const child of children) {
-            const props = child.properties;
+            const props = child.properties as ClusterProperties | null;
 
             if (props && props.cluster) {
                 if (skipped + props.point_count <= offset) {
@@ -211,7 +287,7 @@ export default class Supercluster {
                 skipped++;
             } else {
                 // add a single point
-                result.push(child);
+                result.push(child as GeoJSON.Feature<GeoJSON.Point>);
             }
             if (result.length === limit) break;
         }
@@ -219,20 +295,22 @@ export default class Supercluster {
         return skipped;
     }
 
-    _createTree(data) {
-        const tree = new KDBush(data.length / this.stride | 0, this.options.nodeSize, Float32Array);
+    _createTree(data: number[]): KDBushWithData {
+        const tree = new KDBush(data.length / this.stride | 0, this.options.nodeSize, Float32Array) as unknown as KDBushWithData;
         for (let i = 0; i < data.length; i += this.stride) tree.add(data[i], data[i + 1]);
         tree.finish();
         tree.data = data;
         return tree;
     }
 
-    _addTileFeatures(ids, data, x, y, z2, tile) {
+    _addTileFeatures(ids: number[], data: number[], x: number, y: number, z2: number, tile: SuperclusterTile): void {
         for (const i of ids) {
             const k = i * this.stride;
             const isCluster = data[k + OFFSET_NUM] > 1;
 
-            let tags, px, py;
+            let tags: GeoJSON.GeoJsonProperties | ClusterProperties;
+            let px: number;
+            let py: number;
             if (isCluster) {
                 tags = getClusterProperties(data, k, this.clusterProps);
                 px = data[k];
@@ -245,7 +323,7 @@ export default class Supercluster {
                 py = latY(lat);
             }
 
-            const f = {
+            const f: SuperclusterTileFeature = {
                 type: 1,
                 geometry: [[
                     Math.round(this.options.extent * (px * z2 - x)),
@@ -255,13 +333,13 @@ export default class Supercluster {
             };
 
             // assign id
-            let id;
+            let id: number | string | undefined;
             if (isCluster || this.options.generateId) {
                 // optionally generate id for points
                 id = data[k + OFFSET_ID];
             } else {
                 // keep id if already assigned
-                id = this.points[data[k + OFFSET_ID]].id;
+                id = this.points[data[k + OFFSET_ID]].id as number | string | undefined;
             }
 
             if (id !== undefined) f.id = id;
@@ -270,15 +348,15 @@ export default class Supercluster {
         }
     }
 
-    _limitZoom(z) {
+    _limitZoom(z: number): number {
         return Math.max(this.options.minZoom, Math.min(Math.floor(+z), this.options.maxZoom + 1));
     }
 
-    _cluster(tree, zoom) {
+    _cluster(tree: KDBushWithData, zoom: number): number[] {
         const {radius, extent, reduce, minPoints} = this.options;
         const r = radius / (extent * Math.pow(2, zoom));
         const data = tree.data;
-        const nextData = [];
+        const nextData: number[] = [];
         const stride = this.stride;
 
         // loop through each point
@@ -307,7 +385,7 @@ export default class Supercluster {
                 let wx = x * numPointsOrigin;
                 let wy = y * numPointsOrigin;
 
-                let clusterProperties;
+                let clusterProperties: Record<string, unknown> | undefined;
                 let clusterPropIndex = -1;
 
                 // encode both zoom and point index on which the cluster originated -- offset by total length of features
@@ -357,16 +435,16 @@ export default class Supercluster {
     }
 
     // get index of the point from which the cluster originated
-    _getOriginId(clusterId) {
+    _getOriginId(clusterId: number): number {
         return (clusterId - this.points.length) >> 5;
     }
 
     // get zoom of the point from which the cluster originated
-    _getOriginZoom(clusterId) {
+    _getOriginZoom(clusterId: number): number {
         return (clusterId - this.points.length) % 32;
     }
 
-    _map(data, i, clone) {
+    _map(data: number[], i: number, clone?: boolean): Record<string, unknown> {
         if (data[i + OFFSET_NUM] > 1) {
             const props = this.clusterProps[data[i + OFFSET_PROP]];
             return clone ? Object.assign({}, props) : props;
@@ -377,7 +455,7 @@ export default class Supercluster {
     }
 }
 
-function getClusterJSON(data, i, clusterProps) {
+function getClusterJSON(data: number[], i: number, clusterProps: Record<string, unknown>[]): ClusterFeature {
     return {
         type: 'Feature',
         id: data[i + OFFSET_ID],
@@ -389,7 +467,7 @@ function getClusterJSON(data, i, clusterProps) {
     };
 }
 
-function getClusterProperties(data, i, clusterProps) {
+function getClusterProperties(data: number[], i: number, clusterProps: Record<string, unknown>[]): ClusterProperties {
     const count = data[i + OFFSET_NUM];
     const abbrev =
         count >= 10000 ? `${Math.round(count / 1000)  }k` :
@@ -398,28 +476,30 @@ function getClusterProperties(data, i, clusterProps) {
     const properties = propIndex === -1 ? {} : Object.assign({}, clusterProps[propIndex]);
 
     return Object.assign(properties, {
-        cluster: true,
-        'cluster_id': data[i + OFFSET_ID],
-        'point_count': count,
-        'point_count_abbreviated': abbrev
+        cluster: true as const,
+        cluster_id: data[i + OFFSET_ID],
+        point_count: count,
+        point_count_abbreviated: abbrev
     });
 }
 
 // longitude/latitude to spherical mercator in [0..1] range
-function lngX(lng) {
+function lngX(lng: number): number {
     return lng / 360 + 0.5;
 }
-function latY(lat) {
+
+function latY(lat: number): number {
     const sin = Math.sin(lat * Math.PI / 180);
     const y = (0.5 - 0.25 * Math.log((1 + sin) / (1 - sin)) / Math.PI);
     return y < 0 ? 0 : y > 1 ? 1 : y;
 }
 
 // spherical mercator to longitude/latitude
-function xLng(x) {
+function xLng(x: number): number {
     return (x - 0.5) * 360;
 }
-function yLat(y) {
+
+function yLat(y: number): number {
     const y2 = (180 - y * 360) * Math.PI / 180;
     return 360 * Math.atan(Math.exp(y2)) / Math.PI - 90;
 }
