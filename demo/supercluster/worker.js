@@ -1,12 +1,14 @@
-/*global importScripts Supercluster */
+/*global importScripts geojsonvt */
 
-importScripts('../dist/supercluster.js');
+importScripts('../../dist/geojson-vt-dev.js');
+
+const Supercluster = geojsonvt.Supercluster;
 
 const now = Date.now();
 
 let index;
 
-getJSON('../test/fixtures/places.json', (geojson) => {
+getJSON('../../test/fixtures/places.json', (geojson) => {
     console.log(`loaded ${geojson.features.length} points JSON in ${(Date.now() - now) / 1000}s`);
 
     index = new Supercluster({

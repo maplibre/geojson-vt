@@ -7,9 +7,14 @@ import type {SuperclusterTile, SuperclusterTileFeature, SuperclusterOptions, Clu
 import {GeoJSONVT} from './geojsonvt';
 import {Supercluster} from './supercluster';
 
-export default function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
+function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
     return new GeoJSONVT(data, options);
 }
+
+geojsonvt.GeoJSONVT = GeoJSONVT;
+geojsonvt.Supercluster = Supercluster;
+
+export default geojsonvt;
 
 export type { 
     GeoJSONVTInternalFeature, 
@@ -17,7 +22,6 @@ export type {
     GeoJSONVTInternalTile, 
     GeoJSONVTInternalTileFeature, 
     PartialGeoJSONVTFeature,
-    GeoJSONVT,
     StartEndSizeArray,
     GeoJSONVTTile,
     GeoJSONVTFeature,
@@ -33,7 +37,6 @@ export type {
     GeoJSONVTInternalMultiLineStringFeature,
     GeoJSONVTInternalPolygonFeature,
     GeoJSONVTInternalMultiPolygonFeature,
-    Supercluster,
     SuperclusterTile,
     SuperclusterTileFeature,
     SuperclusterOptions,
