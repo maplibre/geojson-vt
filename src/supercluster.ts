@@ -97,7 +97,7 @@ const OFFSET_PARENT = 4;
 const OFFSET_NUM = 5;
 const OFFSET_PROP = 6;
 
-export default class Supercluster {
+export class Supercluster {
     options: Required<SuperclusterOptions>;
     trees: KDBushWithData[];
     stride: number;

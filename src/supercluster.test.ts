@@ -1,6 +1,6 @@
 import {test, expect} from 'vitest';
 import {readFileSync} from 'fs';
-import Supercluster from './supercluster';
+import {Supercluster} from './supercluster';
 import type {ClusterProperties, SuperclusterTile} from './supercluster';
 
 const places = JSON.parse(readFileSync(new URL('../test/fixtures/places.json', import.meta.url), 'utf-8')) as GeoJSON.FeatureCollection<GeoJSON.Point>;

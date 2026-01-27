@@ -3,7 +3,9 @@ import type {GeoJSONVTFeature, GeoJSONVTFeatureNonPoint, GeoJSONVTFeaturePoint, 
 import type {GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTInternalTileFeatureNonPoint} from './tile';
 import type {GeoJSONVTFeatureDiff, GeoJSONVTSourceDiff} from './difference';
 import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, PartialGeoJSONVTFeature, StartEndSizeArray} from './definitions';
+import type {SuperclusterTile, SuperclusterTileFeature, SuperclusterOptions, ClusterFeature, ClusterProperties} from './supercluster';
 import {GeoJSONVT} from './geojsonvt';
+import {Supercluster} from './supercluster';
 
 export default function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
     return new GeoJSONVT(data, options);
@@ -30,5 +32,11 @@ export type {
     GeoJSONVTInternalLineStringFeature,
     GeoJSONVTInternalMultiLineStringFeature,
     GeoJSONVTInternalPolygonFeature,
-    GeoJSONVTInternalMultiPolygonFeature
+    GeoJSONVTInternalMultiPolygonFeature,
+    Supercluster,
+    SuperclusterTile,
+    SuperclusterTileFeature,
+    SuperclusterOptions,
+    ClusterFeature,
+    ClusterProperties
 };
