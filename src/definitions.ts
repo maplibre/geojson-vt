@@ -1,3 +1,5 @@
+import type {SuperclusterOptions} from './supercluster';
+
 export type GeoJSONVTOptions = {
     /**
      * Max zoom to preserve detail on
@@ -53,6 +55,11 @@ export type GeoJSONVTOptions = {
      * @default 0
      */
     debug?: number;
+    /**
+     * Options for the Supercluster point clustering algorithm.
+     * @see {@link SuperclusterOptions}
+     */
+    clusterOptions?: SuperclusterOptions;
 };
 
 

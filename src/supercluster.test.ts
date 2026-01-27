@@ -1,11 +1,12 @@
 import {test, expect} from 'vitest';
 import {readFileSync} from 'fs';
 import {Supercluster} from './supercluster';
-import type {ClusterProperties, SuperclusterTile} from './supercluster';
+import type {ClusterProperties} from './supercluster';
+import type {GeoJSONVTTile} from './transform';
 
 const places = JSON.parse(readFileSync(new URL('../test/fixtures/places.json', import.meta.url), 'utf-8')) as GeoJSON.FeatureCollection<GeoJSON.Point>;
-const placesTile = JSON.parse(readFileSync(new URL('../test/fixtures/places-z0-0-0.json', import.meta.url), 'utf-8')) as SuperclusterTile;
-const placesTileMin5 = JSON.parse(readFileSync(new URL('../test/fixtures/places-z0-0-0-min5.json', import.meta.url), 'utf-8')) as SuperclusterTile;
+const placesTile = JSON.parse(readFileSync(new URL('../test/fixtures/places-z0-0-0.json', import.meta.url), 'utf-8')) as GeoJSONVTTile;
+const placesTileMin5 = JSON.parse(readFileSync(new URL('../test/fixtures/places-z0-0-0-min5.json', import.meta.url), 'utf-8')) as GeoJSONVTTile;
 
 test('generates clusters properly', () => {
     const index = new Supercluster().load(places.features);

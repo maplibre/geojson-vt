@@ -4,6 +4,8 @@ import {wrap} from './wrap';
 import {transformTile, type GeoJSONVTTile} from './transform';
 import {createTile, type GeoJSONVTInternalTile} from './tile';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
+import {Supercluster, defaultClusterOptions} from './supercluster';
+import {toGeoJSONPoints} from './util';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
 
 const defaultOptions: GeoJSONVTOptions = {
@@ -17,6 +19,7 @@ const defaultOptions: GeoJSONVTOptions = {
     promoteId: null,
     generateId: false,
     updateable: false,
+    clusterOptions: defaultClusterOptions,
     debug: 0
 };
 
@@ -33,6 +36,8 @@ export class GeoJSONVT {
     /** @internal */
     public total: number = 0;
     private source?: GeoJSONVTInternalFeature[];
+    private sourceDirty?: boolean;
+    private superCluster?: Supercluster;
 
     constructor(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
         options = this.options = Object.assign({}, defaultOptions, options);
@@ -192,12 +197,17 @@ export class GeoJSONVT {
      * @param z - tile zoom level
      * @param x - tile x coordinate
      * @param y - tile y coordinate
+     * @param cluster - if true, returns a supercluster tile instead of a vector tile
      * @returns the transformed tile or null if not found
      */
-    getTile(z: number | string, x: number | string, y: number | string): GeoJSONVTTile | null {
+    getTile(z: number | string, x: number | string, y: number | string, cluster?: boolean): GeoJSONVTTile | null {
         z = +z;
         x = +x;
         y = +y;
+
+        if (cluster) {
+            return this.getClusterTile(z, x, y);
+        }
 
         const options = this.options;
         const {extent, debug} = options;
@@ -239,6 +249,14 @@ export class GeoJSONVT {
         if (!this.tiles[id]) return null;
 
         return transformTile(this.tiles[id], extent);
+    }
+
+    getClusterTile(z: number, x: number, y: number): GeoJSONVTTile | null {
+        if (!this.superCluster || this.sourceDirty) {
+            this.superCluster = new Supercluster(this.options.clusterOptions).load(toGeoJSONPoints(this.source));
+            this.sourceDirty = false;
+        }
+        return this.superCluster.getTile(z, x, y);
     }
 
     /**
@@ -336,6 +354,7 @@ export class GeoJSONVT {
 
         // update source with new simplified feature set
         this.source = source;
+        this.sourceDirty = true;
 
         if (debug > 1) {
             console.log('invalidating tiles');

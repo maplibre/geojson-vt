@@ -1,4 +1,5 @@
 import KDBush from 'kdbush';
+import type {GeoJSONVTTile, GeoJSONVTFeature} from './transform';
 
 export type SuperclusterOptions = {
     /**
@@ -63,20 +64,9 @@ export type ClusterProperties = {
 
 export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
 
-export type SuperclusterTileFeature = {
-    type: 1;
-    geometry: [[number, number]];
-    tags: GeoJSON.GeoJsonProperties | ClusterProperties;
-    id?: number | string;
-};
-
-export type SuperclusterTile = {
-    features: SuperclusterTileFeature[];
-};
-
 type KDBushWithData = Omit<KDBush, 'data'> & { data: number[] };
 
-const defaultOptions: Required<SuperclusterOptions> = {
+export const defaultClusterOptions: Required<SuperclusterOptions> = {
     minZoom: 0,
     maxZoom: 16,
     minPoints: 2,
@@ -105,7 +95,7 @@ export class Supercluster {
     points: GeoJSON.Feature<GeoJSON.Point>[];
 
     constructor(options?: SuperclusterOptions) {
-        this.options = Object.assign(Object.create(defaultOptions), options) as Required<SuperclusterOptions>;
+        this.options = Object.assign(Object.create(defaultClusterOptions), options) as Required<SuperclusterOptions>;
         this.trees = new Array(this.options.maxZoom + 1);
         this.stride = this.options.reduce ? 7 : 6;
         this.clusterProps = [];
@@ -226,7 +216,7 @@ export class Supercluster {
         return leaves;
     }
 
-    getTile(z: number, x: number, y: number): SuperclusterTile | null {
+    getTile(z: number, x: number, y: number): GeoJSONVTTile | null {
         const tree = this.trees[this._limitZoom(z)];
         const z2 = Math.pow(2, z);
         const {extent, radius} = this.options;
@@ -234,8 +224,20 @@ export class Supercluster {
         const top = (y - p) / z2;
         const bottom = (y + 1 + p) / z2;
 
-        const tile: SuperclusterTile = {
-            features: []
+        const tile: GeoJSONVTTile = {
+            features: [],
+            transformed: true,
+            numPoints: 0,
+            numSimplified: 0,
+            numFeatures: 0,
+            source: null,
+            x: x,
+            y: y,
+            z: z,
+            minX: 2,
+            minY: 1,
+            maxX: -1,
+            maxY: 0
         };
 
         this._addTileFeatures(
@@ -303,7 +305,7 @@ export class Supercluster {
         return tree;
     }
 
-    _addTileFeatures(ids: number[], data: number[], x: number, y: number, z2: number, tile: SuperclusterTile): void {
+    _addTileFeatures(ids: number[], data: number[], x: number, y: number, z2: number, tile: GeoJSONVTTile): void {
         for (const i of ids) {
             const k = i * this.stride;
             const isCluster = data[k + OFFSET_NUM] > 1;
@@ -323,7 +325,7 @@ export class Supercluster {
                 py = latY(lat);
             }
 
-            const f: SuperclusterTileFeature = {
+            const f: GeoJSONVTFeature = {
                 type: 1,
                 geometry: [[
                     Math.round(this.options.extent * (px * z2 - x)),
@@ -495,11 +497,11 @@ function latY(lat: number): number {
 }
 
 // spherical mercator to longitude/latitude
-function xLng(x: number): number {
+export function xLng(x: number): number {
     return (x - 0.5) * 360;
 }
 
-function yLat(y: number): number {
+export function yLat(y: number): number {
     const y2 = (180 - y * 360) * Math.PI / 180;
     return 360 * Math.atan(Math.exp(y2)) / Math.PI - 90;
 }
