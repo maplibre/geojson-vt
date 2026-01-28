@@ -1,4 +1,4 @@
-import type { GeoJSONVTInternalTile } from "./tile";
+import type { GeoJSONVTInternalTile, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTInternalTileFeatureNonPoint } from "./tile";
 
 export type GeoJSONVTFeaturePoint = {
     id? : number | string | undefined;
@@ -39,27 +39,50 @@ export function transformTile(tile: GeoJSONVTInternalTile, extent: number): GeoJ
 
     for (const feature of tile.features) {
         if (feature.type === 1) {
-            const pointGeometry: [number, number][] = []
-            for (let j = 0; j < feature.geometry.length; j += 2) {
-                pointGeometry.push(transformPoint(feature.geometry[j], feature.geometry[j + 1], extent, z2, tx, ty));
-            }
-            (feature as unknown as GeoJSONVTFeaturePoint).geometry = pointGeometry;
-            continue;
-        }
-
-        const geometry: [number, number][][] = [];
-        for (const singleGeom of feature.geometry) {
-            const ring: [number, number][] = [];
-            for (let k = 0; k < singleGeom.length; k += 2) {
-                ring.push(transformPoint(singleGeom[k], singleGeom[k + 1], extent, z2, tx, ty));
-            }
-            geometry.push(ring);
-        }
-        (feature as unknown as GeoJSONVTFeatureNonPoint).geometry = geometry;
+            transformPointFeature(feature, extent, z2, tx, ty);
+        } else {
+            transformNonPointFeature(feature, extent, z2, tx, ty);
+        }   
     }
     tile.transformed = true;
 
     return tile as GeoJSONVTTile;
+}
+
+/**
+ * Transforms a single point feature from mercator-projected space into (extent x extent) tile space.
+ */
+function transformPointFeature(feature: GeoJSONVTInternalTileFeaturePoint, extent: number, z2: number, tx: number, ty: number): GeoJSONVTFeaturePoint {
+    const transformed = feature as unknown as GeoJSONVTFeaturePoint;
+
+    const geometry = feature.geometry;
+    const point: GeoJSONVTFeaturePoint["geometry"] = [];
+    for (let i = 0; i < geometry.length; i += 2) {
+        point.push(transformPoint(geometry[i], geometry[i + 1], extent, z2, tx, ty));
+    }
+    transformed.geometry = point;
+
+    return transformed;
+}
+
+/**
+ * Transforms a single non-point feature from mercator-projected space into (extent x extent) tile space.
+ */
+function transformNonPointFeature(feature: GeoJSONVTInternalTileFeatureNonPoint, extent: number, z2: number, tx: number, ty: number): GeoJSONVTFeatureNonPoint {
+    const transformed = feature as unknown as GeoJSONVTFeatureNonPoint;
+
+    const geometry = feature.geometry;
+    const nonPoint: GeoJSONVTFeatureNonPoint["geometry"] = [];
+    for (const geom of geometry) {
+        const ring: GeoJSONVTFeaturePoint["geometry"] = [];
+        for (let i = 0; i < geom.length; i += 2) {
+            ring.push(transformPoint(geom[i], geom[i + 1], extent, z2, tx, ty));
+        }
+        nonPoint.push(ring);
+    }
+    transformed.geometry = nonPoint;
+
+    return transformed;
 }
 
 function transformPoint(x: number, y: number, extent: number, z2: number, tx: number, ty: number): [number, number] {

@@ -1,6 +1,13 @@
-import type { GeoJSONVTInternalFeature, GeometryType, GeometryTypeMap } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature } from "./definitions";
 
-export type SupportedGeometries = GeoJSON.Point | GeoJSON.MultiPoint | GeoJSON.LineString | GeoJSON.MultiLineString | GeoJSON.Polygon | GeoJSON.MultiPolygon;
+type FeatureTypeMap = {
+    Point: GeoJSONVTInternalPointFeature["geometry"];
+    MultiPoint: GeoJSONVTInternalMultiPointFeature["geometry"];
+    LineString: GeoJSONVTInternalLineStringFeature["geometry"];
+    MultiLineString: GeoJSONVTInternalMultiLineStringFeature["geometry"];
+    Polygon: GeoJSONVTInternalPolygonFeature["geometry"];
+    MultiPolygon: GeoJSONVTInternalMultiPolygonFeature["geometry"];
+};
 
 /**
  * 
@@ -10,9 +17,9 @@ export type SupportedGeometries = GeoJSON.Point | GeoJSON.MultiPoint | GeoJSON.L
  * @param tags - the feature's properties
  * @returns the created feature
  */
-export function createFeature<T extends GeometryType>(id: number | string | undefined, type: T, geom: GeometryTypeMap[T], tags: GeoJSON.GeoJsonProperties): GeoJSONVTInternalFeature {
+export function createFeature<T extends GeoJSONVTInternalFeature["type"]>(id: number | string | undefined, type: T, geom: FeatureTypeMap[T], tags: GeoJSON.GeoJsonProperties): GeoJSONVTInternalFeature {
     // This is mostly for TypeScript type narrowing
-    const data = { type, geom } as { [K in GeometryType]: { type: K, geom: GeometryTypeMap[K] } }[GeometryType];
+    const data = { type, geom } as { [K in GeoJSONVTInternalFeature["type"]]: { type: K, geom: FeatureTypeMap[K] } }[GeoJSONVTInternalFeature["type"]];
 
     const feature = {
         id: id == null ? null : id,
