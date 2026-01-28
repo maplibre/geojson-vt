@@ -1,5 +1,6 @@
 import KDBush from 'kdbush';
 import type {GeoJSONVTTile, GeoJSONVTFeature} from './transform';
+import type {GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature} from './definitions';
 
 export type SuperclusterOptions = {
     /**
@@ -65,6 +66,7 @@ export type ClusterProperties = {
 export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
 
 type KDBushWithData = Omit<KDBush, 'data'> & { data: number[] };
+type PointFeature = GeoJSON.Feature<GeoJSON.Point> | GeoJSONVTInternalPointFeature;
 
 export const defaultClusterOptions: Required<SuperclusterOptions> = {
     minZoom: 0,
@@ -92,7 +94,7 @@ export class Supercluster {
     trees: KDBushWithData[];
     stride: number;
     clusterProps: Record<string, unknown>[];
-    points: GeoJSON.Feature<GeoJSON.Point>[];
+    points: PointFeature[];
 
     constructor(options?: SuperclusterOptions) {
         this.options = Object.assign(Object.create(defaultClusterOptions), options) as Required<SuperclusterOptions>;
@@ -102,7 +104,18 @@ export class Supercluster {
         this.points = [];
     }
 
-    load(points: GeoJSON.Feature<GeoJSON.Point>[]): this {
+    loadInternal(features: GeoJSONVTInternalFeature[]): this {
+        const points: GeoJSONVTInternalPointFeature[] = [];
+
+        for (const feature of features) {
+            if (feature.type !== 'Point') continue;
+            points.push(feature);
+        }
+
+        return this.load(points);
+    }
+
+    load(points: PointFeature[]): this {
         const {log, minZoom, maxZoom} = this.options;
 
         if (log) console.time('total time');
@@ -119,9 +132,11 @@ export class Supercluster {
             const p = points[i];
             if (!p.geometry) continue;
 
-            const [lng, lat] = p.geometry.coordinates;
-            const x = fround(lngX(lng));
-            const y = fround(latY(lat));
+            let x, y;
+            [x, y] = getPointCoords(p);
+            x = fround(x);
+            y = fround(y);
+
             // store internal point/cluster data in flat numeric arrays for performance
             data.push(
                 x, y, // projected point coordinates
@@ -173,7 +188,7 @@ export class Supercluster {
         const clusters: (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] = [];
         for (const id of ids) {
             const k = this.stride * id;
-            clusters.push(data[k + OFFSET_NUM] > 1 ? getClusterJSON(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]]);
+            clusters.push(data[k + OFFSET_NUM] > 1 ? getClusterJSON(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]] as GeoJSON.Feature<GeoJSON.Point>);
         }
         return clusters;
     }
@@ -197,7 +212,7 @@ export class Supercluster {
         for (const id of ids) {
             const k = id * this.stride;
             if (data[k + OFFSET_PARENT] === clusterId) {
-                children.push(data[k + OFFSET_NUM] > 1 ? getClusterJSON(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]]);
+                children.push(data[k + OFFSET_NUM] > 1 ? getClusterJSON(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]] as GeoJSON.Feature<GeoJSON.Point>);
             }
         }
 
@@ -319,10 +334,8 @@ export class Supercluster {
                 py = data[k + 1];
             } else {
                 const p = this.points[data[k + OFFSET_ID]];
-                tags = p.properties;
-                const [lng, lat] = p.geometry.coordinates;
-                px = lngX(lng);
-                py = latY(lat);
+                tags = getPointProps(p);
+                [px, py] = getPointCoords(p);
             }
 
             const f: GeoJSONVTFeature = {
@@ -451,7 +464,8 @@ export class Supercluster {
             const props = this.clusterProps[data[i + OFFSET_PROP]];
             return clone ? Object.assign({}, props) : props;
         }
-        const original = this.points[data[i + OFFSET_ID]].properties;
+        const p = this.points[data[i + OFFSET_ID]];
+        const original = getPointProps(p);
         const result = this.options.map(original);
         return clone && result === original ? Object.assign({}, result) : result;
     }
@@ -483,6 +497,23 @@ function getClusterProperties(data: number[], i: number, clusterProps: Record<st
         point_count: count,
         point_count_abbreviated: abbrev
     });
+}
+
+function isGeoJSONPoint(p: PointFeature): p is GeoJSON.Feature<GeoJSON.Point> {
+    return 'coordinates' in p.geometry;
+}
+
+function getPointCoords(p: PointFeature): [x: number, y: number] {
+    if (isGeoJSONPoint(p)) {
+        const [lng, lat] = p.geometry.coordinates;
+        return [lngX(lng), latY(lat)];
+    }
+    const [x, y] = p.geometry;
+    return [x, y];
+}
+
+function getPointProps(p: PointFeature): GeoJSON.GeoJsonProperties {
+    return isGeoJSONPoint(p) ? p.properties : p.tags;
 }
 
 // longitude/latitude to spherical mercator in [0..1] range

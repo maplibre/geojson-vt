@@ -71,7 +71,7 @@ fetch('../../test/fixtures/places.json')
         console.log(`loaded ${geojson.features.length} points`);
 
         if (useUpdateableMethod) {
-            tileIndex = new GeoJSONVT(geojson, {updateable: true, clusterOptions});
+            tileIndex = new GeoJSONVT(geojson, {updateable: true, cluster: true, clusterOptions});
         } else {
             tileIndex = new Supercluster(clusterOptions).load(geojson.features);
             originalFeatures = geojson.features;
