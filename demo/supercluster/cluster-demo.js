@@ -1,6 +1,9 @@
 
 /* global geojsonvt */
 
+// Toggle between the new updateable method using GeoJSONVT or the old method using the Supercluster class.
+const useUpdateableMethod = true;
+
 const Supercluster = geojsonvt.Supercluster;
 const GeoJSONVT = geojsonvt.GeoJSONVT;
 const clusterOptions = {
@@ -15,6 +18,7 @@ let animationId = null;
 const NUM_POINTS = 10;
 const VELOCITY_SCALE = 0.5; // Speed
 let movingPoints = [];
+let originalFeatures = [];
 
 // Initialize points with random positions and velocities
 function initializePoints() {
@@ -66,15 +70,14 @@ fetch('../../test/fixtures/places.json')
     .then(geojson => {
         console.log(`loaded ${geojson.features.length} points`);
 
-        //old method
-        // tileIndex = new Supercluster(clusterOptions).load(geojson.features);
-
-        //new method
-        tileIndex = new GeoJSONVT(geojson, {updateable: true, clusterOptions});
+        if (useUpdateableMethod) {
+            tileIndex = new GeoJSONVT(geojson, {updateable: true, clusterOptions});
+        } else {
+            tileIndex = new Supercluster(clusterOptions).load(geojson.features);
+            originalFeatures = geojson.features;
+        }
 
         drawTile();
-
-        // Initialize and start the point animation
         initializePoints();
         startAnimation();
     });
@@ -224,10 +227,11 @@ function updateMovingPoints() {
         addFeatures.push(createPointFeature(point));
     }
 
-    tileIndex.updateData({
-        remove: removeIds,
-        add: addFeatures
-    });
+    if (useUpdateableMethod) {
+        tileIndex.updateData({remove: removeIds, add: addFeatures});
+    } else {
+        tileIndex = new Supercluster(clusterOptions).load([...originalFeatures, ...addFeatures]);
+    }
 
     drawTile();
     animationId = requestAnimationFrame(updateMovingPoints);
@@ -236,11 +240,13 @@ function updateMovingPoints() {
 function startAnimation() {
     if (animationId) return;
 
-    // Add initial points
     const initialFeatures = movingPoints.map(createPointFeature);
-    tileIndex.updateData({
-        add: initialFeatures
-    });
+
+    if (useUpdateableMethod) {
+        tileIndex.updateData({add: initialFeatures});
+    } else {
+        tileIndex = new Supercluster(clusterOptions).load([...originalFeatures, ...initialFeatures]);
+    }
 
     animationId = requestAnimationFrame(updateMovingPoints);
 }
