@@ -4,7 +4,7 @@ import {wrap} from './wrap';
 import {transformTile, type GeoJSONVTTile} from './transform';
 import {createTile, type GeoJSONVTInternalTile} from './tile';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
-import {Supercluster, defaultClusterOptions} from './supercluster';
+import {Supercluster, type SuperclusterOptions, defaultClusterOptions} from './supercluster';
 import {toGeoJSONPoints} from './util';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
 
@@ -19,6 +19,7 @@ const defaultOptions: GeoJSONVTOptions = {
     promoteId: null,
     generateId: false,
     updateable: false,
+    cluster: false,
     clusterOptions: defaultClusterOptions,
     debug: 0
 };
@@ -36,7 +37,6 @@ export class GeoJSONVT {
     /** @internal */
     public total: number = 0;
     private source?: GeoJSONVTInternalFeature[];
-    private sourceDirty?: boolean;
     private superCluster?: Supercluster;
 
     constructor(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
@@ -67,15 +67,20 @@ export class GeoJSONVT {
         // wraps features (ie extreme west and extreme east)
         features = wrap(features, options);
 
-        // start slicing from the top tile down
-        if (features.length) {
-            this.splitTile(features, 0, 0, 0);
-        }
-
         // for updateable indexes, store a copy of the original simplified features
         if (options.updateable) {
             this.source = features;
         }
+
+        if (options.cluster) {
+            this.superCluster = new Supercluster(options.clusterOptions).load(toGeoJSONPoints(features));
+            return;
+        }
+
+        if (!features.length) return;
+
+        // start slicing from the top tile down
+        this.splitTile(features, 0, 0, 0);
 
         if (debug) {
             if (features.length) console.log('features: %d, points: %d', this.tiles[0].numFeatures, this.tiles[0].numPoints);
@@ -200,17 +205,16 @@ export class GeoJSONVT {
      * @param cluster - if true, returns a supercluster tile instead of a vector tile
      * @returns the transformed tile or null if not found
      */
-    getTile(z: number | string, x: number | string, y: number | string, cluster?: boolean): GeoJSONVTTile | null {
+    getTile(z: number | string, x: number | string, y: number | string): GeoJSONVTTile | null {
         z = +z;
         x = +x;
         y = +y;
 
-        if (cluster) {
-            return this.getClusterTile(z, x, y);
-        }
+        const {cluster, extent, debug} = this.options;
 
-        const options = this.options;
-        const {extent, debug} = options;
+        if (cluster) {
+            return this.superCluster.getTile(z, x, y);
+        }
 
         if (z < 0 || z > 24) return null;
 
@@ -249,14 +253,6 @@ export class GeoJSONVT {
         if (!this.tiles[id]) return null;
 
         return transformTile(this.tiles[id], extent);
-    }
-
-    getClusterTile(z: number, x: number, y: number): GeoJSONVTTile | null {
-        if (!this.superCluster || this.sourceDirty) {
-            this.superCluster = new Supercluster(this.options.clusterOptions).load(toGeoJSONPoints(this.source));
-            this.sourceDirty = false;
-        }
-        return this.superCluster.getTile(z, x, y);
     }
 
     /**
@@ -342,7 +338,7 @@ export class GeoJSONVT {
      */
     updateData(diff: GeoJSONVTSourceDiff) {
         const options = this.options;
-        const debug = options.debug;
+        const {cluster, debug} = options;
 
         if (!options.updateable) throw new Error('to update tile geojson `updateable` option must be set to true');
 
@@ -354,7 +350,6 @@ export class GeoJSONVT {
 
         // update source with new simplified feature set
         this.source = source;
-        this.sourceDirty = true;
 
         if (debug > 1) {
             console.log('invalidating tiles');
@@ -365,9 +360,14 @@ export class GeoJSONVT {
 
         if (debug > 1) console.timeEnd('invalidating');
 
+        if (cluster) {
+            this.superCluster = new Supercluster(options.clusterOptions).load(toGeoJSONPoints(this.source));
+            return;
+        }
+
         // re-generate root tile with updated feature set
         const [z, x, y] = [0, 0, 0];
-        const rootTile = createTile(this.source, z, x, y, this.options);
+        const rootTile = createTile(this.source, z, x, y, options);
         rootTile.source = this.source;
 
         // update tile index with new root tile - ready for getTile calls
@@ -380,6 +380,15 @@ export class GeoJSONVT {
             this.stats[key] = (this.stats[key] || 0) + 1;
             this.total++;
         }
+    }
+
+    /**
+     * Update the options used by supercluster and regenerate the cluster index.
+     * @param options
+     */
+    updateClusterOptions(options: SuperclusterOptions) {
+        this.options.clusterOptions = options;
+        this.superCluster = new Supercluster(options).load(toGeoJSONPoints(this.source));
     }
 }
 

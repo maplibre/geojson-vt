@@ -56,6 +56,11 @@ export type GeoJSONVTOptions = {
      */
     debug?: number;
     /**
+     * Enable Supercluster for point features.
+     * @default false
+     */
+    cluster?: boolean;
+    /**
      * Options for the Supercluster point clustering algorithm.
      * @see {@link SuperclusterOptions}
      */
