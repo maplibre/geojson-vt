@@ -16,7 +16,8 @@ geojsonvt.Supercluster = Supercluster;
 
 export default geojsonvt;
 
-export type { 
+export type {
+    GeoJSONVT,
     GeoJSONVTInternalFeature, 
     GeoJSONVTOptions, 
     GeoJSONVTInternalTile, 
@@ -37,6 +38,7 @@ export type {
     GeoJSONVTInternalMultiLineStringFeature,
     GeoJSONVTInternalPolygonFeature,
     GeoJSONVTInternalMultiPolygonFeature,
+    Supercluster,
     SuperclusterTile,
     SuperclusterTileFeature,
     SuperclusterOptions,
