@@ -49,6 +49,11 @@ export type GeoJSONVTOptions = {
      */
     updateable?: boolean;
     /**
+     * Output format for tiles. Can be either 'geojsonvt' or 'vectortilejs'
+     * @default 'geojsonvt'
+     */
+    format?: 'geojsonvt' | 'vectortilejs';
+    /**
      * Logging level (0, 1 or 2)
      * @default 0
      */

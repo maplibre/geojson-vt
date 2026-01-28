@@ -1,5 +1,5 @@
 import {test, expect} from 'vitest';
-import geojsonvt from '../src';
+import geojsonvt, {type GeoJSONVTTile} from '../src';
 
 test('updateData: requires updateable option', () => {
     const index = geojsonvt({
@@ -36,7 +36,7 @@ test('updateData: adds new features', () => {
 
     index.updateData({add: [newFeature]});
 
-    const tile = index.getTile(0, 0, 0);
+    const tile = index.getTile(0, 0, 0) as GeoJSONVTTile;
     expect(tile.features.length).toBe(2);
 });
 
@@ -63,7 +63,7 @@ test('updateData: removes features by id', () => {
 
     index.updateData({remove: ['feature1']});
 
-    const tile = index.getTile(0, 0, 0);
+    const tile = index.getTile(0, 0, 0) as GeoJSONVTTile;
     expect(tile.features.length).toBe(1);
 });
 
@@ -91,7 +91,7 @@ test('updateData: replaces features with duplicate ids', () => {
 
     index.updateData({add: [updatedFeature]});
 
-    const tile = index.getTile(0, 0, 0);
+    const tile = index.getTile(0, 0, 0) as GeoJSONVTTile;
     expect(tile.features.length).toBe(1);
     expect(tile.features[0].id).toBe('feature1');
     expect(tile.features[0].tags.name).toBe('Updated');
@@ -130,7 +130,7 @@ test('updateData: handles both add and remove in same call', () => {
         add: [newFeature]
     });
 
-    const tile = index.getTile(0, 0, 0);
+    const tile = index.getTile(0, 0, 0) as GeoJSONVTTile;
     expect(tile.features.length).toBe(2);
 
     const featureIds = tile.features.map(f => f.id).sort();
@@ -194,7 +194,7 @@ test('updateData: invalidates tiles at deeper zoom', () => {
     const tileAfter = index.tiles[tileId];
     expect(tileAfter).toBeUndefined();
 
-    const tileRegenerated = index.getTile(5, 16, 16);
+    const tileRegenerated = index.getTile(5, 16, 16) as GeoJSONVTTile;
     expect(tileRegenerated).toBeTruthy();
     expect(tileRegenerated.features[0].tags.name).toBe('Updated');
 });
@@ -233,7 +233,7 @@ test('updateData: invalidates tiles with partial intersection', () => {
 
     index.updateData({add: [edgeFeature]});
 
-    const tile = index.getTile(2, 3, 2);
+    const tile = index.getTile(2, 3, 2) as GeoJSONVTTile;
     expect(tile).toBeTruthy();
     expect(tile.features.length).toBe(2);
 });
@@ -381,9 +381,9 @@ test('updateData: invalidates and regenerates tiles at multiple zoom levels', ()
 
     index.updateData({add: [updatedFeature]});
 
-    const newZ3Tile = index.getTile(3, 4, 4);
-    const newZ5Tile = index.getTile(5, 16, 16);
-    const newZ7Tile = index.getTile(7, 64, 64);
+    const newZ3Tile = index.getTile(3, 4, 4) as GeoJSONVTTile;
+    const newZ5Tile = index.getTile(5, 16, 16) as GeoJSONVTTile;
+    const newZ7Tile = index.getTile(7, 64, 64) as GeoJSONVTTile;
 
     expect(newZ3Tile).toBeTruthy();
     expect(newZ5Tile).toBeTruthy();
@@ -470,7 +470,7 @@ test('updateData: handles drill-down after update', () => {
 
     index.updateData({add: [newFeature]});
 
-    const highZoomTile = index.getTile(8, 128, 128);
+    const highZoomTile = index.getTile(8, 128, 128) as GeoJSONVTTile;
     expect(highZoomTile).toBeTruthy();
 
     const featureIds = highZoomTile.features.map(f => f.id).sort();

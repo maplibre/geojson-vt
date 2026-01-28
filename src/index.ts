@@ -3,6 +3,7 @@ import type {GeoJSONVTFeature, GeoJSONVTFeatureNonPoint, GeoJSONVTFeaturePoint, 
 import type {GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTInternalTileFeatureNonPoint} from './tile';
 import type {GeoJSONVTFeatureDiff, GeoJSONVTSourceDiff} from './difference';
 import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, PartialGeoJSONVTFeature, StartEndSizeArray} from './definitions';
+import {GeoJSONWrapper, type GeoJSONWrapperOptions, type VectorTileFeatureLike, type VectorTileLayerLike, type VectorTileLike} from './geojson_wrapper';
 import {GeoJSONVT} from './geojsonvt';
 
 export default function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
@@ -30,5 +31,10 @@ export type {
     GeoJSONVTInternalLineStringFeature,
     GeoJSONVTInternalMultiLineStringFeature,
     GeoJSONVTInternalPolygonFeature,
-    GeoJSONVTInternalMultiPolygonFeature
+    GeoJSONVTInternalMultiPolygonFeature,
+    GeoJSONWrapper,
+    GeoJSONWrapperOptions,
+    VectorTileFeatureLike,
+    VectorTileLayerLike,
+    VectorTileLike
 };
