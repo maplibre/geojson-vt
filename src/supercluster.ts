@@ -74,7 +74,7 @@ export type SuperclusterTile = {
     features: SuperclusterTileFeature[];
 };
 
-type KDBushWithData = Omit<KDBush, 'data'> & { data: number[] };
+export type KDBushWithData = Omit<KDBush, 'data'> & { data: number[] };
 
 const defaultOptions: Required<SuperclusterOptions> = {
     minZoom: 0,

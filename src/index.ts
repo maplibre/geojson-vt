@@ -3,7 +3,7 @@ import type {GeoJSONVTFeature, GeoJSONVTFeatureNonPoint, GeoJSONVTFeaturePoint, 
 import type {GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTInternalTileFeatureNonPoint} from './tile';
 import type {GeoJSONVTFeatureDiff, GeoJSONVTSourceDiff} from './difference';
 import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, PartialGeoJSONVTFeature, StartEndSizeArray} from './definitions';
-import type {SuperclusterTile, SuperclusterTileFeature, SuperclusterOptions, ClusterFeature, ClusterProperties} from './supercluster';
+import type {SuperclusterTile, SuperclusterTileFeature, SuperclusterOptions, ClusterFeature, ClusterProperties, KDBushWithData} from './supercluster';
 import {GeoJSONVT} from './geojsonvt';
 import {Supercluster} from './supercluster';
 
@@ -43,5 +43,6 @@ export type {
     SuperclusterTileFeature,
     SuperclusterOptions,
     ClusterFeature,
-    ClusterProperties
+    ClusterProperties,
+    KDBushWithData
 };
