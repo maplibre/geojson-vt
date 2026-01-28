@@ -5,6 +5,7 @@ import {transformTile, type GeoJSONVTTile} from './transform';
 import {createTile, type GeoJSONVTInternalTile} from './tile';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
+import {GeoJSONWrapper, type VectorTileLike} from './geojson_wrapper';
 
 const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
@@ -17,6 +18,7 @@ const defaultOptions: GeoJSONVTOptions = {
     promoteId: null,
     generateId: false,
     updateable: false,
+    format: 'geojsonvt',
     debug: 0
 };
 
@@ -194,13 +196,12 @@ export class GeoJSONVT {
      * @param y - tile y coordinate
      * @returns the transformed tile or null if not found
      */
-    getTile(z: number | string, x: number | string, y: number | string): GeoJSONVTTile | null {
+    getTile(z: number | string, x: number | string, y: number | string): GeoJSONVTTile | VectorTileLike | null {
         z = +z;
         x = +x;
         y = +y;
 
-        const options = this.options;
-        const {extent, debug} = options;
+        const {extent, format, debug} = this.options;
 
         if (z < 0 || z > 24) return null;
 
@@ -209,7 +210,7 @@ export class GeoJSONVT {
 
         const id = toID(z, x, y);
         if (this.tiles[id]) {
-            return transformTile(this.tiles[id], extent);
+            return this.convertTile(this.tiles[id], extent, format);
         }
 
         if (debug > 1) console.log('drilling down to z%d-%d-%d', z, x, y);
@@ -238,7 +239,17 @@ export class GeoJSONVT {
 
         if (!this.tiles[id]) return null;
 
-        return transformTile(this.tiles[id], extent);
+        return this.convertTile(this.tiles[id], extent, format);
+    }
+
+    convertTile(tile: GeoJSONVTInternalTile, extent: number, format: string): GeoJSONVTTile | VectorTileLike {
+        const transformed = transformTile(tile, extent);
+
+        if (format === 'vectortilejs') {
+            return new GeoJSONWrapper(transformed.features, {version: 2, extent: extent});
+        }
+
+        return transformed;
     }
 
     /**
