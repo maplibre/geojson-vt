@@ -390,13 +390,25 @@ export class GeoJSONVT {
     }
 
     /**
-     * Update the options used by supercluster and regenerate the cluster index.
+     * Update supercluster options and regenerate the index.
      * @param clusterOptions
      */
     updateClusterOptions(clusterOptions: SuperclusterOptions) {
         this.options.clusterOptions = clusterOptions;
         if (!this.options.cluster) return;
         this.superCluster = new Supercluster(clusterOptions).loadInternal(this.source);
+    }
+
+    getClusterExpansionZoom(clusterId: number): number {
+        return this.superCluster?.getClusterExpansionZoom(clusterId);
+    }
+
+    getClusterChildren(clusterId: number): Array<GeoJSON.Feature> {
+        return this.superCluster?.getChildren(clusterId);
+    }
+
+    getClusterLeaves(clusterId: number, limit: number, offset: number): Array<GeoJSON.Feature> {
+        return this.superCluster?.getLeaves(clusterId, limit, offset);
     }
 }
 
