@@ -391,12 +391,16 @@ export class GeoJSONVT {
 
     /**
      * Update supercluster options and regenerate the index.
-     * @param clusterOptions
+     * @param cluster - whether to enable clustering
+     * @param clusterOptions - {@Link SuperclusterOptions}
      */
-    updateClusterOptions(clusterOptions: SuperclusterOptions) {
+    updateClusterOptions(cluster: boolean, clusterOptions: SuperclusterOptions) {
+        this.options.cluster = cluster;
         this.options.clusterOptions = clusterOptions;
-        if (!this.options.cluster) return;
-        this.superCluster = new Supercluster(clusterOptions).loadInternal(this.source);
+
+        if (!cluster) this.superCluster = undefined;
+
+        this.updateIndex(this.source, [], this.options);
     }
 
     getClusterExpansionZoom(clusterId: number): number {

@@ -584,11 +584,44 @@ test('updateClusterOptions: rebuilds supercluster with new options', () => {
     const closeCount = tile.features.length;
 
     // Update with a much smaller radius - should produce more features (less clustering)
-    index.updateClusterOptions({radius: 1});
+    index.updateClusterOptions(true, {radius: 1});
 
     tile = index.getTile(0, 0, 0);
     expect(tile).toBeTruthy();
     expect(tile.features.length).toBeGreaterThan(closeCount);
+});
+
+test('updateClusterOptions: can toggle clustering on and off', () => {
+    const points = {
+        type: 'FeatureCollection' as const,
+        features: Array.from({length: 20}, (_, i) => ({
+            type: 'Feature' as const,
+            geometry: {type: 'Point' as const, coordinates: [i * 0.0001, i * 0.0001]},
+            properties: {}
+        }))
+    };
+
+    const index = geojsonvt(points, {
+        updateable: true,
+        cluster: true,
+        clusterOptions: {radius: 100}
+    });
+
+    // Check presence of clustered tiles
+    const tile = index.getTile(0, 0, 0);
+    const clusterId = (tile.features.find(f => (f.tags as {cluster?: boolean})?.cluster).tags as {cluster_id: number}).cluster_id;
+    expect(index.getClusterExpansionZoom(clusterId)).toBeGreaterThan(0);
+    expect(index.getTile(0, 0, 0).features.some(f => (f.tags as {cluster?: boolean})?.cluster)).toBe(true);
+
+    // Disable clustering and check presence of non-clustered tiles
+    index.updateClusterOptions(false, {radius: 100});
+    expect(index.getClusterExpansionZoom(clusterId)).toBeUndefined();
+    expect(index.getTile(0, 0, 0).features.some(f => (f.tags as {cluster?: boolean})?.cluster)).toBe(false);
+
+    // Re-enable clustering and check presence of clustered tiles
+    index.updateClusterOptions(true, {radius: 100});
+    expect(index.getClusterExpansionZoom(clusterId)).toBeGreaterThan(0);
+    expect(index.getTile(0, 0, 0).features.some(f => (f.tags as {cluster?: boolean})?.cluster)).toBe(true);
 });
 
 test('publicly exposed cluster methods: getClusterExpansionZoom, getClusterChildren, getClusterLeaves', () => {
