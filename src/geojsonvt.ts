@@ -202,7 +202,6 @@ export class GeoJSONVT {
      * @param z - tile zoom level
      * @param x - tile x coordinate
      * @param y - tile y coordinate
-     * @param cluster - if true, returns a supercluster tile instead of a vector tile
      * @returns the transformed tile or null if not found
      */
     getTile(z: number | string, x: number | string, y: number | string): GeoJSONVTTile | null {
