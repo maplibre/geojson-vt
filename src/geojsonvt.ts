@@ -8,16 +8,17 @@ import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, GeoJSONToTileOptions }
 
 const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
+    indexMaxZoom: 5,
+    indexMaxPoints: 100000,
     tolerance: 3,
     extent: 4096,
     buffer: 64,
     lineMetrics: false,
-    indexMaxZoom: 5,
-    indexMaxPoints: 100000,
     promoteId: null,
     generateId: false,
+    updateable: false,
     debug: 0
-}
+};
 
 /**
  * Main class for creating and managing a vector tile index from GeoJSON data.
