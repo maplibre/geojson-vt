@@ -1,4 +1,5 @@
 import {convert} from './convert';
+import {deconvert} from './deconvert';
 import {clip} from './clip';
 import {wrap} from './wrap';
 import {transformTile, type GeoJSONVTTile} from './transform';
@@ -361,6 +362,13 @@ export class GeoJSONVT {
             this.stats[key] = (this.stats[key] || 0) + 1;
             this.total++;
         }
+    }
+
+    /**
+     * Returns source data as GeoJSON - only available when the `updateable` option is set to true.
+     */
+    getData(): GeoJSON.GeoJSON {
+        return deconvert(this.source);
     }
 }
 
