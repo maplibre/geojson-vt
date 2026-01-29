@@ -2,8 +2,10 @@ debug/data/hrr.json
 debug/data/hsa.json
 debug/data/idaho.json
 debug/data/zips.json
-geojson-vt-dev.js
-geojson-vt.js
 node_modules
 coverage
+coverage.lcov
 .nyc_output
+.idea
+dist
+docs

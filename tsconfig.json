@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "module": "es2022",
+    "target": "esnext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "types": ["geojson", "node"],
+
+    "declaration": false,
+    "declarationMap": false,
+
+    "noUncheckedIndexedAccess": true,
+    "strict": false,
+    "noImplicitAny": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictBuiltinIteratorReturn": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,    
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+  }
+}

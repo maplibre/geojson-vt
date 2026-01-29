@@ -1,8 +1,16 @@
 {
-  "name": "geojson-vt",
-  "version": "3.2.1",
+  "name": "@maplibre/geojson-vt",
+  "version": "5.0.4",
   "description": "Slice GeoJSON data into vector tiles efficiently",
-  "homepage": "https://github.com/mapbox/geojson-vt",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/geojson-vt.mjs",
+      "default": "./dist/geojson-vt.js"
+    }
+  },
+  "sideEffects": false,
   "keywords": [
     "spatial",
     "geojson",
@@ -10,42 +18,43 @@
     "geometry"
   ],
   "author": "Vladimir Agafonkin",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/mapbox/geojson-vt.git"
-  },
-  "module": "src/index.js",
-  "main": "geojson-vt-dev.js",
-  "jsdelivr": "geojson-vt.js",
-  "unpkg": "geojson-vt.js",
+  "module": "dist/geojson-vt.mjs",
+  "main": "dist/geojson-vt.js",
+  "typings": "dist/index.d.ts",
+  "jsdelivr": "dist/geojson-vt.js",
+  "unpkg": "dist/geojson-vt.js",
   "devDependencies": {
-    "@rollup/plugin-buble": "^0.21.1",
+    "@eslint/js": "^9.39.2",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/geojson": "^7946.0.16",
+    "@types/node": "^25.0.10",
+    "@vitest/coverage-v8": "^4.0.18",
     "benchmark": "^2.1.4",
-    "c8": "^7.1.0",
-    "eslint": "^6.8.0",
-    "eslint-config-mourner": "^3.0.0",
-    "esm": "^3.2.25",
-    "rollup": "^2.2.0",
-    "rollup-plugin-terser": "^5.3.0",
-    "tape": "^4.13.2"
-  },
-  "eslintConfig": {
-    "extends": "mourner",
-    "globals": {
-      "topojson": true
-    }
+    "eslint": "^9.39.2",
+    "rollup": "^4.56.0",
+    "tslib": "^2.8.1",
+    "typedoc": "^0.28.16",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0",
+    "vitest": "^4.0.17"
   },
   "license": "ISC",
   "scripts": {
-    "pretest": "eslint src/*.js test/*.js debug/viz.js",
-    "test": "c8 tape -r esm test/test-*.js",
-    "build": "rollup -c",
+    "lint": "eslint **/*.ts",
+    "test": "vitest",
+    "build": "rollup -c && tsc -p tsconfig.declaration.json",
     "watch": "rollup -cw",
+    "bench": "node bench/benchmark.js",
+    "docs": "typedoc && mkdir -p docs/debug && cp -r debug/* docs/debug && find docs/debug -name '*.html' -exec sed -i 's|../dist/geojson-vt-dev.js|https://unpkg.com/@maplibre/geojson-vt@latest/dist/geojson-vt.js|g' {} +",
     "prepublishOnly": "npm run test && npm run build"
   },
   "files": [
-    "geojson-vt.js",
-    "geojson-vt-dev.js",
+    "dist",
     "src"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maplibre/geojson-vt"
+  }
 }

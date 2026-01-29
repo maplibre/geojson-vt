@@ -1,12 +1,18 @@
-## geojson-vt &mdash; GeoJSON Vector Tiles
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://maplibre.org/img/maplibre-logos/maplibre-logo-for-dark-bg.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://maplibre.org/img/maplibre-logos/maplibre-logo-for-light-bg.svg">
+    <img alt="MapLibre Logo" src="https://maplibre.org/img/maplibre-logos/maplibre-logo-for-light-bg.svg" width="200">
+  </picture>
+</p>
 
-[![Build Status](https://travis-ci.org/mapbox/geojson-vt.svg?branch=main)](https://travis-ci.org/mapbox/geojson-vt)
+## geojson-vt &mdash; GeoJSON Vector Tiles
 
 A highly efficient JavaScript library for **slicing GeoJSON data into vector tiles on the fly**,
 primarily designed to enable rendering and interacting with large geospatial datasets
 on the browser side (without a server).
 
-Created to power GeoJSON in [Mapbox GL JS](https://github.com/mapbox/mapbox-gl-js),
+Created to power GeoJSON in [MapLibre GL JS](https://github.com/maplibre/maplibre-gl-js),
 but can be useful in other visualization platforms
 like [Leaflet](https://github.com/Leaflet/Leaflet), [OpenLayers](https://openlayers.org/) and [d3](https://github.com/mbostock/d3),
 as well as Node.js server applications.
@@ -17,18 +23,14 @@ To make data rendering and interaction fast, the tiles are simplified,
 retaining the minimum level of detail appropriate for each zoom level
 (simplifying shapes, filtering out tiny polygons and polylines).
 
-Read more on how the library works [on the Mapbox blog](https://blog.mapbox.com/rendering-big-geodata-on-the-fly-with-geojson-vt-4e4d2a5dd1f2).
-
-There's a C++11 port: [geojson-vt-cpp](https://github.com/mapbox/geojson-vt-cpp)
-
 ### Demo
 
-Here's **geojson-vt** action in [Mapbox GL JS](https://github.com/mapbox/mapbox-gl-js),
+Here's **geojson-vt** action in [MapLibre GL JS](https://github.com/maplibre/maplibre-gl-js),
 dynamically loading a 100Mb US zip codes GeoJSON with 5.4 million points:
 
 ![](https://cloud.githubusercontent.com/assets/25395/5360312/86028d8e-7f91-11e4-811f-87f24acb09ca.gif)
 
-There's a convenient [debug page](http://mapbox.github.io/geojson-vt/debug/) to test out **geojson-vt** on different data.
+There's a convenient [debug page](http://maplibre.org/geojson-vt/debug/) to test out **geojson-vt** on different data.
 Just drag any GeoJSON on the page, watching the console.
 
 ![](https://cloud.githubusercontent.com/assets/25395/5363235/41955c6e-7fa8-11e4-9575-a66ef54cb6d9.gif)
@@ -61,6 +63,7 @@ var tileIndex = geojsonvt(data, {
 	lineMetrics: false, // whether to enable line metrics tracking for LineString/MultiLineString features
 	promoteId: null,    // name of a feature property to promote to feature.id. Cannot be used with `generateId`
 	generateId: false,  // whether to generate feature ids. Cannot be used with `promoteId`
+	updateable: false,  // whether the tile index can be updated (with the caveat of a stored simplified copy)
 	indexMaxZoom: 5,       // max zoom in the initial tile index
 	indexMaxPoints: 100000 // max number of points per tile in the index
 });
@@ -72,20 +75,54 @@ The `promoteId` and `generateId` options ignore existing `id` values on the feat
 
 GeoJSON-VT only operates on zoom levels up to 24.
 
+### Update
+
+For incremental updates to the tile index, you can use `updateData` to change features without having to recreate a fresh index. `updateData` takes a diff object as a parameter with the following properties:
+
+```js
+var diff = {
+    removeAll: false,             // set to true to clear all features
+    remove: ['id1', 'id2'],       // array of feature ids to remove
+    add: [feature1, feature2],    // array of GeoJSON features to add
+    update: [                     // array of feature update objects
+        {
+            id: 'feature1',                           // required - id of feature to update
+            newGeometry: {type: 'Point', ...},        // new geometry for the feature
+            removeAllProperties: false,               // remove all properties
+            removeProperties: ['prop1', 'prop2'],     // array of property keys to remove
+            addOrUpdateProperties: [                  // array of properties to add/update
+                {key: 'name', value: 'New Name'},
+                {key: 'population', value: 5000}
+            ]
+        }
+    ]
+};
+
+tileIndex.updateData(diff);
+```
+
+All properties in the diff are optional, but at least one operation should be specified. Remove operations are applied before add/update operations.
+
+To use `updateData`, the index must be created with the `updateable: true` option.
+
 ### Install
 
-Install using NPM (`npm install geojson-vt`) or Yarn (`yarn add geojson-vt`), then:
+Install using NPM (`npm install @maplibre/geojson-vt`), then:
 
 ```js
 // import as a ES module
-import geojsonvt from 'geojson-vt';
+import geojsonvt from '@maplibre/geojson-vt';
 
-// or require in Node / Browserify
-const geojsonvt = require('geojson-vt');
+// import from a CDN in the browser:
+import geojsonvt from 'https://esm.run/@maplibre/geojson-vt';
 ```
 
 Or use a browser build directly:
 
 ```html
-<script src="https://unpkg.com/geojson-vt@3.2.0/geojson-vt.js"></script>
+<script src="https://unpkg.com/@maplibre/geojson-vt/geojson-vt.js"></script>
 ```
+
+### Getting Involved
+
+Join the #maplibre slack channel at OSMUS: get an invite at https://slack.openstreetmap.us/

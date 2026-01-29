@@ -1,8 +1,6 @@
 
-import simplify from '../src/simplify.js';
-import test from 'tape';
-
-/*eslint comma-spacing:0, no-shadow: 0*/
+import {test, expect} from 'vitest';
+import {simplify} from './simplify';
 
 const points = [
     [0.22455,0.25015],[0.22691,0.24419],[0.23331,0.24145],[0.23498,0.23606],
@@ -44,7 +42,7 @@ const simplified = [
     [0.85397,0.47115],[0.86636,0.48077]
 ];
 
-test('simplifies points correctly with the given tolerance', (t) => {
+test('simplifies points correctly with the given tolerance', () => {
     const coords = [];
     for (let i = 0; i < points.length; i++) {
         coords.push(points[i][0], points[i][1], 0);
@@ -60,19 +58,16 @@ test('simplifies points correctly with the given tolerance', (t) => {
             result.push([coords[i], coords[i + 1]]);
         }
     }
-    t.same(result, simplified);
-    t.end();
+    expect(result).toEqual(simplified);
 });
 
-test('does not throw max call stack error on bad long input', (t) => {
-    const coords = [];
+test('does not throw max call stack error on bad long input', () => {
+    const coords: number[] = [];
     for (let i = 0; i < 1400; i++) {
-        coords.push([0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]);
+        coords.push(0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0);
     }
 
-    t.doesNotThrow(() => {
-        simplify(coords, 2e-15);
-    });
-
-    t.end();
+    expect(() => {
+        simplify(coords, 0, coords.length, 2e-15);
+    }).not.toThrow();
 });

@@ -1,9 +1,13 @@
-
-// calculate simplification data using optimized Douglas-Peucker algorithm
-
-export default function simplify(coords, first, last, sqTolerance) {
+/**
+ * calculate simplification data using optimized Douglas-Peucker algorithm
+ * @param coords - flat array of coordinates
+ * @param first - index of the first coordinate in the segment
+ * @param last - index of the last coordinate in the segment
+ * @param sqTolerance - square tolerance value
+ */
+export function simplify(coords: number[], first: number, last: number, sqTolerance: number) {
     let maxSqDist = sqTolerance;
-    const mid = (last - first) >> 1;
+    const mid = first + ((last - first) >> 1);
     let minPosToMid = last - first;
     let index;
 
@@ -18,8 +22,10 @@ export default function simplify(coords, first, last, sqTolerance) {
         if (d > maxSqDist) {
             index = i;
             maxSqDist = d;
+            continue;
+        }
 
-        } else if (d === maxSqDist) {
+        if (d === maxSqDist) {
             // a workaround to ensure we choose a pivot close to the middle of the list,
             // reducing recursion depth, for certain degenerate inputs
             // https://github.com/mapbox/geojson-vt/issues/104
@@ -38,14 +44,21 @@ export default function simplify(coords, first, last, sqTolerance) {
     }
 }
 
-// square distance from a point to a segment
-function getSqSegDist(px, py, x, y, bx, by) {
-
+/**
+ * Claculates the square distance from a point to a segment
+ * @param px - x coordinate of the point
+ * @param py - y coordinate of the point
+ * @param x - x coordinate of the first segment endpoint
+ * @param y - y coordinate of the first segment endpoint
+ * @param bx - x coordinate of the second segment endpoint
+ * @param by - y coordinate of the second segment endpoint
+ * @returns square distance from a point to a segment
+ */
+function getSqSegDist(px: number, py: number, x: number, y: number, bx: number, by: number): number {
     let dx = bx - x;
     let dy = by - y;
 
     if (dx !== 0 || dy !== 0) {
-
         const t = ((px - x) * dx + (py - y) * dy) / (dx * dx + dy * dy);
 
         if (t > 1) {

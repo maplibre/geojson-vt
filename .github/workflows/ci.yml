@@ -1,0 +1,41 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use Node.js x64
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the bundle
+        run: npm run build
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npx vitest run --coverage
+
+      - name: Run Docs Generation
+        run: npm run docs
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ${{ github.workspace }}/coverage/coverage-final.json
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          disable_search: true
