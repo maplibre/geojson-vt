@@ -7,16 +7,16 @@ import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
 
 const defaultOptions: GeoJSONVTOptions = {
-    maxZoom: 14,            // max zoom to preserve detail on
-    tolerance: 3,           // simplification tolerance (higher means simpler)
-    extent: 4096,           // tile extent
-    buffer: 64,             // tile buffer on each side
-    lineMetrics: false,      // whether to calculate line metrics
-    indexMaxZoom: 5,        // max zoom in the tile index
-    indexMaxPoints: 100000, // max number of points per tile in the tile index
-    promoteId: null,        // name of a feature property to be promoted to feature.id
-    generateId: false,      // whether to generate feature ids. Cannot be used with promoteId
-    debug: 0                // logging level (0, 1 or 2)
+    maxZoom: 14,
+    tolerance: 3,
+    extent: 4096,
+    buffer: 64,
+    lineMetrics: false,
+    indexMaxZoom: 5,
+    indexMaxPoints: 100000,
+    promoteId: null,
+    generateId: false,
+    debug: 0
 }
 
 /**
