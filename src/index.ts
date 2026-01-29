@@ -1,8 +1,8 @@
 
 import type {GeoJSONVTTile} from './transform';
-import type {GeoJSONVTInternalTile, GeoJSONVTFeature, GeoJSONVTFeaturePoint, GeoJSONVTFeatureNonPoint, GeoJSONVTPoint, GeoJSONVTRing} from './tile';
+import type {GeoJSONVTInternalTile} from './tile';
 import type {GeoJSONVTFeatureDiff, GeoJSONVTSourceDiff} from './difference';
-import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, PartialGeoJSONVTFeature, StartEndSizeArray} from './definitions';
+import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, StartEndSizeArray, GeoJSONVTFeature, GeoJSONVTFeaturePoint, GeoJSONVTFeatureNonPoint, GeoJSONVTPoint, GeoJSONVTRing, GeoJSONVTPartialInternalFeature} from './definitions';
 import {GeoJSONVT} from './geojsonvt';
 
 export default function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
@@ -10,11 +10,8 @@ export default function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOpti
 }
 
 export type { 
-    GeoJSONVTInternalFeature, 
-    GeoJSONVTOptions, 
-    GeoJSONVTInternalTile, 
-    PartialGeoJSONVTFeature,
     GeoJSONVT,
+    GeoJSONVTOptions,
     StartEndSizeArray,
     GeoJSONVTTile,
     GeoJSONVTFeature,
@@ -24,10 +21,13 @@ export type {
     GeoJSONVTFeatureNonPoint,
     GeoJSONVTPoint,
     GeoJSONVTRing,
+    GeoJSONVTInternalTile,
+    GeoJSONVTPartialInternalFeature,
     GeoJSONVTInternalPointFeature,
     GeoJSONVTInternalMultiPointFeature,
     GeoJSONVTInternalLineStringFeature,
     GeoJSONVTInternalMultiLineStringFeature,
     GeoJSONVTInternalPolygonFeature,
-    GeoJSONVTInternalMultiPolygonFeature
+    GeoJSONVTInternalMultiPolygonFeature,
+    GeoJSONVTInternalFeature
 };

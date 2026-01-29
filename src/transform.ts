@@ -1,4 +1,5 @@
-import type { GeoJSONVTInternalTile, GeoJSONVTPoint } from "./tile";
+import type {GeoJSONVTInternalTile} from './tile';
+import type {GeoJSONVTPoint} from './definitions';
 
 export type GeoJSONVTTile = GeoJSONVTInternalTile & {
     transformed: true;

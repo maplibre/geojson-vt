@@ -58,7 +58,7 @@ export type GeoJSONVTOptions = {
 
 export type StartEndSizeArray = number[] & { start?: number; end?: number; size?: number };
 
-export type PartialGeoJSONVTFeature = {
+export type GeoJSONVTPartialInternalFeature = {
     id?: number | string | undefined;
     tags: GeoJSON.GeoJsonProperties;
     minX: number;
@@ -66,37 +66,31 @@ export type PartialGeoJSONVTFeature = {
     maxX: number;
     maxY: number;
 }
-
-export type GeoJSONVTInternalPointFeature = PartialGeoJSONVTFeature & {
+export type GeoJSONVTInternalPointFeature = GeoJSONVTPartialInternalFeature & {
     type: 'Point';
     geometry: number[];
 };
-
-export type GeoJSONVTInternalMultiPointFeature = PartialGeoJSONVTFeature & {
+export type GeoJSONVTInternalMultiPointFeature = GeoJSONVTPartialInternalFeature & {
     type: 'MultiPoint';
     geometry: number[];
 };
-
-export type GeoJSONVTInternalLineStringFeature = PartialGeoJSONVTFeature & {
+export type GeoJSONVTInternalLineStringFeature = GeoJSONVTPartialInternalFeature & {
     type: 'LineString';
     geometry: StartEndSizeArray;
 };
-
-export type GeoJSONVTInternalMultiLineStringFeature = PartialGeoJSONVTFeature & {
+export type GeoJSONVTInternalMultiLineStringFeature = GeoJSONVTPartialInternalFeature & {
     type: 'MultiLineString';
     geometry: StartEndSizeArray[];
 };
-
-export type GeoJSONVTInternalPolygonFeature = PartialGeoJSONVTFeature & {
+export type GeoJSONVTInternalPolygonFeature = GeoJSONVTPartialInternalFeature & {
     type: 'Polygon';
     geometry: StartEndSizeArray[];
 };
 
-export type GeoJSONVTInternalMultiPolygonFeature = PartialGeoJSONVTFeature & {
+export type GeoJSONVTInternalMultiPolygonFeature = GeoJSONVTPartialInternalFeature & {
     type: 'MultiPolygon';
     geometry: StartEndSizeArray[][];
 };
-
 export type GeoJSONVTInternalFeature =
     | GeoJSONVTInternalPointFeature
     | GeoJSONVTInternalMultiPointFeature
@@ -104,3 +98,19 @@ export type GeoJSONVTInternalFeature =
     | GeoJSONVTInternalMultiLineStringFeature
     | GeoJSONVTInternalPolygonFeature
     | GeoJSONVTInternalMultiPolygonFeature;
+
+export type GeoJSONVTPoint = [number, number];
+export type GeoJSONVTRing = GeoJSONVTPoint[];
+export type GeoJSONVTFeaturePoint = {
+    id? : number | string | undefined;
+    type: 1;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: GeoJSONVTPoint[];
+}
+export type GeoJSONVTFeatureNonPoint = {
+    id? : number | string | undefined;
+    type: 2 | 3;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: GeoJSONVTRing[];
+}
+export type GeoJSONVTFeature = GeoJSONVTFeaturePoint | GeoJSONVTFeatureNonPoint;

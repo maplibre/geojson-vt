@@ -1,24 +1,8 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, StartEndSizeArray } from "./definitions";
+import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, StartEndSizeArray, GeoJSONVTFeature, GeoJSONVTFeatureNonPoint, GeoJSONVTPoint, GeoJSONVTRing} from './definitions';
 
-export type GeoJSONVTPoint = [number, number];
-export type GeoJSONVTRing = GeoJSONVTPoint[];
-
-export type GeoJSONVTFeaturePoint = {
-    id? : number | string | undefined;
-    type: 1;
-    tags: GeoJSON.GeoJsonProperties | null;
-    geometry: GeoJSONVTPoint[];
-}
-
-export type GeoJSONVTFeatureNonPoint = {
-    id? : number | string | undefined;
-    type: 2 | 3;
-    tags: GeoJSON.GeoJsonProperties | null;
-    geometry: GeoJSONVTRing[];
-}
-
-export type GeoJSONVTFeature = GeoJSONVTFeaturePoint | GeoJSONVTFeatureNonPoint;
-
+/**
+ * A tile object containing source data in a custom internal format, as well as tile features in GeoJSONVT format.
+ */
 export type GeoJSONVTInternalTile = {
     source: GeoJSONVTInternalFeature[] | null;
     features: GeoJSONVTFeature[];
