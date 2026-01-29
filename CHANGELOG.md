@@ -7,8 +7,6 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
-### ✨ Features and improvements
-
 ## 5.0.4
 
 ### ✨ Features and improvements
