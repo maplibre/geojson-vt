@@ -4,7 +4,7 @@ import {wrap} from './wrap';
 import {transformTile, type GeoJSONVTTile} from './transform';
 import {createTile, type GeoJSONVTInternalTile} from './tile';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, GeoJSONToTileOptions } from './definitions';
 
 const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
@@ -367,8 +367,9 @@ function toID(z: number, x: number, y: number): number {
     return (((1 << z) * y + x) * 32) + z;
 }
 
-export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: number, options: GeoJSONVTOptions = {}, shouldWrap = false, shouldClip = false) {
+export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: number, options: GeoJSONToTileOptions = {}) {
     options = {...defaultOptions, ...options};
+    const {wrap: shouldWrap = false, clip: shouldClip = false} = options;
 
     let features = convert(data, options);
     if (shouldWrap) {

@@ -21,15 +21,15 @@ test('geoJSONToTile: converts all geometries to a single vector tile', () => {
 test('geoJSONToTile: clips geometries outside the tile', () => {
     const geojson = getJSON('us-states.json');
 
-    const tile1 = geoJSONToTile(geojson, 7, 37, 48, {}, false, true);
+    const tile1 = geoJSONToTile(geojson, 7, 37, 48, {clip: true});
     expect(tile1.features).toEqual(getJSON('us-states-z7-37-48.json'));
 
-    const tile2 = geoJSONToTile(geojson, 9, 148, 192, {}, false, true);
+    const tile2 = geoJSONToTile(geojson, 9, 148, 192, {clip: true});
     expect(tile2.features).toEqual(square);
 
-    expect(geoJSONToTile(geojson, 11, 800, 400, {}, false, true)).toBeNull();
-    expect(geoJSONToTile(geojson, -5, 123.25, 400.25, {}, false, true)).toBeNull();
-    expect(geoJSONToTile(geojson, 25, 200, 200, {}, false, true)).toBeNull();
+    expect(geoJSONToTile(geojson, 11, 800, 400, {clip: true})).toBeNull();
+    expect(geoJSONToTile(geojson, -5, 123.25, 400.25, {clip: true})).toBeNull();
+    expect(geoJSONToTile(geojson, 25, 200, 200, {clip: true})).toBeNull();
 });
 
 function getJSON(name: string) {
