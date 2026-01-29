@@ -9,7 +9,7 @@ export default function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOpti
     return new GeoJSONVT(data, options);
 }
 
-export {geoJSONToTile} from './geojsonvt';
+export {geoJSONToTile} from './geoJSONToTile';
 
 export type {
     GeoJSONVTInternalFeature,
