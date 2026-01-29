@@ -308,3 +308,95 @@ test('GeoJSONVT.getData: returns empty FeatureCollection when updateable is fals
 
     expect(result).toEqual({type: 'FeatureCollection', features: []});
 });
+
+test('GeoJSONVT.getFeatureById: returns feature by string id', () => {
+    const geojson: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature',
+                id: 'feature-1',
+                geometry: {type: 'Point', coordinates: [0, 0]},
+                properties: {name: 'First'}
+            },
+            {
+                type: 'Feature',
+                id: 'feature-2',
+                geometry: {type: 'Point', coordinates: [10, 10]},
+                properties: {name: 'Second'}
+            }
+        ]
+    };
+
+    const index = new GeoJSONVT(geojson, {updateable: true});
+    const feature = index.getFeatureById('feature-2');
+
+    expect(feature).not.toBeNull();
+    expect(feature!.id).toBe('feature-2');
+    expect(feature!.properties).toEqual({name: 'Second'});
+});
+
+test('GeoJSONVT.getFeatureById: returns feature by numeric id', () => {
+    const geojson: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature',
+                id: 1,
+                geometry: {type: 'Point', coordinates: [0, 0]},
+                properties: {name: 'First'}
+            },
+            {
+                type: 'Feature',
+                id: 2,
+                geometry: {type: 'Point', coordinates: [10, 10]},
+                properties: {name: 'Second'}
+            }
+        ]
+    };
+
+    const index = new GeoJSONVT(geojson, {updateable: true});
+    const feature = index.getFeatureById(1);
+
+    expect(feature).not.toBeNull();
+    expect(feature!.id).toBe(1);
+    expect(feature!.properties).toEqual({name: 'First'});
+});
+
+test('GeoJSONVT.getFeatureById: returns null for non-existent id', () => {
+    const geojson: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature',
+                id: 'feature-1',
+                geometry: {type: 'Point', coordinates: [0, 0]},
+                properties: {}
+            }
+        ]
+    };
+
+    const index = new GeoJSONVT(geojson, {updateable: true});
+    const feature = index.getFeatureById('non-existent');
+
+    expect(feature).toBeNull();
+});
+
+test('GeoJSONVT.getFeatureById: returns null when updateable is false', () => {
+    const geojson: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature',
+                id: 'feature-1',
+                geometry: {type: 'Point', coordinates: [0, 0]},
+                properties: {}
+            }
+        ]
+    };
+
+    const index = new GeoJSONVT(geojson, {updateable: false});
+    const feature = index.getFeatureById('feature-1');
+
+    expect(feature).toBeNull();
+});

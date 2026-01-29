@@ -11,20 +11,30 @@ export function deconvert(source: GeoJSONVTInternalFeature[]): GeoJSON.GeoJSON {
     const features: GeoJSON.Feature[] = [];
 
     for (const feature of source) {
-        const geojsonFeature: GeoJSON.Feature = {
-            type: 'Feature',
-            geometry: convertGeometry(feature),
-            properties: feature.tags
-        };
-        if (feature.id != null) {
-            geojsonFeature.id = feature.id;
-        }
-        features.push(geojsonFeature);
+        features.push(deconvertFeature(feature));
     }
 
     return {type: 'FeatureCollection', features};
 }
 
+/**
+ * Converts a single internal feature back to GeoJSON format.
+ */
+export function deconvertFeature(feature: GeoJSONVTInternalFeature): GeoJSON.Feature {
+    const geojsonFeature: GeoJSON.Feature = {
+        type: 'Feature',
+        geometry: convertGeometry(feature),
+        properties: feature.tags
+    };
+    if (feature.id != null) {
+        geojsonFeature.id = feature.id;
+    }
+    return geojsonFeature;
+}
+
+/**
+ * Converts a single internal feature geometry back to GeoJSON format.
+ */
 function convertGeometry(feature: GeoJSONVTInternalFeature): GeoJSON.Geometry {
     switch (feature.type) {
         case 'Point':

@@ -1,5 +1,5 @@
 import {convert} from './convert';
-import {deconvert} from './deconvert';
+import {deconvert, deconvertFeature} from './deconvert';
 import {clip} from './clip';
 import {wrap} from './wrap';
 import {transformTile, type GeoJSONVTTile} from './transform';
@@ -365,10 +365,22 @@ export class GeoJSONVT {
     }
 
     /**
-     * Returns source data as GeoJSON - only available when the `updateable` option is set to true.
+     * Returns source data as GeoJSON - only available when `updateable` option is set to true.
      */
     getData(): GeoJSON.GeoJSON {
         return deconvert(this.source);
+    }
+
+    /**
+     * Returns a single feature as GeoJSON - only available when `updateable` option is set to true.
+     */
+    getFeatureById(id: string | number): GeoJSON.Feature | null {
+        if (!this.source) return null;
+
+        const feature = this.source.find(f => f.id === id);
+        if (!feature) return null;
+
+        return deconvertFeature(feature);
     }
 }
 
