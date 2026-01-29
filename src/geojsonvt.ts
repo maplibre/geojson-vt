@@ -247,7 +247,7 @@ export class GeoJSONVT {
     /**
      * Invalidates (removes) tiles affected by the provided features
      * @internal
-     * @param features
+     * @param features 
      */
     invalidateTiles(features: GeoJSONVTInternalFeature[]) {
         const options = this.options;

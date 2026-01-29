@@ -1,7 +1,6 @@
 
 import {test, expect} from 'vitest';
 import fs from 'fs';
-
 import {geoJSONToTile} from '../src/geojsonvt';
 
 const square = [{
