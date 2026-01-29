@@ -1,6 +1,6 @@
 
 import type {GeoJSONVTTile} from './transform';
-import type {GeoJSONVTInternalTile, GeoJSONVTFeature, GeoJSONVTFeaturePoint, GeoJSONVTFeatureNonPoint} from './tile';
+import type {GeoJSONVTInternalTile, GeoJSONVTFeature, GeoJSONVTFeaturePoint, GeoJSONVTFeatureNonPoint, GeoJSONVTPoint, GeoJSONVTRing} from './tile';
 import type {GeoJSONVTFeatureDiff, GeoJSONVTSourceDiff} from './difference';
 import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, PartialGeoJSONVTFeature, StartEndSizeArray} from './definitions';
 import {GeoJSONVT} from './geojsonvt';
@@ -22,6 +22,8 @@ export type {
     GeoJSONVTFeatureDiff,
     GeoJSONVTFeaturePoint,
     GeoJSONVTFeatureNonPoint,
+    GeoJSONVTPoint,
+    GeoJSONVTRing,
     GeoJSONVTInternalPointFeature,
     GeoJSONVTInternalMultiPointFeature,
     GeoJSONVTInternalLineStringFeature,
