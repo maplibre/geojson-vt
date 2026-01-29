@@ -86,7 +86,7 @@ export class GeoJSONVT {
      * splits features from a parent tile to sub-tiles.
      * z, x, and y are the coordinates of the parent tile
      * cz, cx, and cy are the coordinates of the target tile
-     *
+     * 
      * If no target tile is specified, splitting stops when we reach the maximum
      * zoom or the number of points is low as specified in the options.
      * @internal
@@ -247,7 +247,7 @@ export class GeoJSONVT {
     /**
      * Invalidates (removes) tiles affected by the provided features
      * @internal
-     * @param features 
+     * @param features
      */
     invalidateTiles(features: GeoJSONVTInternalFeature[]) {
         const options = this.options;
