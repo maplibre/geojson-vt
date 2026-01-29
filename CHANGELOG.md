@@ -1,9 +1,6 @@
 ## main
 ### ✨ Features and improvements
-- _...Add new stuff here..._
-
-### 🐞 Bug fixes
-- _...Add new stuff here..._
+- Add `geoJSONToTile` function to generate a single tile directly from GeoJSON without building the full tile index. (by [montzkie18](https://github.com/montzkie18) and [lucaswoj](https://github.com/lucaswoj)).
 
 ## 5.0.4
 
