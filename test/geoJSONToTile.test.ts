@@ -18,7 +18,7 @@ test('geoJSONToTile: converts all geometries to a single vector tile', () => {
     expect(tile.features[0].tags.name).toBe('P Street Northwest - Massachusetts Avenue Northwest');
 });
 
-test('geoJSONToTile: wraps features across the antimeridian', () => {
+test('geoJSONToTile: wrap features across the antimeridian', () => {
     const geojson: GeoJSON.FeatureCollection = {
         type: 'FeatureCollection',
         features: [{
@@ -32,10 +32,18 @@ test('geoJSONToTile: wraps features across the antimeridian', () => {
     };
 
     const tileWithoutWrap = geoJSONToTile(geojson, 0, 0, 0, {wrap: false, clip: true});
-    expect(tileWithoutWrap.features.length).toBe(1);
+    expect(tileWithoutWrap.features).toEqual([{
+        type: 2,
+        tags: {name: 'test'},
+        geometry: [[[-64, 2048], [4160, 2048]]]
+    }]);
 
     const tileWithWrap = geoJSONToTile(geojson, 0, 0, 0, {wrap: true, clip: true});
-    expect(tileWithWrap.features.length).toBe(3);
+    expect(tileWithWrap.features).toEqual([
+        {type: 2, tags: {name: 'test'}, geometry: [[[3868, 2048], [4160, 2048]]]},
+        {type: 2, tags: {name: 'test'}, geometry: [[[-64, 2048], [4160, 2048]]]},
+        {type: 2, tags: {name: 'test'}, geometry: [[[-64, 2048], [228, 2048]]]}
+    ]);
 });
 
 test('geoJSONToTile: shouldWrap duplicates features that extend beyond world bounds', () => {
@@ -43,7 +51,7 @@ test('geoJSONToTile: shouldWrap duplicates features that extend beyond world bou
         type: 'FeatureCollection',
         features: [{
             type: 'Feature',
-            properties: {name: 'beyond-bounds'},
+            properties: {name: 'test'},
             geometry: {
                 type: 'LineString',
                 coordinates: [[-200, 0], [-170, 0]]
@@ -52,10 +60,17 @@ test('geoJSONToTile: shouldWrap duplicates features that extend beyond world bou
     };
 
     const tileWithoutWrap = geoJSONToTile(geojson, 0, 0, 0, {wrap: false, clip: false});
-    expect(tileWithoutWrap.features.length).toBe(1);
+    expect(tileWithoutWrap.features).toEqual([{
+        type: 2,
+        tags: {name: 'test'},
+        geometry: [[[-228, 2048], [114, 2048]]]
+    }]);
 
     const tileWithWrap = geoJSONToTile(geojson, 0, 0, 0, {wrap: true, clip: false});
-    expect(tileWithWrap.features.length).toBe(2);
+    expect(tileWithWrap.features).toEqual([
+        {type: 2, tags: {name: 'test'}, geometry: [[[3868, 2048], [4160, 2048]]]},
+        {type: 2, tags: {name: 'test'}, geometry: [[[-64, 2048], [114, 2048]]]}
+    ]);
 });
 
 test('geoJSONToTile: clips geometries outside the tile', () => {
