@@ -6,16 +6,12 @@ import {createTile, type GeoJSONVTInternalTile} from './tile';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
 
-const defaultTileOptions: GeoJSONVTOptions = {
+const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,            // max zoom to preserve detail on
     tolerance: 3,           // simplification tolerance (higher means simpler)
     extent: 4096,           // tile extent
     buffer: 64,             // tile buffer on each side
-    lineMetrics: false      // whether to calculate line metrics
-};
-
-const defaultOptions: GeoJSONVTOptions = {
-    ...defaultTileOptions,
+    lineMetrics: false,      // whether to calculate line metrics
     indexMaxZoom: 5,        // max zoom in the tile index
     indexMaxPoints: 100000, // max number of points per tile in the tile index
     promoteId: null,        // name of a feature property to be promoted to feature.id
@@ -372,7 +368,7 @@ function toID(z: number, x: number, y: number): number {
 }
 
 export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: number, options: GeoJSONVTOptions = {}, shouldWrap = false, shouldClip = false) {
-    options = {...defaultTileOptions, ...options};
+    options = {...defaultOptions, ...options};
 
     let features = convert(data, options);
     if (shouldWrap) {
