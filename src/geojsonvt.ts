@@ -247,7 +247,7 @@ export class GeoJSONVT {
     /**
      * Invalidates (removes) tiles affected by the provided features
      * @internal
-     * @param features 
+     * @param features
      */
     invalidateTiles(features: GeoJSONVTInternalFeature[]) {
         const options = this.options;
@@ -371,7 +371,7 @@ function toID(z: number, x: number, y: number): number {
     return (((1 << z) * y + x) * 32) + z;
 }
 
-export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: number, options: GeoJSONVTOptions, shouldWrap = false, shouldClip = false) {
+export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: number, options: GeoJSONVTOptions = {}, shouldWrap = false, shouldClip = false) {
     options = {...defaultTileOptions, ...options};
 
     let features = convert(data, options);
