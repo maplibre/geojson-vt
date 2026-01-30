@@ -82,9 +82,9 @@ test('geoJSONToTile: clips geometries outside the tile', () => {
     const tile2 = geoJSONToTile(geojson, 9, 148, 192, {clip: true});
     expect(tile2.features).toEqual(square);
 
-    expect(geoJSONToTile(geojson, 11, 800, 400, {clip: true})).toBeNull();
-    expect(geoJSONToTile(geojson, -5, 123.25, 400.25, {clip: true})).toBeNull();
-    expect(geoJSONToTile(geojson, 25, 200, 200, {clip: true})).toBeNull();
+    expect(geoJSONToTile(geojson, 11, 800, 400, {clip: true}).features).toEqual([]);
+    expect(geoJSONToTile(geojson, -5, 123.25, 400.25, {clip: true}).features).toEqual([]);
+    expect(geoJSONToTile(geojson, 25, 200, 200, {clip: true}).features).toEqual([]);
 });
 
 function getJSON(name: string) {

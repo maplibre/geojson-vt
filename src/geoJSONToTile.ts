@@ -39,7 +39,7 @@ import {wrap} from './wrap';
  * @returns The generated tile with geometries in tile coordinates, or null if no features
  */
 
-export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: number, options: GeoJSONToTileOptions = {}): GeoJSONVTTile | null {
+export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: number, options: GeoJSONToTileOptions = {}): GeoJSONVTTile {
     options = {...defaultOptions, ...options};
     const {wrap: shouldWrap = false, clip: shouldClip = false} = options;
 
@@ -54,7 +54,5 @@ export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: nu
         features = clip(left || [], pow2, (y - buffer), (y + 1 + buffer), 1, -1, 2, options);
     }
 
-    return features
-        ? transformTile(createTile(features, z, x, y, options), options.extent)
-        : null;
+    return transformTile(createTile(features ?? [], z, x, y, options), options.extent);
 }
