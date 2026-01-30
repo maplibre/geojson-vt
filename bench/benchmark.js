@@ -56,7 +56,6 @@ const testConfigs = [
 console.log('Starting geojson-vt benchmark - constructor vs updateData:\n');
 
 testConfigs.forEach((config) => {
-    return;
     const suite = new Benchmark.Suite();
 
     const initialFeatures = generateFeatures(config.initial);
