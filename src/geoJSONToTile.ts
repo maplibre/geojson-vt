@@ -3,7 +3,7 @@ import {convert} from './convert';
 import type {GeoJSONToTileOptions} from './definitions';
 import {defaultOptions} from './geojsonvt';
 import {createTile} from './tile';
-import {transformTile} from './transform';
+import {transformTile, type GeoJSONVTTile} from './transform';
 import {wrap} from './wrap';
 
 /**
@@ -39,7 +39,7 @@ import {wrap} from './wrap';
  * @returns The generated tile with geometries in tile coordinates, or null if no features
  */
 
-export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: number, options: GeoJSONToTileOptions = {}) {
+export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: number, options: GeoJSONToTileOptions = {}): GeoJSONVTTile | null {
     options = {...defaultOptions, ...options};
     const {wrap: shouldWrap = false, clip: shouldClip = false} = options;
 
