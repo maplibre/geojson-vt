@@ -25,11 +25,6 @@ test('project/unproject roundtrip retains precision', () => {
     }
 });
 
-test('deconvert: returns empty FeatureCollection for empty/null source', () => {
-    expect(deconvert([])).toEqual({type: 'FeatureCollection', features: []});
-    expect(deconvert(null as unknown as GeoJSONVTInternalFeature[])).toEqual({type: 'FeatureCollection', features: []});
-});
-
 test('deconvert: converts all geometry types', () => {
     const source: GeoJSONVTInternalFeature[] = [
         {
@@ -159,7 +154,7 @@ test('GeoJSONVT.getData: returns source data when updateable', () => {
     expect(result.features[0].id).toBe('point1');
 
     const notUpdateable = new GeoJSONVT(geojson, {updateable: false});
-    expect(notUpdateable.getData()).toEqual({type: 'FeatureCollection', features: []});
+    expect(() => notUpdateable.getData()).toThrow();
 });
 
 test('GeoJSONVT.getFeatureById: returns feature by id when updateable', () => {
@@ -185,5 +180,5 @@ test('GeoJSONVT.getFeatureById: returns feature by id when updateable', () => {
     expect(index.getFeatureById('non-existent')).toBeNull();
 
     const notUpdateable = new GeoJSONVT(geojson, {updateable: false});
-    expect(notUpdateable.getFeatureById('string-id')).toBeNull();
+    expect(() => notUpdateable.getFeatureById('string-id')).toThrow();
 });

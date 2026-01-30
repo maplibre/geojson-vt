@@ -369,7 +369,7 @@ export class GeoJSONVT {
      * @param predicate - A function that receives a feature and returns true to keep it, false to remove it.
      */
     filterData(predicate: (feature: GeoJSON.Feature) => boolean) {
-        if (!this.options.updateable) throw new Error('to filter tile geojson `updateable` option must be set to true');
+        if (!this.options.updateable) throw new Error('to filter data the `updateable` option must be set to true');
 
         const ids = [];
         for (const feature of this.source) {
@@ -386,6 +386,7 @@ export class GeoJSONVT {
      * Returns source data as GeoJSON - only available when `updateable` option is set to true.
      */
     getData(): GeoJSON.GeoJSON {
+        if (!this.options.updateable) throw new Error('to retrieve data the `updateable` option must be set to true');
         return deconvert(this.source);
     }
 
@@ -393,7 +394,7 @@ export class GeoJSONVT {
      * Returns a single feature as GeoJSON - only available when `updateable` option is set to true.
      */
     getFeatureById(id: string | number): GeoJSON.Feature | null {
-        if (!this.source) return null;
+        if (!this.options.updateable) throw new Error('to retrieve a feature by id the `updateable` option must be set to true');
 
         const feature = this.source.find(f => f.id === id);
         if (!feature) return null;
