@@ -45,7 +45,7 @@
     "test": "vitest",
     "build": "rollup -c && tsc -p tsconfig.declaration.json",
     "watch": "rollup -cw",
-    "bench": "node bench/benchmark.js",
+    "bench": "npx tsx bench/benchmark.js",
     "docs": "typedoc && mkdir -p docs/debug && cp -r debug/* docs/debug && find docs/debug -name '*.html' -exec sed -i 's|../dist/geojson-vt-dev.js|https://unpkg.com/@maplibre/geojson-vt@latest/dist/geojson-vt.js|g' {} +",
     "prepublishOnly": "npm run test && npm run build"
   },
