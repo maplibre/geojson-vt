@@ -365,6 +365,24 @@ export class GeoJSONVT {
     }
 
     /**
+     * Filter the tile index using a predicate function.
+     * @param predicate - A function that receives a feature and returns true to keep it, false to remove it.
+     */
+    filterData(predicate: (feature: GeoJSON.Feature) => boolean) {
+        if (!this.options.updateable) throw new Error('to filter tile geojson `updateable` option must be set to true');
+
+        const ids = [];
+        for (const feature of this.source) {
+            if (feature.id == undefined) continue;
+            if (predicate(deconvertFeature(feature))) continue;
+            ids.push(feature.id);
+        }
+        if (!ids.length) return;
+
+        this.updateData({remove: ids});
+    }
+
+    /**
      * Returns source data as GeoJSON - only available when `updateable` option is set to true.
      */
     getData(): GeoJSON.GeoJSON {
