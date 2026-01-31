@@ -6,7 +6,7 @@ import {createTile, type GeoJSONVTInternalTile} from './tile';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
 
-const defaultOptions: GeoJSONVTOptions = {
+export const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
     indexMaxZoom: 5,
     indexMaxPoints: 100000,
