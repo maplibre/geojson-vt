@@ -477,7 +477,7 @@ test('updateData: handles drill-down after update', () => {
     expect(featureIds).toEqual(['line1', 'line2']);
 });
 
-test('filterData: filters features by predicate', () => {
+test('updateData: filters features by predicate', () => {
     const initialData = {
         type: 'FeatureCollection' as const,
         features: [
@@ -490,15 +490,15 @@ test('filterData: filters features by predicate', () => {
     const index = geojsonvt(initialData, {updateable: true});
     expect(index.getTile(0, 0, 0).features.length).toBe(3);
 
-    index.filterData(feature => feature.geometry.type === 'Point');
+    index.updateData({}, feature => feature.geometry.type === 'Point');
     expect(index.getTile(0, 0, 0).features.length).toBe(3);
 
-    index.filterData(feature => feature.properties?.population > 500);
+    index.updateData({}, feature => feature.properties?.population > 500);
     const tile = index.getTile(0, 0, 0);
     expect(tile.features.length).toBe(1);
     expect(tile.features[0].id).toBe('large');
 
-    index.filterData(feature => feature.properties?.population < 100);
+    index.updateData({}, feature => feature.properties?.population < 100);
     expect(index.getTile(0, 0, 0).features.length).toBe(0);
 });
 

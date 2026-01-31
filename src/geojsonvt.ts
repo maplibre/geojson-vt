@@ -323,14 +323,18 @@ export class GeoJSONVT {
      * invalidates tiles that are affected by the update for regeneration on next getTile call.
      * @param diff - the source diff object
      */
-    updateData(diff: GeoJSONVTSourceDiff) {
+    updateData(diff: GeoJSONVTSourceDiff, filter?: (feature: GeoJSON.Feature) => boolean) {
         const options = this.options;
         const debug = options.debug;
 
         if (!options.updateable) throw new Error('to update tile geojson `updateable` option must be set to true');
 
         // apply diff and collect affected features and updated source that will be used to invalidate tiles
-        const {affected, source} = applySourceDiff(this.source, diff, options);
+        let {affected, source} = applySourceDiff(this.source, diff, options);
+
+        if (filter) {
+            ({affected, source} = this.filterUpdate(source, affected, filter));
+        }
 
         // nothing has changed
         if (!affected.length) return;
@@ -365,21 +369,20 @@ export class GeoJSONVT {
     }
 
     /**
-     * Filter the tile index using a predicate function.
-     * @param predicate - A function that receives a feature and returns true to keep it, false to remove it.
+     * Filter an update using a predicate function. Returns the affected and updated source features.
      */
-    filterData(predicate: (feature: GeoJSON.Feature) => boolean) {
-        if (!this.options.updateable) throw new Error('to filter data the `updateable` option must be set to true');
+    private filterUpdate(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], predicate: (feature: GeoJSON.Feature) => boolean) {
+        const removeIds = new Set();
 
-        const ids = [];
-        for (const feature of this.source) {
+        for (const feature of source) {
             if (feature.id == undefined) continue;
             if (predicate(deconvertFeature(feature))) continue;
-            ids.push(feature.id);
+            affected.push(feature);
+            removeIds.add(feature.id);
         }
-        if (!ids.length) return;
+        source = source.filter(feature => !removeIds.has(feature.id));
 
-        this.updateData({remove: ids});
+        return {affected, source};
     }
 
     /**
