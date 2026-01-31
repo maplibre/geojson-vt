@@ -65,8 +65,9 @@ export type ClusterProperties = {
 
 export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
 
-type KDBushWithData = Omit<KDBush, 'data'> & { data: number[] };
 type PointFeature = GeoJSON.Feature<GeoJSON.Point> | GeoJSONVTInternalPointFeature;
+
+export type KDBushWithData = Omit<KDBush, 'data'> & { data: number[] };
 
 export const defaultClusterOptions: Required<SuperclusterOptions> = {
     minZoom: 0,

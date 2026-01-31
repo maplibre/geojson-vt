@@ -2,10 +2,11 @@
 import type {GeoJSONVTFeature, GeoJSONVTFeatureNonPoint, GeoJSONVTFeaturePoint, GeoJSONVTTile} from './transform';
 import type {GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTInternalTileFeatureNonPoint} from './tile';
 import type {GeoJSONVTFeatureDiff, GeoJSONVTSourceDiff} from './difference';
-import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, PartialGeoJSONVTFeature, StartEndSizeArray} from './definitions';
-import type {SuperclusterOptions, ClusterFeature, ClusterProperties} from './supercluster';
+import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, GeoJSONToTileOptions, PartialGeoJSONVTFeature, StartEndSizeArray} from './definitions';
+import type {SuperclusterOptions, ClusterFeature, ClusterProperties, KDBushWithData} from './supercluster';
 import {GeoJSONVT} from './geojsonvt';
 import {Supercluster} from './supercluster';
+import {geoJSONToTile} from './geoJSONToTile';
 
 function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
     return new GeoJSONVT(data, options);
@@ -13,12 +14,15 @@ function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
 
 geojsonvt.GeoJSONVT = GeoJSONVT;
 geojsonvt.Supercluster = Supercluster;
+geojsonvt.geoJSONToTile = geoJSONToTile;
 
 export default geojsonvt;
 
-export type { 
+export type {
+    GeoJSONVT,
     GeoJSONVTInternalFeature, 
-    GeoJSONVTOptions, 
+    GeoJSONVTOptions,
+    GeoJSONToTileOptions,
     GeoJSONVTInternalTile, 
     GeoJSONVTInternalTileFeature, 
     PartialGeoJSONVTFeature,
@@ -37,7 +41,9 @@ export type {
     GeoJSONVTInternalMultiLineStringFeature,
     GeoJSONVTInternalPolygonFeature,
     GeoJSONVTInternalMultiPolygonFeature,
+    Supercluster,
     SuperclusterOptions,
     ClusterFeature,
-    ClusterProperties
+    ClusterProperties,
+    KDBushWithData
 };

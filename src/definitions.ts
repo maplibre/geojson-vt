@@ -67,6 +67,18 @@ export type GeoJSONVTOptions = {
     clusterOptions?: SuperclusterOptions;
 };
 
+export type GeoJSONToTileOptions = GeoJSONVTOptions & {
+    /**
+     * Whether to wrap features around the antimeridian
+     * @default false
+     */
+    wrap?: boolean;
+    /**
+     * Whether to clip features to the tile boundary
+     * @default false
+     */
+    clip?: boolean;
+};
 
 export type StartEndSizeArray = number[] & { start?: number; end?: number; size?: number };
 

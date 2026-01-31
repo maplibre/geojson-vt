@@ -7,7 +7,7 @@ import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
 import {Supercluster, type SuperclusterOptions, defaultClusterOptions} from './supercluster';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
 
-const defaultOptions: GeoJSONVTOptions = {
+export const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
     indexMaxZoom: 5,
     indexMaxPoints: 100000,
