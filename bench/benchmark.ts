@@ -114,7 +114,7 @@ testConfigs.forEach((config) => {
             }
         })
         .on('cycle', (event: Benchmark.Event) => {
-            const benchmark = event.target as Benchmark;
+            const benchmark = event.target as unknown as Benchmark;
             results[benchmark.name] = {
                 hz: benchmark.hz,
                 stats: benchmark.stats
@@ -124,8 +124,8 @@ testConfigs.forEach((config) => {
         })
         .on('complete', (event: Benchmark.Event) => {
             const benches = event.currentTarget as Benchmark.Suite;
-            const fastest = (benches.filter('fastest') as Benchmark[]).map((b) => b.name)[0];
-            const slowest = (benches.filter('slowest') as Benchmark[]).map((b) => b.name)[0];
+            const fastest = (benches.filter('fastest') as unknown as Benchmark[]).map((b) => b.name)[0];
+            const slowest = (benches.filter('slowest') as unknown as Benchmark[]).map((b) => b.name)[0];
 
             const fastestHz = results[fastest].hz;
             const slowestHz = results[slowest].hz;
@@ -182,7 +182,7 @@ for (const config of getTileConfigs) {
             }
         })
         .on('cycle', (event: Benchmark.Event) => {
-            const benchmark = event.target as Benchmark;
+            const benchmark = event.target as unknown as Benchmark;
             results[benchmark.name] = {
                 hz: benchmark.hz,
                 stats: benchmark.stats
