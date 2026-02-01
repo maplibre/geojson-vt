@@ -1,8 +1,14 @@
 import Benchmark from 'benchmark';
+import type {Feature, FeatureCollection, Polygon} from 'geojson';
 import geojsonvt, {geoJSONToTile} from '../src';
 
-function generateRectangle(id, centerX, centerY, width, height) {
-    const corners = [
+type BenchmarkResult = {
+    hz: number;
+    stats: Benchmark.Stats;
+}
+
+function generateRectangle(id: string, centerX: number, centerY: number, width: number, height: number): Feature<Polygon> {
+    const corners: [number, number][] = [
         [centerX - width / 2, centerY + height / 2],
         [centerX + width / 2, centerY + height / 2],
         [centerX + width / 2, centerY - height / 2],
@@ -21,8 +27,8 @@ function generateRectangle(id, centerX, centerY, width, height) {
     };
 }
 
-function generateFeatures(count) {
-    const features = [];
+function generateFeatures(count: number): Feature<Polygon>[] {
+    const features: Feature<Polygon>[] = [];
     for (let i = 0; i < count; i++) {
         const id = `rect-${i}`;
         const centerX = Math.random() * 360 - 180;
@@ -67,17 +73,17 @@ testConfigs.forEach((config) => {
         updatedFeatures[i] = changedFeatures[i];
     }
 
-    const initialData = {
+    const initialData: FeatureCollection<Polygon> = {
         type: 'FeatureCollection',
         features: initialFeatures
     };
 
-    const updatedData = {
+    const updatedData: FeatureCollection<Polygon> = {
         type: 'FeatureCollection',
         features: updatedFeatures
     };
 
-    const removeIds = [];
+    const removeIds: string[] = [];
     for (let i = 0; i < config.changing; i++) {
         removeIds.push(`rect-${i}`);
     }
@@ -89,7 +95,7 @@ testConfigs.forEach((config) => {
 
     console.log(`\n${config.initial.toLocaleString()} Initial, ${config.changing.toLocaleString()} changing, getTile z=${config.z}:`);
 
-    const results = {};
+    const results: Record<string, BenchmarkResult> = {};
 
     suite
         .add('constructor', () => {
@@ -107,8 +113,8 @@ testConfigs.forEach((config) => {
                 reusableIndex = geojsonvt(initialData, optionsUpdate);
             }
         })
-        .on('cycle', (event) => {
-            const benchmark = event.target;
+        .on('cycle', (event: Benchmark.Event) => {
+            const benchmark = event.target as Benchmark;
             results[benchmark.name] = {
                 hz: benchmark.hz,
                 stats: benchmark.stats
@@ -116,10 +122,10 @@ testConfigs.forEach((config) => {
             const opsPerSec = benchmark.hz.toFixed(2);
             console.log(`  ${benchmark.name}: ${opsPerSec} ops/sec`);
         })
-        .on('complete', (event) => {
-            const benches = event.currentTarget;
-            const fastest = benches.filter('fastest').map('name')[0];
-            const slowest = benches.filter('slowest').map('name')[0];
+        .on('complete', (event: Benchmark.Event) => {
+            const benches = event.currentTarget as Benchmark.Suite;
+            const fastest = (benches.filter('fastest') as Benchmark[]).map((b) => b.name)[0];
+            const slowest = (benches.filter('slowest') as Benchmark[]).map((b) => b.name)[0];
 
             const fastestHz = results[fastest].hz;
             const slowestHz = results[slowest].hz;
@@ -147,16 +153,16 @@ const tilesToFetch = [
     {z: 14, x: 8193, y: 8193}
 ];
 
-getTileConfigs.forEach((config) => {
+for (const config of getTileConfigs) {
     console.log(`\n${config.description}:`);
 
     const suite = new Benchmark.Suite();
 
     const features = generateFeatures(config.featureCount);
-    const geojsonData = {type: 'FeatureCollection', features};
+    const geojsonData: FeatureCollection<Polygon> = {type: 'FeatureCollection', features};
     const index = geojsonvt(geojsonData, {maxZoom: 14});
 
-    const results = {};
+    const results: Record<string, BenchmarkResult> = {};
 
     suite
         .add('geojsonvt.getTile (indexed)', () => {
@@ -175,8 +181,8 @@ getTileConfigs.forEach((config) => {
                 geoJSONToTile(geojsonData, tile.z, tile.x, tile.y, {clip: true});
             }
         })
-        .on('cycle', (event) => {
-            const benchmark = event.target;
+        .on('cycle', (event: Benchmark.Event) => {
+            const benchmark = event.target as Benchmark;
             results[benchmark.name] = {
                 hz: benchmark.hz,
                 stats: benchmark.stats
@@ -187,4 +193,4 @@ getTileConfigs.forEach((config) => {
         .run({
             async: false
         });
-});
+}
