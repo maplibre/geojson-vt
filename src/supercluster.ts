@@ -1,4 +1,5 @@
 import KDBush from 'kdbush';
+import {projectX, projectY} from './convert';
 
 export type SuperclusterOptions = {
     /**
@@ -130,8 +131,8 @@ export class Supercluster {
             if (!p.geometry) continue;
 
             const [lng, lat] = p.geometry.coordinates;
-            const x = fround(lngX(lng));
-            const y = fround(latY(lat));
+            const x = fround(projectX(lng));
+            const y = fround(projectY(lat));
             // store internal point/cluster data in flat numeric arrays for performance
             data.push(
                 x, y, // projected point coordinates
@@ -178,7 +179,7 @@ export class Supercluster {
         }
 
         const tree = this.trees[this._limitZoom(zoom)];
-        const ids = tree.range(lngX(minLng), latY(maxLat), lngX(maxLng), latY(minLat));
+        const ids = tree.range(projectX(minLng), projectY(maxLat), projectX(maxLng), projectY(minLat));
         const data = tree.data;
         const clusters: (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] = [];
         for (const id of ids) {
@@ -319,8 +320,8 @@ export class Supercluster {
                 const p = this.points[data[k + OFFSET_ID]];
                 tags = p.properties;
                 const [lng, lat] = p.geometry.coordinates;
-                px = lngX(lng);
-                py = latY(lat);
+                px = projectX(lng);
+                py = projectY(lat);
             }
 
             const f: SuperclusterTileFeature = {
@@ -462,7 +463,7 @@ function getClusterJSON(data: number[], i: number, clusterProps: Record<string, 
         properties: getClusterProperties(data, i, clusterProps),
         geometry: {
             type: 'Point',
-            coordinates: [xLng(data[i]), yLat(data[i + 1])]
+            coordinates: [unprojectX(data[i]), unprojectY(data[i + 1])]
         }
     };
 }
@@ -483,23 +484,19 @@ function getClusterProperties(data: number[], i: number, clusterProps: Record<st
     });
 }
 
-// longitude/latitude to spherical mercator in [0..1] range
-function lngX(lng: number): number {
-    return lng / 360 + 0.5;
-}
-
-function latY(lat: number): number {
-    const sin = Math.sin(lat * Math.PI / 180);
-    const y = (0.5 - 0.25 * Math.log((1 + sin) / (1 - sin)) / Math.PI);
-    return y < 0 ? 0 : y > 1 ? 1 : y;
-}
-
-// spherical mercator to longitude/latitude
-function xLng(x: number): number {
+/**
+ * TODO: wotf - move this to deconvert.ts after subsequent PR
+ * Convert spherical mercator in [0..1] range to longitude
+ */
+function unprojectX(x: number): number {
     return (x - 0.5) * 360;
 }
 
-function yLat(y: number): number {
+/**
+ * TODO: wotf - move this to deconvert.ts after subsequent PR
+ * Convert spherical mercator in [0..1] range to latitude
+ */
+function unprojectY(y: number): number {
     const y2 = (180 - y * 360) * Math.PI / 180;
     return 360 * Math.atan(Math.exp(y2)) / Math.PI - 90;
 }

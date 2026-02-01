@@ -183,11 +183,17 @@ function convertLines(rings: GeoJSON.Position[][], out: StartEndSizeArray[], tol
     }
 }
 
-function projectX(x: number) {
+/**
+ * Convert longitude to spherical mercator in [0..1] range
+ */
+export function projectX(x: number) {
     return x / 360 + 0.5;
 }
 
-function projectY(y: number) {
+/**
+ * Convert latitude to spherical mercator in [0..1] range
+ */
+export function projectY(y: number) {
     const sin = Math.sin(y * Math.PI / 180);
     const y2 = 0.5 - 0.25 * Math.log((1 + sin) / (1 - sin)) / Math.PI;
     return y2 < 0 ? 0 : y2 > 1 ? 1 : y2;

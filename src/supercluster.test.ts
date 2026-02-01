@@ -94,6 +94,15 @@ test('aggregates cluster properties with reduce', () => {
         [298, 122, 12, 36, 98, 7, 24, 8, 125, 98, 125, 12, 36, 8]);
 });
 
+test('uses default map function with reduce', () => {
+    const index = new Supercluster({
+        reduce: () => {},
+        radius: 100
+    }).load(places.features);
+
+    expect(index.getTile(0, 0, 0)).toBeTruthy();
+});
+
 test('returns clusters when query crosses international dateline', () => {
     const index = new Supercluster().load([
         {

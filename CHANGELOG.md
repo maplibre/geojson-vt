@@ -1,6 +1,7 @@
 ## main
 ### ✨ Features and improvements
 - Add `geoJSONToTile` function to generate a single tile directly from GeoJSON without building the full tile index. (by [montzkie18](https://github.com/montzkie18) and [lucaswoj](https://github.com/lucaswoj)).
+- Copy supercluster and typescripify ([#37](https://github.com/maplibre/geojson-vt/pull/37)) (by [wayofthefuture](https://github.com/wayofthefuture))
 - _...Add new stuff here..._
 
 ### 🐞 Bug fixes
