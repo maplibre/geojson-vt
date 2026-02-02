@@ -1,6 +1,6 @@
 import Benchmark from 'benchmark';
 import type {Feature, FeatureCollection, Polygon} from 'geojson';
-import geojsonvt, {geoJSONToTile} from '../src';
+import geojsonvt from '../src';
 
 type BenchmarkResult = {
     hz: number;
@@ -178,7 +178,7 @@ for (const config of getTileConfigs) {
         })
         .add('geoJSONToTile (on-demand)', () => {
             for (const tile of tilesToFetch) {
-                geoJSONToTile(geojsonData, tile.z, tile.x, tile.y, {clip: true});
+                geojsonvt.geoJSONToTile(geojsonData, tile.z, tile.x, tile.y, {clip: true});
             }
         })
         .on('cycle', (event: Benchmark.Event) => {

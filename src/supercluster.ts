@@ -1,5 +1,6 @@
 import KDBush from 'kdbush';
 import {projectX, projectY} from './convert';
+import {unprojectX, unprojectY} from './deconvert';
 
 export type SuperclusterOptions = {
     /**
@@ -482,21 +483,4 @@ function getClusterProperties(data: number[], i: number, clusterProps: Record<st
         point_count: count,
         point_count_abbreviated: abbrev
     });
-}
-
-/**
- * TODO: wotf - move this to deconvert.ts after subsequent PR
- * Convert spherical mercator in [0..1] range to longitude
- */
-function unprojectX(x: number): number {
-    return (x - 0.5) * 360;
-}
-
-/**
- * TODO: wotf - move this to deconvert.ts after subsequent PR
- * Convert spherical mercator in [0..1] range to latitude
- */
-function unprojectY(y: number): number {
-    const y2 = (180 - y * 360) * Math.PI / 180;
-    return 360 * Math.atan(Math.exp(y2)) / Math.PI - 90;
 }
