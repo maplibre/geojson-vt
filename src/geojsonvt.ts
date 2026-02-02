@@ -1,5 +1,5 @@
-import {convert} from './convert';
-import {featureToGeoJSON} from './deconvert';
+import {convertToInternal} from './convert';
+import {convertToGeoJSON, featureToGeoJSON} from './deconvert';
 import {clip} from './clip';
 import {wrap} from './wrap';
 import {transformTile, type GeoJSONVTTile} from './transform';
@@ -46,7 +46,7 @@ export class GeoJSONVT {
         if (options.promoteId && options.generateId) throw new Error('promoteId and generateId cannot be used together.');
 
         // projects and adds simplification info
-        let features = convert(data, options);
+        let features = convertToInternal(data, options);
 
         // tiles and tileCoords are part of the public API
         this.tiles = {};
@@ -390,10 +390,7 @@ export class GeoJSONVT {
      */
     getData(): GeoJSON.GeoJSON {
         if (!this.options.updateable) throw new Error('to retrieve data the `updateable` option must be set to true');
-
-        const features = this.source.map(feature => featureToGeoJSON(feature));
-
-        return {type: 'FeatureCollection', features};
+        return convertToGeoJSON(this.source);
     }
 }
 

@@ -1,4 +1,18 @@
-import type { GeoJSONVTInternalFeature } from './definitions';
+import type {GeoJSONVTInternalFeature} from './definitions';
+
+/**
+ * Converts internal source features back to GeoJSON format.
+ */
+export function convertToGeoJSON(source: GeoJSONVTInternalFeature[]): GeoJSON.GeoJSON {
+    if (!source?.length) return featureCollection([]);
+
+    const features: GeoJSON.Feature[] = [];
+    for (const feature of source) {
+        features.push(featureToGeoJSON(feature));
+    }
+
+    return featureCollection(features);
+}
 
 /**
  * Converts a single internal feature to GeoJSON format.
@@ -71,4 +85,8 @@ export function unprojectX(x: number) {
 export function unprojectY(y: number) {
     const y2 = (0.5 - y) * 2 * Math.PI;
     return (Math.atan(Math.exp(y2)) * 2 - Math.PI / 2) * 180 / Math.PI;
+}
+
+function featureCollection(features: GeoJSON.Feature[]): GeoJSON.GeoJSON {
+    return {type: 'FeatureCollection', features};
 }
