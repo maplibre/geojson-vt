@@ -7,5 +7,6 @@ coverage
 coverage.lcov
 .nyc_output
 .idea
+.DS_Store
 dist
 docs

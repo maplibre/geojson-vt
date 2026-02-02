@@ -4,14 +4,12 @@ import type {GeoJSONVTInternalFeature} from './definitions';
  * Converts internal source features back to GeoJSON format.
  */
 export function convertToGeoJSON(source: GeoJSONVTInternalFeature[]): GeoJSON.GeoJSON {
-    if (!source?.length) return featureCollection([]);
+    const geojson: GeoJSON.GeoJSON = {
+        type: 'FeatureCollection',
+        features: source.map(feature => featureToGeoJSON(feature))
+    };
 
-    const features: GeoJSON.Feature[] = [];
-    for (const feature of source) {
-        features.push(featureToGeoJSON(feature));
-    }
-
-    return featureCollection(features);
+    return geojson;
 }
 
 /**
@@ -78,15 +76,17 @@ function unprojectPoint(x: number, y: number): GeoJSON.Position {
     return [unprojectX(x), unprojectY(y)];
 }
 
-export function unprojectX(x: number) {
+/**
+ * Convert spherical mercator in [0..1] range to longitude
+ */
+export function unprojectX(x: number): number {
     return (x - 0.5) * 360;
 }
 
-export function unprojectY(y: number) {
-    const y2 = (0.5 - y) * 2 * Math.PI;
-    return (Math.atan(Math.exp(y2)) * 2 - Math.PI / 2) * 180 / Math.PI;
-}
-
-function featureCollection(features: GeoJSON.Feature[]): GeoJSON.GeoJSON {
-    return {type: 'FeatureCollection', features};
+/**
+ * Convert spherical mercator in [0..1] range to latitude
+ */
+export function unprojectY(y: number): number {
+    const y2 = (180 - y * 360) * Math.PI / 180;
+    return 360 * Math.atan(Math.exp(y2)) / Math.PI - 90;
 }
