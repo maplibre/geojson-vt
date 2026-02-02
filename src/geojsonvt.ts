@@ -1,4 +1,5 @@
-import {convert} from './convert';
+import {convertToInternal} from './convert';
+import {convertToGeoJSON, featureToGeoJSON} from './deconvert';
 import {clip} from './clip';
 import {wrap} from './wrap';
 import {transformTile, type GeoJSONVTTile} from './transform';
@@ -45,7 +46,7 @@ export class GeoJSONVT {
         if (options.promoteId && options.generateId) throw new Error('promoteId and generateId cannot be used together.');
 
         // projects and adds simplification info
-        let features = convert(data, options);
+        let features = convertToInternal(data, options);
 
         // tiles and tileCoords are part of the public API
         this.tiles = {};
@@ -322,14 +323,18 @@ export class GeoJSONVT {
      * invalidates tiles that are affected by the update for regeneration on next getTile call.
      * @param diff - the source diff object
      */
-    updateData(diff: GeoJSONVTSourceDiff) {
+    updateData(diff: GeoJSONVTSourceDiff, filter?: (feature: GeoJSON.Feature) => boolean) {
         const options = this.options;
         const debug = options.debug;
 
         if (!options.updateable) throw new Error('to update tile geojson `updateable` option must be set to true');
 
         // apply diff and collect affected features and updated source that will be used to invalidate tiles
-        const {affected, source} = applySourceDiff(this.source, diff, options);
+        let {affected, source} = applySourceDiff(this.source, diff, options);
+
+        if (filter) {
+            ({affected, source} = this.filterUpdate(source, affected, filter));
+        }
 
         // nothing has changed
         if (!affected.length) return;
@@ -361,6 +366,31 @@ export class GeoJSONVT {
             this.stats[key] = (this.stats[key] || 0) + 1;
             this.total++;
         }
+    }
+
+    /**
+     * Filter an update using a predicate function. Returns the affected and updated source features.
+     */
+    private filterUpdate(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], predicate: (feature: GeoJSON.Feature) => boolean) {
+        const removeIds = new Set();
+
+        for (const feature of source) {
+            if (feature.id == undefined) continue;
+            if (predicate(featureToGeoJSON(feature))) continue;
+            affected.push(feature);
+            removeIds.add(feature.id);
+        }
+        source = source.filter(feature => !removeIds.has(feature.id));
+
+        return {affected, source};
+    }
+
+    /**
+     * Returns source data as GeoJSON - only available when `updateable` option is set to true.
+     */
+    getData(): GeoJSON.GeoJSON {
+        if (!this.options.updateable) throw new Error('to retrieve data the `updateable` option must be set to true');
+        return convertToGeoJSON(this.source);
     }
 }
 
