@@ -1,5 +1,5 @@
 import {convert} from './convert';
-import {deconvert, deconvertFeature} from './deconvert';
+import {featureToGeoJSON} from './deconvert';
 import {clip} from './clip';
 import {wrap} from './wrap';
 import {transformTile, type GeoJSONVTTile} from './transform';
@@ -376,7 +376,7 @@ export class GeoJSONVT {
 
         for (const feature of source) {
             if (feature.id == undefined) continue;
-            if (predicate(deconvertFeature(feature))) continue;
+            if (predicate(featureToGeoJSON(feature))) continue;
             affected.push(feature);
             removeIds.add(feature.id);
         }
@@ -390,19 +390,10 @@ export class GeoJSONVT {
      */
     getData(): GeoJSON.GeoJSON {
         if (!this.options.updateable) throw new Error('to retrieve data the `updateable` option must be set to true');
-        return deconvert(this.source);
-    }
 
-    /**
-     * Returns a single feature as GeoJSON - only available when `updateable` option is set to true.
-     */
-    getFeatureById(id: string | number): GeoJSON.Feature | null {
-        if (!this.options.updateable) throw new Error('to retrieve a feature by id the `updateable` option must be set to true');
+        const features = this.source.map(feature => featureToGeoJSON(feature));
 
-        const feature = this.source.find(f => f.id === id);
-        if (!feature) return null;
-
-        return deconvertFeature(feature);
+        return {type: 'FeatureCollection', features};
     }
 }
 

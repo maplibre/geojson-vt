@@ -477,7 +477,7 @@ test('updateData: handles drill-down after update', () => {
     expect(featureIds).toEqual(['line1', 'line2']);
 });
 
-test('updateData: filters features by predicate', () => {
+test('updateData: filter keeps all features when predicate matches all', () => {
     const initialData = {
         type: 'FeatureCollection' as const,
         features: [
@@ -493,13 +493,63 @@ test('updateData: filters features by predicate', () => {
     index.updateData({}, feature => feature.geometry.type === 'Point');
     expect(index.getTile(0, 0, 0).features.length).toBe(3);
 
-    index.updateData({}, feature => feature.properties?.population > 500);
-    const tile = index.getTile(0, 0, 0);
-    expect(tile.features.length).toBe(1);
-    expect(tile.features[0].id).toBe('large');
+    index.updateData({}, feature => feature.properties.population > 1);
+    expect(index.getTile(0, 0, 0).features.length).toBe(3);
+});
 
-    index.updateData({}, feature => feature.properties?.population < 100);
+test('updateData: filter removes features not matching predicate', () => {
+    const initialData = {
+        type: 'FeatureCollection' as const,
+        features: [
+            {type: 'Feature' as const, id: 'small', geometry: {type: 'Point' as const, coordinates: [0, 0]}, properties: {population: 100}},
+            {type: 'Feature' as const, id: 'large', geometry: {type: 'Point' as const, coordinates: [10, 10]}, properties: {population: 2000}},
+            {type: 'Feature' as const, id: 'medium', geometry: {type: 'Point' as const, coordinates: [20, 20]}, properties: {population: 500}}
+        ]
+    };
+
+    const index = geojsonvt(initialData, {updateable: true});
+
+    index.updateData({}, feature => feature.properties.population > 500);
+    expect(index.getTile(0, 0, 0).features.length).toBe(1);
+    expect(index.getTile(0, 0, 0).features[0].id).toBe('large');
+});
+
+test('updateData: filter removes all features when none match predicate', () => {
+    const initialData = {
+        type: 'FeatureCollection' as const,
+        features: [
+            {type: 'Feature' as const, id: 'small', geometry: {type: 'Point' as const, coordinates: [0, 0]}, properties: {population: 100}},
+            {type: 'Feature' as const, id: 'large', geometry: {type: 'Point' as const, coordinates: [10, 10]}, properties: {population: 2000}},
+            {type: 'Feature' as const, id: 'medium', geometry: {type: 'Point' as const, coordinates: [20, 20]}, properties: {population: 500}}
+        ]
+    };
+
+    const index = geojsonvt(initialData, {updateable: true});
+
+    index.updateData({}, feature => feature.properties.population < 100);
     expect(index.getTile(0, 0, 0).features.length).toBe(0);
+});
+
+test('getData: returns source data when updateable', () => {
+    const geojson: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [{
+            type: 'Feature',
+            id: 'point1',
+            geometry: {type: 'Point', coordinates: [0, 0]},
+            properties: {name: 'Test'}
+        }]
+    };
+
+    const updateable = geojsonvt(geojson, {updateable: true});
+    const result = updateable.getData() as GeoJSON.FeatureCollection;
+
+    expect(result.type).toBe('FeatureCollection');
+    expect(result.features.length).toBe(1);
+    expect(result.features[0].id).toBe('point1');
+
+    const notUpdateable = geojsonvt(geojson, {updateable: false});
+    expect(() => notUpdateable.getData()).toThrow();
 });
 
 function toID(z: number, x: number, y: number): number {

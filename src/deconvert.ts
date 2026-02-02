@@ -1,26 +1,12 @@
 import type { GeoJSONVTInternalFeature } from './definitions';
 
 /**
- * Converts internal features back to GeoJSON format.
+ * Converts a single internal feature to GeoJSON format.
  */
-export function deconvert(source: GeoJSONVTInternalFeature[]): GeoJSON.GeoJSON {
-    if (!source?.length) return featureCollection([]);
-
-    const features: GeoJSON.Feature[] = [];
-    for (const feature of source) {
-        features.push(deconvertFeature(feature));
-    }
-
-    return featureCollection(features);
-}
-
-/**
- * Converts a single internal feature back to GeoJSON format.
- */
-export function deconvertFeature(feature: GeoJSONVTInternalFeature): GeoJSON.Feature {
+export function featureToGeoJSON(feature: GeoJSONVTInternalFeature): GeoJSON.Feature {
     const geojsonFeature: GeoJSON.Feature = {
         type: 'Feature',
-        geometry: convertGeometry(feature),
+        geometry: geometryToGeoJSON(feature),
         properties: feature.tags
     };
     if (feature.id != null) {
@@ -31,9 +17,9 @@ export function deconvertFeature(feature: GeoJSONVTInternalFeature): GeoJSON.Fea
 }
 
 /**
- * Converts a single internal feature geometry back to GeoJSON format.
+ * Converts a single internal feature geometry to GeoJSON format.
  */
-function convertGeometry(feature: GeoJSONVTInternalFeature): GeoJSON.Geometry {
+function geometryToGeoJSON(feature: GeoJSONVTInternalFeature): GeoJSON.Geometry {
     const {type, geometry} = feature;
 
     switch (type) {
@@ -85,8 +71,4 @@ export function unprojectX(x: number) {
 export function unprojectY(y: number) {
     const y2 = (0.5 - y) * 2 * Math.PI;
     return (Math.atan(Math.exp(y2)) * 2 - Math.PI / 2) * 180 / Math.PI;
-}
-
-function featureCollection(features: GeoJSON.Feature[]): GeoJSON.GeoJSON {
-    return {type: 'FeatureCollection', features};
 }
