@@ -1,4 +1,4 @@
-import {convert} from './convert';
+import {convertToInternal} from './convert';
 import {wrap} from './wrap';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
 
@@ -103,7 +103,7 @@ export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: Ge
         // convert and add new features
         if (diff.add.size) {
             // projects and adds simplification info
-            let addFeatures = convert({type: 'FeatureCollection', features: Array.from(diff.add.values())}, options);
+            let addFeatures = convertToInternal({type: 'FeatureCollection', features: Array.from(diff.add.values())}, options);
 
             // wraps features (ie extreme west and extreme east)
             addFeatures = wrap(addFeatures, options);
@@ -154,7 +154,7 @@ function getUpdatedFeature(vtFeature: GeoJSONVTInternalFeature, update: GeoJSONV
         };
 
         // projects and adds simplification info
-        let features = convert({type: 'FeatureCollection', features: [geojsonFeature]}, options);
+        let features = convertToInternal({type: 'FeatureCollection', features: [geojsonFeature]}, options);
 
         // wraps features (ie extreme west and extreme east)
         features = wrap(features, options);

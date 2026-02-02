@@ -1,34 +1,34 @@
 
 import {simplify} from './simplify';
 import {createFeature} from './feature';
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
+import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 
 /**
- * converts GeoJSON feature into an intermediate projected JSON vector format with simplification data
+ * converts GeoJSON to internal source features (an intermediate projected JSON vector format with simplification data)
  * @param data
  * @param options
  * @returns
  */
-export function convert(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
+export function convertToInternal(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
     const features: GeoJSONVTInternalFeature[] = [];
 
     switch (data.type) {
         case 'FeatureCollection':
             for (let i = 0; i < data.features.length; i++) {
-                convertFeature(features, data.features[i], options, i);
+                featureToInternal(features, data.features[i], options, i);
             }
             break;
         case 'Feature':
-            convertFeature(features, data, options);
+            featureToInternal(features, data, options);
             break;
         default:
-            convertFeature(features, {type: "Feature" as const, geometry: data, properties: undefined}, options);
+            featureToInternal(features, {type: "Feature" as const, geometry: data, properties: undefined}, options);
     }
 
     return features;
 }
 
-function convertFeature(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, options: GeoJSONVTOptions, index?: number) {
+function featureToInternal(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, options: GeoJSONVTOptions, index?: number) {
     if (!geojson.geometry) return;
 
     if (geojson.geometry.type === 'GeometryCollection') {
@@ -84,7 +84,7 @@ function getFeatureId(geojson: GeoJSON.Feature, options: GeoJSONVTOptions, index
 
 function convertGeometryCollection(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, geometry: GeoJSON.GeometryCollection, options: GeoJSONVTOptions, index?: number) {
     for (const geom of geometry.geometries) {
-        convertFeature(features, {
+        featureToInternal(features, {
             id: geojson.id,
             type: 'Feature',
             geometry: geom,
@@ -183,11 +183,11 @@ function convertLines(rings: GeoJSON.Position[][], out: StartEndSizeArray[], tol
     }
 }
 
-function projectX(x: number) {
+export function projectX(x: number) {
     return x / 360 + 0.5;
 }
 
-function projectY(y: number) {
+export function projectY(y: number) {
     const sin = Math.sin(y * Math.PI / 180);
     const y2 = 0.5 - 0.25 * Math.log((1 + sin) / (1 - sin)) / Math.PI;
     return y2 < 0 ? 0 : y2 > 1 ? 1 : y2;

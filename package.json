@@ -45,6 +45,7 @@
   "scripts": {
     "lint": "eslint **/*.ts",
     "test": "vitest",
+    "coverage": "vitest run --coverage",
     "build": "rollup -c && tsc -p tsconfig.declaration.json",
     "watch": "rollup -cw",
     "bench": "tsx bench/benchmark.ts",
