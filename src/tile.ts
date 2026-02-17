@@ -46,7 +46,7 @@ export function createTile(features: GeoJSONVTInternalFeature[], z: number, tx: 
     const tile = {
         transformed: false,
         features: [] as GeoJSONVTInternalTileFeature[],
-        source: null as GeoJSONVTInternalFeature[] | null,
+        source: null as GeoJSONVTInternalFeature[],
         x: tx,
         y: ty,
         z: z,
