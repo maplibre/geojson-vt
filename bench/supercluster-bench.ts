@@ -29,7 +29,8 @@ const index = new geojsonvt.Supercluster({
     maxZoom: 6,
     // map: props => ({sum: props.index}),
     // reduce: (accumulated, props) => { accumulated.sum += props.sum; }
-}).load(points);
+})
+index.load(points);
 
 global.gc();
 console.log(`memory used: ${Math.round((v8.getHeapStatistics().used_heap_size - size) / 1024)} KB`);

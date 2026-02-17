@@ -44,7 +44,7 @@
   },
   "license": "ISC",
   "scripts": {
-    "lint": "eslint **/*.ts",
+    "lint": "eslint",
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "build": "rollup -c && tsc -p tsconfig.declaration.json",
