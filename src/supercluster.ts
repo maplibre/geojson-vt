@@ -111,7 +111,7 @@ export class Supercluster {
      * Loads internal GeoJSONVT point features from a data source and builds the clustering index.
      * @param features - {@link GeoJSONVTInternalFeature} data source features to filter and cluster.
      */
-    loadInternal(features: GeoJSONVTInternalFeature[]): this {
+    loadInternal(features: GeoJSONVTInternalFeature[]): void {
         const points: GeoJSONVTInternalPointFeature[] = [];
 
         for (const feature of features) {
@@ -119,14 +119,14 @@ export class Supercluster {
             points.push(feature);
         }
 
-        return this.load(points);
+        this.load(points);
     }
 
     /**
      * Loads input point features and builds the internal clustering index.
      * @param points - Input GeoJSON point features to cluster.
      */
-    load(points: PointFeature[]): this {
+    load(points: PointFeature[]): void {
         const {log, minZoom, maxZoom} = this.options;
 
         if (log) console.time('total time');
@@ -174,8 +174,6 @@ export class Supercluster {
         }
 
         if (log) console.timeEnd('total time');
-
-        return this;
     }
 
     /**

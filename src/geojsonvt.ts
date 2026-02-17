@@ -77,7 +77,8 @@ export class GeoJSONVT {
 
     private initializeIndex(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions) {
         if (this.options.cluster) {
-            this.superCluster = new Supercluster(options.clusterOptions).loadInternal(features);
+            this.superCluster = new Supercluster(options.clusterOptions);
+            this.superCluster.loadInternal(features);
             return;
         }
 
@@ -364,7 +365,8 @@ export class GeoJSONVT {
      */
     private updateIndex(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions) {
         if (options.cluster) {
-            this.superCluster = new Supercluster(options.clusterOptions).loadInternal(source);
+            this.superCluster = new Supercluster(options.clusterOptions);
+            this.superCluster.loadInternal(source);
             return;
         }
 
