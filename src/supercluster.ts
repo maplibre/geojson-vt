@@ -93,8 +93,6 @@ const defaultOptions: Required<SuperclusterOptions> = {
     map: (props) => props as Record<string, unknown>
 };
 
-const fround = Math.fround || ((tmp) => ((x: number) => { tmp[0] = +x; return tmp[0]; }))(new Float32Array(1));
-
 const OFFSET_ZOOM = 2;
 const OFFSET_ID = 3;
 const OFFSET_PARENT = 4;
@@ -138,8 +136,8 @@ export class Supercluster {
             if (!p.geometry) continue;
 
             const [lng, lat] = p.geometry.coordinates;
-            const x = fround(projectX(lng));
-            const y = fround(projectY(lat));
+            const x = Math.fround(projectX(lng));
+            const y = Math.fround(projectY(lat));
             // store internal point/cluster data in flat numeric arrays for performance
             data.push(
                 x, y, // projected point coordinates
