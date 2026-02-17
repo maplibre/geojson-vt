@@ -73,7 +73,7 @@ export type KDBushWithData = KDBush & {
     flatData: number[];
 };
 
-const defaultClusterOptions: Required<SuperclusterOptions> = {
+export const defaultClusterOptions: Required<SuperclusterOptions> = {
     minZoom: 0,
     maxZoom: 16,
     minPoints: 2,

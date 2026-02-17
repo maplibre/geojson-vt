@@ -6,7 +6,7 @@ import {transformTile, type GeoJSONVTTile} from './transform';
 import {createTile, type GeoJSONVTInternalTile} from './tile';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
 import {Supercluster, type SuperclusterOptions, defaultClusterOptions} from './supercluster';
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
+import type {GeoJSONVTInternalFeature, GeoJSONVTOptions} from './definitions';
 
 export const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
