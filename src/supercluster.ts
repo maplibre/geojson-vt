@@ -109,6 +109,7 @@ export class Supercluster {
     }
 
     /**
+     * @internal
      * Loads internal GeoJSONVT point features from a data source and builds the clustering index.
      * @param features - {@link GeoJSONVTInternalFeature} data source features to filter and cluster.
      */
