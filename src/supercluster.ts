@@ -76,7 +76,7 @@ export type SuperclusterTile = {
     features: SuperclusterTileFeature[];
 };
 
-export type KDBushWithData = Omit<KDBush, 'data'> & { data: number[] };
+export type KDBushWithData = KDBush & {flatData: number[]};
 
 const defaultOptions: Required<SuperclusterOptions> = {
     minZoom: 0,
@@ -190,7 +190,7 @@ export class Supercluster {
 
         const tree = this.trees[this.limitZoom(zoom)];
         const ids = tree.range(projectX(minLng), projectY(maxLat), projectX(maxLng), projectY(minLat));
-        const data = tree.data;
+        const data = tree.flatData;
         const clusters: (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] = [];
         for (const id of ids) {
             const k = this.stride * id;
@@ -211,7 +211,7 @@ export class Supercluster {
         const tree = this.trees[originZoom];
         if (!tree) throw new Error(errorMsg);
 
-        const data = tree.data;
+        const data = tree.flatData;
         if (originId * this.stride >= data.length) throw new Error(errorMsg);
 
         const r = this.options.radius / (this.options.extent * Math.pow(2, originZoom - 1));
@@ -267,17 +267,17 @@ export class Supercluster {
 
         this.addTileFeatures(
             tree.range((x - p) / z2, top, (x + 1 + p) / z2, bottom),
-            tree.data, x, y, z2, tile);
+            tree.flatData, x, y, z2, tile);
 
         if (x === 0) {
             this.addTileFeatures(
                 tree.range(1 - p / z2, top, 1, bottom),
-                tree.data, z2, y, z2, tile);
+                tree.flatData, z2, y, z2, tile);
         }
         if (x === z2 - 1) {
             this.addTileFeatures(
                 tree.range(0, top, p / z2, bottom),
-                tree.data, -1, y, z2, tile);
+                tree.flatData, -1, y, z2, tile);
         }
 
         return tile.features.length ? tile : null;
@@ -330,7 +330,7 @@ export class Supercluster {
         const tree = new KDBush(data.length / this.stride | 0, this.options.nodeSize, Float32Array) as unknown as KDBushWithData;
         for (let i = 0; i < data.length; i += this.stride) tree.add(data[i], data[i + 1]);
         tree.finish();
-        tree.data = data;
+        tree.flatData = data;
         return tree;
     }
 
@@ -386,7 +386,7 @@ export class Supercluster {
     private cluster(tree: KDBushWithData, zoom: number): number[] {
         const {radius, extent, reduce, minPoints} = this.options;
         const r = radius / (extent * Math.pow(2, zoom));
-        const data = tree.data;
+        const data = tree.flatData;
         const nextData: number[] = [];
         const stride = this.stride;
 
