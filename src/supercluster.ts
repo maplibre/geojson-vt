@@ -527,10 +527,18 @@ function getClusterProperties(data: number[], i: number, clusterProps: Record<st
     });
 }
 
+/**
+ * Type guard that narrows a {@link PointFeature} to a GeoJSON point.
+ */
 function isGeoJSONPoint(p: PointFeature): p is GeoJSON.Feature<GeoJSON.Point> {
     return 'coordinates' in p.geometry;
 }
 
+/**
+ * Gets spherical mercator coordinates for a {@link PointFeature}.
+ * - GeoJSON input ({@link GeoJSON.Point}) is projected from `[lng, lat]`.
+ * - Internal input ({@link GeoJSONVTInternalPointFeature}) is assumed to already be `[x, y]` in mercator space.
+ */
 function getPointCoords(p: PointFeature): [x: number, y: number] {
     if (isGeoJSONPoint(p)) {
         const [lng, lat] = p.geometry.coordinates;
@@ -540,6 +548,10 @@ function getPointCoords(p: PointFeature): [x: number, y: number] {
     return [x, y];
 }
 
+/**
+ * Gets properties/tags for a {@link PointFeature}.
+ * - Returns `properties` for {@link GeoJSON.Point} or `tags` for {@link GeoJSONVTInternalPointFeature}.
+ */
 function getPointProps(p: PointFeature): GeoJSON.GeoJsonProperties {
     return isGeoJSONPoint(p) ? p.properties : p.tags;
 }
