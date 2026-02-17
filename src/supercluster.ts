@@ -114,6 +114,10 @@ export class Supercluster {
         this.points = [];
     }
 
+    /**
+     * Loads input point features and builds the internal clustering index.
+     * @param points - Input GeoJSON point features to cluster.
+     */
     load(points: GeoJSON.Feature<GeoJSON.Point>[]): this {
         const {log, minZoom, maxZoom} = this.options;
 
@@ -144,7 +148,7 @@ export class Supercluster {
             );
             if (this.options.reduce) data.push(0); // noop
         }
-        let tree = this.trees[maxZoom + 1] = this._createTree(data);
+        let tree = this.trees[maxZoom + 1] = this.createTree(data);
 
         if (log) console.timeEnd(timerId);
 
@@ -154,7 +158,7 @@ export class Supercluster {
             const now = +Date.now();
 
             // create a new set of clusters for the zoom and index them with a KD-tree
-            tree = this.trees[z] = this._createTree(this._cluster(tree, z));
+            tree = this.trees[z] = this.createTree(this.cluster(tree, z));
 
             if (log) console.log('z%d: %d clusters in %dms', z, tree.numItems, +Date.now() - now);
         }
@@ -164,6 +168,11 @@ export class Supercluster {
         return this;
     }
 
+    /**
+     * Returns clusters and/or points within a bounding box at a given zoom level.
+     * @param bbox - Bounding box in `[westLng, southLat, eastLng, northLat]` order.
+     * @param zoom - Zoom level to query.
+     */
     getClusters(bbox: [number, number, number, number], zoom: number): (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] {
         let minLng = ((bbox[0] + 180) % 360 + 360) % 360 - 180;
         const minLat = Math.max(-90, Math.min(90, bbox[1]));
@@ -179,7 +188,7 @@ export class Supercluster {
             return easternHem.concat(westernHem);
         }
 
-        const tree = this.trees[this._limitZoom(zoom)];
+        const tree = this.trees[this.limitZoom(zoom)];
         const ids = tree.range(projectX(minLng), projectY(maxLat), projectX(maxLng), projectY(minLat));
         const data = tree.data;
         const clusters: (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] = [];
@@ -190,9 +199,13 @@ export class Supercluster {
         return clusters;
     }
 
+    /**
+     * Returns the immediate children (clusters or points) of a cluster.
+     * @param clusterId - The target cluster id.
+     */
     getChildren(clusterId: number): (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] {
-        const originId = this._getOriginId(clusterId);
-        const originZoom = this._getOriginZoom(clusterId);
+        const originId = this.getOriginId(clusterId);
+        const originZoom = this.getOriginZoom(clusterId);
         const errorMsg = 'No cluster with the specified id.';
 
         const tree = this.trees[originZoom];
@@ -218,18 +231,30 @@ export class Supercluster {
         return children;
     }
 
+    /**
+     * Returns leaf point features under a cluster, paginated by `limit` and `offset`.
+     * @param clusterId - The target cluster id.
+     * @param limit - Maximum number of points to return (defaults to `10`).
+     * @param offset - Number of points to skip before collecting results (defaults to `0`).
+     */
     getLeaves(clusterId: number, limit?: number, offset?: number): GeoJSON.Feature<GeoJSON.Point>[] {
         limit = limit || 10;
         offset = offset || 0;
 
         const leaves: GeoJSON.Feature<GeoJSON.Point>[] = [];
-        this._appendLeaves(leaves, clusterId, limit, offset, 0);
+        this.appendLeaves(leaves, clusterId, limit, offset, 0);
 
         return leaves;
     }
 
+    /**
+     * Generates a vector-tile-like representation of a single tile.
+     * @param z - Tile zoom.
+     * @param x - Tile x coordinate.
+     * @param y - Tile y coordinate.
+     */
     getTile(z: number, x: number, y: number): SuperclusterTile | null {
-        const tree = this.trees[this._limitZoom(z)];
+        const tree = this.trees[this.limitZoom(z)];
         const z2 = Math.pow(2, z);
         const {extent, radius} = this.options;
         const p = radius / extent;
@@ -240,17 +265,17 @@ export class Supercluster {
             features: []
         };
 
-        this._addTileFeatures(
+        this.addTileFeatures(
             tree.range((x - p) / z2, top, (x + 1 + p) / z2, bottom),
             tree.data, x, y, z2, tile);
 
         if (x === 0) {
-            this._addTileFeatures(
+            this.addTileFeatures(
                 tree.range(1 - p / z2, top, 1, bottom),
                 tree.data, z2, y, z2, tile);
         }
         if (x === z2 - 1) {
-            this._addTileFeatures(
+            this.addTileFeatures(
                 tree.range(0, top, p / z2, bottom),
                 tree.data, -1, y, z2, tile);
         }
@@ -258,8 +283,12 @@ export class Supercluster {
         return tile.features.length ? tile : null;
     }
 
+    /**
+     * Returns the zoom level at which a cluster expands into multiple children.
+     * @param clusterId - The target cluster id.
+     */
     getClusterExpansionZoom(clusterId: number): number {
-        let expansionZoom = this._getOriginZoom(clusterId) - 1;
+        let expansionZoom = this.getOriginZoom(clusterId) - 1;
         while (expansionZoom <= this.options.maxZoom) {
             const children = this.getChildren(clusterId);
             expansionZoom++;
@@ -269,7 +298,7 @@ export class Supercluster {
         return expansionZoom;
     }
 
-    _appendLeaves(result: GeoJSON.Feature<GeoJSON.Point>[], clusterId: number, limit: number, offset: number, skipped: number): number {
+    private appendLeaves(result: GeoJSON.Feature<GeoJSON.Point>[], clusterId: number, limit: number, offset: number, skipped: number): number {
         const children = this.getChildren(clusterId);
 
         for (const child of children) {
@@ -281,7 +310,7 @@ export class Supercluster {
                     skipped += props.point_count;
                 } else {
                     // enter the cluster
-                    skipped = this._appendLeaves(result, props.cluster_id, limit, offset, skipped);
+                    skipped = this.appendLeaves(result, props.cluster_id, limit, offset, skipped);
                     // exit the cluster
                 }
             } else if (skipped < offset) {
@@ -297,7 +326,7 @@ export class Supercluster {
         return skipped;
     }
 
-    _createTree(data: number[]): KDBushWithData {
+    private createTree(data: number[]): KDBushWithData {
         const tree = new KDBush(data.length / this.stride | 0, this.options.nodeSize, Float32Array) as unknown as KDBushWithData;
         for (let i = 0; i < data.length; i += this.stride) tree.add(data[i], data[i + 1]);
         tree.finish();
@@ -305,7 +334,7 @@ export class Supercluster {
         return tree;
     }
 
-    _addTileFeatures(ids: number[], data: number[], x: number, y: number, z2: number, tile: SuperclusterTile): void {
+    private addTileFeatures(ids: number[], data: number[], x: number, y: number, z2: number, tile: SuperclusterTile): void {
         for (const i of ids) {
             const k = i * this.stride;
             const isCluster = data[k + OFFSET_NUM] > 1;
@@ -350,11 +379,11 @@ export class Supercluster {
         }
     }
 
-    _limitZoom(z: number): number {
+    private limitZoom(z: number): number {
         return Math.max(this.options.minZoom, Math.min(Math.floor(+z), this.options.maxZoom + 1));
     }
 
-    _cluster(tree: KDBushWithData, zoom: number): number[] {
+    private cluster(tree: KDBushWithData, zoom: number): number[] {
         const {radius, extent, reduce, minPoints} = this.options;
         const r = radius / (extent * Math.pow(2, zoom));
         const data = tree.data;
@@ -407,11 +436,11 @@ export class Supercluster {
 
                     if (reduce) {
                         if (!clusterProperties) {
-                            clusterProperties = this._map(data, i, true);
+                            clusterProperties = this.map(data, i, true);
                             clusterPropIndex = this.clusterProps.length;
                             this.clusterProps.push(clusterProperties);
                         }
-                        reduce(clusterProperties, this._map(data, k));
+                        reduce(clusterProperties, this.map(data, k));
                     }
                 }
 
@@ -437,16 +466,16 @@ export class Supercluster {
     }
 
     // get index of the point from which the cluster originated
-    _getOriginId(clusterId: number): number {
+    private getOriginId(clusterId: number): number {
         return (clusterId - this.points.length) >> 5;
     }
 
     // get zoom of the point from which the cluster originated
-    _getOriginZoom(clusterId: number): number {
+    private getOriginZoom(clusterId: number): number {
         return (clusterId - this.points.length) % 32;
     }
 
-    _map(data: number[], i: number, clone?: boolean): Record<string, unknown> {
+    private map(data: number[], i: number, clone?: boolean): Record<string, unknown> {
         if (data[i + OFFSET_NUM] > 1) {
             const props = this.clusterProps[data[i + OFFSET_PROP]];
             return clone ? Object.assign({}, props) : props;
