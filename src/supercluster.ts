@@ -67,7 +67,8 @@ export type ClusterProperties = {
 
 export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
 
-type PointFeature = GeoJSON.Feature<GeoJSON.Point> | GeoJSONVTInternalPointFeature;
+/** @internal */
+export type ClusterInternalPointFeature = GeoJSON.Feature<GeoJSON.Point> | GeoJSONVTInternalPointFeature;
 
 export type KDBushWithData = KDBush & {
     flatData: number[];
@@ -97,7 +98,7 @@ export class Supercluster {
     trees: KDBushWithData[];
     stride: number;
     clusterProps: Record<string, unknown>[];
-    points: PointFeature[];
+    points: ClusterInternalPointFeature[];
 
     constructor(options?: SuperclusterOptions) {
         this.options = Object.assign(Object.create(defaultClusterOptions), options) as Required<SuperclusterOptions>;
@@ -126,7 +127,7 @@ export class Supercluster {
      * Loads input point features and builds the internal clustering index.
      * @param points - Input GeoJSON point features to cluster.
      */
-    load(points: PointFeature[]): void {
+    load(points: ClusterInternalPointFeature[]): void {
         const {log, minZoom, maxZoom} = this.options;
 
         if (log) console.time('total time');
@@ -528,18 +529,18 @@ function getClusterProperties(data: number[], i: number, clusterProps: Record<st
 }
 
 /**
- * Type guard that narrows a {@link PointFeature} to a GeoJSON point.
+ * Type guard that narrows a {@link ClusterInternalPointFeature} to a GeoJSON point.
  */
-function isGeoJSONPoint(p: PointFeature): p is GeoJSON.Feature<GeoJSON.Point> {
+function isGeoJSONPoint(p: ClusterInternalPointFeature): p is GeoJSON.Feature<GeoJSON.Point> {
     return 'coordinates' in p.geometry;
 }
 
 /**
- * Gets spherical mercator coordinates for a {@link PointFeature}.
+ * Gets spherical mercator coordinates for a {@link ClusterInternalPointFeature}.
  * - GeoJSON input ({@link GeoJSON.Point}) is projected from `[lng, lat]`.
  * - Internal input ({@link GeoJSONVTInternalPointFeature}) is assumed to already be `[x, y]` in mercator space.
  */
-function getPointCoords(p: PointFeature): [x: number, y: number] {
+function getPointCoords(p: ClusterInternalPointFeature): [x: number, y: number] {
     if (isGeoJSONPoint(p)) {
         const [lng, lat] = p.geometry.coordinates;
         return [projectX(lng), projectY(lat)];
@@ -549,9 +550,9 @@ function getPointCoords(p: PointFeature): [x: number, y: number] {
 }
 
 /**
- * Gets properties/tags for a {@link PointFeature}.
+ * Gets properties/tags for a {@link ClusterInternalPointFeature}.
  * - Returns `properties` for {@link GeoJSON.Point} or `tags` for {@link GeoJSONVTInternalPointFeature}.
  */
-function getPointProps(p: PointFeature): GeoJSON.GeoJsonProperties {
+function getPointProps(p: ClusterInternalPointFeature): GeoJSON.GeoJsonProperties {
     return isGeoJSONPoint(p) ? p.properties : p.tags;
 }
