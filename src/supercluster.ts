@@ -118,7 +118,7 @@ export class Supercluster {
      * Loads input point features and builds the internal clustering index.
      * @param points - Input GeoJSON point features to cluster.
      */
-    load(points: GeoJSON.Feature<GeoJSON.Point>[]): this {
+    load(points: GeoJSON.Feature<GeoJSON.Point>[]): void {
         const {log, minZoom, maxZoom} = this.options;
 
         if (log) console.time('total time');
@@ -164,8 +164,6 @@ export class Supercluster {
         }
 
         if (log) console.timeEnd('total time');
-
-        return this;
     }
 
     /**
@@ -206,7 +204,7 @@ export class Supercluster {
     getChildren(clusterId: number): (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] {
         const originId = this.getOriginId(clusterId);
         const originZoom = this.getOriginZoom(clusterId);
-        const clusterError = new Error('No cluster with the specified id.');
+        const clusterError = new Error('No cluster with the specified id: ' + clusterId);
 
         const tree = this.trees[originZoom];
         if (!tree) throw clusterError;
@@ -288,14 +286,7 @@ export class Supercluster {
      * @param clusterId - The target cluster id.
      */
     getClusterExpansionZoom(clusterId: number): number {
-        let expansionZoom = this.getOriginZoom(clusterId) - 1;
-        while (expansionZoom <= this.options.maxZoom) {
-            const children = this.getChildren(clusterId);
-            expansionZoom++;
-            if (children.length !== 1) break;
-            clusterId = (children[0].properties as ClusterProperties).cluster_id;
-        }
-        return expansionZoom;
+        return this.getOriginZoom(clusterId);
     }
 
     private appendLeaves(result: GeoJSON.Feature<GeoJSON.Point>[], clusterId: number, limit: number, offset: number, skipped: number): number {
@@ -331,6 +322,7 @@ export class Supercluster {
         for (let i = 0; i < data.length; i += this.stride) tree.add(data[i], data[i + 1]);
         tree.finish();
         tree.flatData = data;
+        tree.data = null; // clear original data to free memory as it isn't used later on.
         return tree;
     }
 
