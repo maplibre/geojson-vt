@@ -16,19 +16,19 @@ export type GeoJSONVTInternalTileFeatureNonPoint = {
 export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeatureNonPoint;
 
 export type GeoJSONVTInternalTile = {
+    transformed: boolean;
     features: GeoJSONVTInternalTileFeature[];
-    numPoints: number;
-    numSimplified: number;
-    numFeatures: number;
+    source: GeoJSONVTInternalFeature[] | null;
     x: number;
     y: number;
     z: number;
-    transformed: boolean;
-    minX: number;
-    minY: number;
-    maxX: number;
-    maxY: number;
-    source: GeoJSONVTInternalFeature[] | null;
+    minX?: number;
+    minY?: number;
+    maxX?: number;
+    maxY?: number;
+    numPoints?: number;
+    numSimplified?: number;
+    numFeatures?: number;
 }
 
 /**
@@ -44,19 +44,19 @@ export function createTile(features: GeoJSONVTInternalFeature[], z: number, tx: 
     const tolerance = z === options.maxZoom ? 0 : options.tolerance / ((1 << z) * options.extent);
 
     const tile = {
+        transformed: false,
         features: [] as GeoJSONVTInternalTileFeature[],
-        numPoints: 0,
-        numSimplified: 0,
-        numFeatures: features.length,
         source: null as GeoJSONVTInternalFeature[] | null,
         x: tx,
         y: ty,
-        z,
-        transformed: false,
+        z: z,
         minX: 2,
         minY: 1,
         maxX: -1,
-        maxY: 0
+        maxY: 0,
+        numPoints: 0,
+        numSimplified: 0,
+        numFeatures: features.length
     };
 
     for (const feature of features) {

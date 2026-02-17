@@ -145,8 +145,7 @@ export class Supercluster {
             const p = points[i];
             if (!p.geometry) continue;
 
-            let x, y;
-            [x, y] = getPointCoords(p);
+            let [x, y] = getPointCoords(p);
             x = Math.fround(x);
             y = Math.fround(y);
 
@@ -272,19 +271,12 @@ export class Supercluster {
         const bottom = (y + 1 + p) / z2;
 
         const tile: GeoJSONVTTile = {
-            features: [],
             transformed: true,
-            numPoints: 0,
-            numSimplified: 0,
-            numFeatures: 0,
+            features: [],
             source: null,
             x: x,
             y: y,
-            z: z,
-            minX: 2,
-            minY: 1,
-            maxX: -1,
-            maxY: 0
+            z: z
         };
 
         this.addTileFeatures(
@@ -538,8 +530,6 @@ function isGeoJSONPoint(p: ClusterInternalPointFeature): p is GeoJSON.Feature<Ge
 
 /**
  * Gets spherical mercator coordinates for a {@link ClusterInternalPointFeature}.
- * - GeoJSON input ({@link GeoJSON.Point}) is projected from `[lng, lat]`.
- * - Internal input ({@link GeoJSONVTInternalPointFeature}) is assumed to already be `[x, y]` in mercator space.
  */
 function getPointCoords(p: ClusterInternalPointFeature): [x: number, y: number] {
     if (isGeoJSONPoint(p)) {
@@ -552,7 +542,6 @@ function getPointCoords(p: ClusterInternalPointFeature): [x: number, y: number] 
 
 /**
  * Gets properties/tags for a {@link ClusterInternalPointFeature}.
- * - Returns `properties` for {@link GeoJSON.Point} or `tags` for {@link GeoJSONVTInternalPointFeature}.
  */
 function getPointProps(p: ClusterInternalPointFeature): GeoJSON.GeoJsonProperties {
     return isGeoJSONPoint(p) ? p.properties : p.tags;
