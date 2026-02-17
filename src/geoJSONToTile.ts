@@ -1,5 +1,5 @@
 import {clip} from './clip';
-import {convert} from './convert';
+import {convertToInternal} from './convert';
 import type {GeoJSONToTileOptions} from './definitions';
 import {defaultOptions} from './geojsonvt';
 import {createTile} from './tile';
@@ -43,7 +43,7 @@ export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: nu
     options = {...defaultOptions, ...options};
     const {wrap: shouldWrap = false, clip: shouldClip = false} = options;
 
-    let features = convert(data, options);
+    let features = convertToInternal(data, options);
     if (shouldWrap) {
         features = wrap(features, options);
     }

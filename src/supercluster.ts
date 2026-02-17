@@ -1,6 +1,8 @@
 import KDBush from 'kdbush';
 import type {GeoJSONVTTile, GeoJSONVTFeature} from './transform';
 import type {GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature} from './definitions';
+import {projectX, projectY} from './convert';
+import {unprojectX, unprojectY} from './deconvert';
 
 export type SuperclusterOptions = {
     /**
@@ -67,9 +69,11 @@ export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
 
 type PointFeature = GeoJSON.Feature<GeoJSON.Point> | GeoJSONVTInternalPointFeature;
 
-export type KDBushWithData = Omit<KDBush, 'data'> & { data: number[] };
+export type KDBushWithData = KDBush & {
+    flatData: number[];
+};
 
-export const defaultClusterOptions: Required<SuperclusterOptions> = {
+const defaultClusterOptions: Required<SuperclusterOptions> = {
     minZoom: 0,
     maxZoom: 16,
     minPoints: 2,
@@ -81,8 +85,6 @@ export const defaultClusterOptions: Required<SuperclusterOptions> = {
     reduce: null,
     map: (props) => props as Record<string, unknown>
 };
-
-const fround = Math.fround || ((tmp) => ((x: number) => { tmp[0] = +x; return tmp[0]; }))(new Float32Array(1));
 
 const OFFSET_ZOOM = 2;
 const OFFSET_ID = 3;
@@ -105,6 +107,10 @@ export class Supercluster {
         this.points = [];
     }
 
+    /**
+     * Loads internal GeoJSONVT point features from a data source and builds the clustering index.
+     * @param features - {@link GeoJSONVTInternalFeature} data source features to filter and cluster.
+     */
     loadInternal(features: GeoJSONVTInternalFeature[]): this {
         const points: GeoJSONVTInternalPointFeature[] = [];
 
@@ -116,6 +122,10 @@ export class Supercluster {
         return this.load(points);
     }
 
+    /**
+     * Loads input point features and builds the internal clustering index.
+     * @param points - Input GeoJSON point features to cluster.
+     */
     load(points: PointFeature[]): this {
         const {log, minZoom, maxZoom} = this.options;
 
@@ -135,8 +145,8 @@ export class Supercluster {
 
             let x, y;
             [x, y] = getPointCoords(p);
-            x = fround(x);
-            y = fround(y);
+            x = Math.fround(x);
+            y = Math.fround(y);
 
             // store internal point/cluster data in flat numeric arrays for performance
             data.push(
@@ -148,19 +158,19 @@ export class Supercluster {
             );
             if (this.options.reduce) data.push(0); // noop
         }
-        let tree = this.trees[maxZoom + 1] = this._createTree(data);
+        let tree = this.trees[maxZoom + 1] = this.createTree(data);
 
         if (log) console.timeEnd(timerId);
 
         // cluster points on max zoom, then cluster the results on previous zoom, etc.;
         // results in a cluster hierarchy across zoom levels
         for (let z = maxZoom; z >= minZoom; z--) {
-            const now = +Date.now();
+            const now = Date.now();
 
             // create a new set of clusters for the zoom and index them with a KD-tree
-            tree = this.trees[z] = this._createTree(this._cluster(tree, z));
+            tree = this.trees[z] = this.createTree(this.cluster(tree, z));
 
-            if (log) console.log('z%d: %d clusters in %dms', z, tree.numItems, +Date.now() - now);
+            if (log) console.log('z%d: %d clusters in %dms', z, tree.numItems, Date.now() - now);
         }
 
         if (log) console.timeEnd('total time');
@@ -168,6 +178,11 @@ export class Supercluster {
         return this;
     }
 
+    /**
+     * Returns clusters and/or points within a bounding box at a given zoom level.
+     * @param bbox - Bounding box in `[westLng, southLat, eastLng, northLat]` order.
+     * @param zoom - Zoom level to query.
+     */
     getClusters(bbox: [number, number, number, number], zoom: number): (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] {
         let minLng = ((bbox[0] + 180) % 360 + 360) % 360 - 180;
         const minLat = Math.max(-90, Math.min(90, bbox[1]));
@@ -183,9 +198,9 @@ export class Supercluster {
             return easternHem.concat(westernHem);
         }
 
-        const tree = this.trees[this._limitZoom(zoom)];
-        const ids = tree.range(lngX(minLng), latY(maxLat), lngX(maxLng), latY(minLat));
-        const data = tree.data;
+        const tree = this.trees[this.limitZoom(zoom)];
+        const ids = tree.range(projectX(minLng), projectY(maxLat), projectX(maxLng), projectY(minLat));
+        const data = tree.flatData;
         const clusters: (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] = [];
         for (const id of ids) {
             const k = this.stride * id;
@@ -194,16 +209,20 @@ export class Supercluster {
         return clusters;
     }
 
+    /**
+     * Returns the immediate children (clusters or points) of a cluster.
+     * @param clusterId - The target cluster id.
+     */
     getChildren(clusterId: number): (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] {
-        const originId = this._getOriginId(clusterId);
-        const originZoom = this._getOriginZoom(clusterId);
-        const errorMsg = 'No cluster with the specified id.';
+        const originId = this.getOriginId(clusterId);
+        const originZoom = this.getOriginZoom(clusterId);
+        const clusterError = new Error('No cluster with the specified id: ' + clusterId);
 
         const tree = this.trees[originZoom];
-        if (!tree) throw new Error(errorMsg);
+        if (!tree) throw clusterError;
 
-        const data = tree.data;
-        if (originId * this.stride >= data.length) throw new Error(errorMsg);
+        const data = tree.flatData;
+        if (originId * this.stride >= data.length) throw clusterError;
 
         const r = this.options.radius / (this.options.extent * Math.pow(2, originZoom - 1));
         const x = data[originId * this.stride];
@@ -217,23 +236,35 @@ export class Supercluster {
             }
         }
 
-        if (children.length === 0) throw new Error(errorMsg);
+        if (children.length === 0) throw clusterError;
 
         return children;
     }
 
+    /**
+     * Returns leaf point features under a cluster, paginated by `limit` and `offset`.
+     * @param clusterId - The target cluster id.
+     * @param limit - Maximum number of points to return (defaults to `10`).
+     * @param offset - Number of points to skip before collecting results (defaults to `0`).
+     */
     getLeaves(clusterId: number, limit?: number, offset?: number): GeoJSON.Feature<GeoJSON.Point>[] {
         limit = limit || 10;
         offset = offset || 0;
 
         const leaves: GeoJSON.Feature<GeoJSON.Point>[] = [];
-        this._appendLeaves(leaves, clusterId, limit, offset, 0);
+        this.appendLeaves(leaves, clusterId, limit, offset, 0);
 
         return leaves;
     }
 
+    /**
+     * Generates a vector-tile-like representation of a single tile.
+     * @param z - Tile zoom.
+     * @param x - Tile x coordinate.
+     * @param y - Tile y coordinate.
+     */
     getTile(z: number, x: number, y: number): GeoJSONVTTile | null {
-        const tree = this.trees[this._limitZoom(z)];
+        const tree = this.trees[this.limitZoom(z)];
         const z2 = Math.pow(2, z);
         const {extent, radius} = this.options;
         const p = radius / extent;
@@ -256,48 +287,45 @@ export class Supercluster {
             maxY: 0
         };
 
-        this._addTileFeatures(
+        this.addTileFeatures(
             tree.range((x - p) / z2, top, (x + 1 + p) / z2, bottom),
-            tree.data, x, y, z2, tile);
+            tree.flatData, x, y, z2, tile);
 
         if (x === 0) {
-            this._addTileFeatures(
+            this.addTileFeatures(
                 tree.range(1 - p / z2, top, 1, bottom),
-                tree.data, z2, y, z2, tile);
+                tree.flatData, z2, y, z2, tile);
         }
         if (x === z2 - 1) {
-            this._addTileFeatures(
+            this.addTileFeatures(
                 tree.range(0, top, p / z2, bottom),
-                tree.data, -1, y, z2, tile);
+                tree.flatData, -1, y, z2, tile);
         }
 
-        return tile.features.length ? tile : null;
+        return tile;
     }
 
+    /**
+     * Returns the zoom level at which a cluster expands into multiple children.
+     * @param clusterId - The target cluster id.
+     */
     getClusterExpansionZoom(clusterId: number): number {
-        let expansionZoom = this._getOriginZoom(clusterId) - 1;
-        while (expansionZoom <= this.options.maxZoom) {
-            const children = this.getChildren(clusterId);
-            expansionZoom++;
-            if (children.length !== 1) break;
-            clusterId = (children[0].properties as ClusterProperties).cluster_id;
-        }
-        return expansionZoom;
+        return this.getOriginZoom(clusterId);
     }
 
-    _appendLeaves(result: GeoJSON.Feature<GeoJSON.Point>[], clusterId: number, limit: number, offset: number, skipped: number): number {
+    private appendLeaves(result: GeoJSON.Feature<GeoJSON.Point>[], clusterId: number, limit: number, offset: number, skipped: number): number {
         const children = this.getChildren(clusterId);
 
         for (const child of children) {
             const props = child.properties as ClusterProperties | null;
 
-            if (props && props.cluster) {
+            if (props?.cluster) {
                 if (skipped + props.point_count <= offset) {
                     // skip the whole cluster
                     skipped += props.point_count;
                 } else {
                     // enter the cluster
-                    skipped = this._appendLeaves(result, props.cluster_id, limit, offset, skipped);
+                    skipped = this.appendLeaves(result, props.cluster_id, limit, offset, skipped);
                     // exit the cluster
                 }
             } else if (skipped < offset) {
@@ -313,15 +341,16 @@ export class Supercluster {
         return skipped;
     }
 
-    _createTree(data: number[]): KDBushWithData {
+    private createTree(data: number[]): KDBushWithData {
         const tree = new KDBush(data.length / this.stride | 0, this.options.nodeSize, Float32Array) as unknown as KDBushWithData;
         for (let i = 0; i < data.length; i += this.stride) tree.add(data[i], data[i + 1]);
         tree.finish();
-        tree.data = data;
+        tree.flatData = data;
+        tree.data = null; // clear original data to free memory as it isn't used later on.
         return tree;
     }
 
-    _addTileFeatures(ids: number[], data: number[], x: number, y: number, z2: number, tile: GeoJSONVTTile): void {
+    private addTileFeatures(ids: number[], data: number[], x: number, y: number, z2: number, tile: GeoJSONVTTile): void {
         for (const i of ids) {
             const k = i * this.stride;
             const isCluster = data[k + OFFSET_NUM] > 1;
@@ -364,14 +393,14 @@ export class Supercluster {
         }
     }
 
-    _limitZoom(z: number): number {
+    private limitZoom(z: number): number {
         return Math.max(this.options.minZoom, Math.min(Math.floor(+z), this.options.maxZoom + 1));
     }
 
-    _cluster(tree: KDBushWithData, zoom: number): number[] {
+    private cluster(tree: KDBushWithData, zoom: number): number[] {
         const {radius, extent, reduce, minPoints} = this.options;
         const r = radius / (extent * Math.pow(2, zoom));
-        const data = tree.data;
+        const data = tree.flatData;
         const nextData: number[] = [];
         const stride = this.stride;
 
@@ -421,11 +450,11 @@ export class Supercluster {
 
                     if (reduce) {
                         if (!clusterProperties) {
-                            clusterProperties = this._map(data, i, true);
+                            clusterProperties = this.map(data, i, true);
                             clusterPropIndex = this.clusterProps.length;
                             this.clusterProps.push(clusterProperties);
                         }
-                        reduce(clusterProperties, this._map(data, k));
+                        reduce(clusterProperties, this.map(data, k));
                     }
                 }
 
@@ -451,16 +480,16 @@ export class Supercluster {
     }
 
     // get index of the point from which the cluster originated
-    _getOriginId(clusterId: number): number {
+    private getOriginId(clusterId: number): number {
         return (clusterId - this.points.length) >> 5;
     }
 
     // get zoom of the point from which the cluster originated
-    _getOriginZoom(clusterId: number): number {
+    private getOriginZoom(clusterId: number): number {
         return (clusterId - this.points.length) % 32;
     }
 
-    _map(data: number[], i: number, clone?: boolean): Record<string, unknown> {
+    private map(data: number[], i: number, clone?: boolean): Record<string, unknown> {
         if (data[i + OFFSET_NUM] > 1) {
             const props = this.clusterProps[data[i + OFFSET_PROP]];
             return clone ? Object.assign({}, props) : props;
@@ -479,7 +508,7 @@ function getClusterJSON(data: number[], i: number, clusterProps: Record<string, 
         properties: getClusterProperties(data, i, clusterProps),
         geometry: {
             type: 'Point',
-            coordinates: [xLng(data[i]), yLat(data[i + 1])]
+            coordinates: [unprojectX(data[i]), unprojectY(data[i + 1])]
         }
     };
 }
@@ -507,7 +536,7 @@ function isGeoJSONPoint(p: PointFeature): p is GeoJSON.Feature<GeoJSON.Point> {
 function getPointCoords(p: PointFeature): [x: number, y: number] {
     if (isGeoJSONPoint(p)) {
         const [lng, lat] = p.geometry.coordinates;
-        return [lngX(lng), latY(lat)];
+        return [projectX(lng), projectY(lat)];
     }
     const [x, y] = p.geometry;
     return [x, y];
@@ -515,25 +544,4 @@ function getPointCoords(p: PointFeature): [x: number, y: number] {
 
 function getPointProps(p: PointFeature): GeoJSON.GeoJsonProperties {
     return isGeoJSONPoint(p) ? p.properties : p.tags;
-}
-
-// longitude/latitude to spherical mercator in [0..1] range
-function lngX(lng: number): number {
-    return lng / 360 + 0.5;
-}
-
-function latY(lat: number): number {
-    const sin = Math.sin(lat * Math.PI / 180);
-    const y = (0.5 - 0.25 * Math.log((1 + sin) / (1 - sin)) / Math.PI);
-    return y < 0 ? 0 : y > 1 ? 1 : y;
-}
-
-// spherical mercator to longitude/latitude
-export function xLng(x: number): number {
-    return (x - 0.5) * 360;
-}
-
-export function yLat(y: number): number {
-    const y2 = (180 - y * 360) * Math.PI / 180;
-    return 360 * Math.atan(Math.exp(y2)) / Math.PI - 90;
 }
