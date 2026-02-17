@@ -424,7 +424,7 @@ export class GeoJSONVT {
     /**
      * Update supercluster options and regenerate the index.
      * @param cluster - whether to enable clustering
-     * @param clusterOptions - {@Link SuperclusterOptions}
+     * @param clusterOptions - {@link SuperclusterOptions}
      */
     updateClusterOptions(cluster: boolean, clusterOptions: SuperclusterOptions) {
         this.options.cluster = cluster;
