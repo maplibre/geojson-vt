@@ -76,7 +76,9 @@ export type SuperclusterTile = {
     features: SuperclusterTileFeature[];
 };
 
-export type KDBushWithData = KDBush & {flatData: number[]};
+export type KDBushWithData = KDBush & {
+    flatData: number[];
+};
 
 const defaultOptions: Required<SuperclusterOptions> = {
     minZoom: 0,
@@ -155,12 +157,12 @@ export class Supercluster {
         // cluster points on max zoom, then cluster the results on previous zoom, etc.;
         // results in a cluster hierarchy across zoom levels
         for (let z = maxZoom; z >= minZoom; z--) {
-            const now = +Date.now();
+            const now = Date.now();
 
             // create a new set of clusters for the zoom and index them with a KD-tree
             tree = this.trees[z] = this.createTree(this.cluster(tree, z));
 
-            if (log) console.log('z%d: %d clusters in %dms', z, tree.numItems, +Date.now() - now);
+            if (log) console.log('z%d: %d clusters in %dms', z, tree.numItems, Date.now() - now);
         }
 
         if (log) console.timeEnd('total time');
@@ -206,13 +208,13 @@ export class Supercluster {
     getChildren(clusterId: number): (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] {
         const originId = this.getOriginId(clusterId);
         const originZoom = this.getOriginZoom(clusterId);
-        const errorMsg = 'No cluster with the specified id.';
+        const clusterError = new Error('No cluster with the specified id.');
 
         const tree = this.trees[originZoom];
-        if (!tree) throw new Error(errorMsg);
+        if (!tree) throw clusterError;
 
         const data = tree.flatData;
-        if (originId * this.stride >= data.length) throw new Error(errorMsg);
+        if (originId * this.stride >= data.length) throw clusterError;
 
         const r = this.options.radius / (this.options.extent * Math.pow(2, originZoom - 1));
         const x = data[originId * this.stride];
@@ -226,7 +228,7 @@ export class Supercluster {
             }
         }
 
-        if (children.length === 0) throw new Error(errorMsg);
+        if (children.length === 0) throw clusterError;
 
         return children;
     }
@@ -280,7 +282,7 @@ export class Supercluster {
                 tree.flatData, -1, y, z2, tile);
         }
 
-        return tile.features.length ? tile : null;
+        return tile;
     }
 
     /**
@@ -304,7 +306,7 @@ export class Supercluster {
         for (const child of children) {
             const props = child.properties as ClusterProperties | null;
 
-            if (props && props.cluster) {
+            if (props?.cluster) {
                 if (skipped + props.point_count <= offset) {
                     // skip the whole cluster
                     skipped += props.point_count;
