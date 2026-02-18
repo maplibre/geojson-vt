@@ -552,6 +552,191 @@ test('getData: returns source data when updateable', () => {
     expect(() => notUpdateable.getData()).toThrow();
 });
 
+
+test('cluster option: initializes supercluster instead of tiling', () => {
+    const initialData = {
+        type: 'FeatureCollection' as const,
+        features: [
+            {
+                type: 'Feature' as const,
+                id: 'point1',
+                geometry: {type: 'Point' as const, coordinates: [0, 0]},
+                properties: {name: 'Point 1'}
+            },
+            {
+                type: 'Feature' as const,
+                id: 'point2',
+                geometry: {type: 'Point' as const, coordinates: [0.001, 0.001]},
+                properties: {name: 'Point 2'}
+            },
+            {
+                type: 'Feature' as const,
+                id: 'point3',
+                geometry: {type: 'Point' as const, coordinates: [100, 50]},
+                properties: {name: 'Point 3'}
+            }
+        ]
+    };
+
+    const index = geojsonvt(initialData, {cluster: true});
+
+    const tile = index.getTile(0, 0, 0);
+    expect(tile).toBeTruthy();
+    expect(tile.features.length).toBeGreaterThan(0);
+    expect(Object.keys(index.tiles)).toEqual([]);
+});
+
+test('cluster option: updateData rebuilds supercluster', () => {
+    const initialData = {
+        type: 'FeatureCollection' as const,
+        features: [
+            {
+                type: 'Feature' as const,
+                id: 'point1',
+                geometry: {type: 'Point' as const, coordinates: [0, 0]},
+                properties: {name: 'Point 1'}
+            }
+        ]
+    };
+
+    const index = geojsonvt(initialData, {cluster: true, updateable: true});
+
+    let tile = index.getTile(0, 0, 0);
+    expect(tile).toBeTruthy();
+    expect(tile.features.length).toBe(1);
+
+    const newFeature = {
+        type: 'Feature' as const,
+        id: 'point2',
+        geometry: {type: 'Point' as const, coordinates: [100, 50]},
+        properties: {name: 'Point 2'}
+    };
+    index.updateData({add: [newFeature]});
+
+    tile = index.getTile(0, 0, 0);
+    expect(tile).toBeTruthy();
+    expect(tile.features.length).toBe(2);
+
+    index.updateData({remove: ['point1']});
+
+    tile = index.getTile(0, 0, 0);
+    expect(tile).toBeTruthy();
+    expect(tile.features.length).toBe(1);
+});
+
+test('updateClusterOptions: rebuilds supercluster with new options', () => {
+    const closePoints = {
+        type: 'FeatureCollection' as const,
+        features: [
+            {
+                type: 'Feature' as const,
+                id: 'point1',
+                geometry: {type: 'Point' as const, coordinates: [0, 0]},
+                properties: {}
+            },
+            {
+                type: 'Feature' as const,
+                id: 'point2',
+                geometry: {type: 'Point' as const, coordinates: [0.5, 0.5]},
+                properties: {}
+            },
+            {
+                type: 'Feature' as const,
+                id: 'point3',
+                geometry: {type: 'Point' as const, coordinates: [1, 1]},
+                properties: {}
+            }
+        ]
+    };
+
+    const index = geojsonvt(closePoints, {
+        updateable: true,
+        cluster: true,
+        clusterOptions: {radius: 200}
+    });
+
+    let tile = index.getTile(0, 0, 0);
+    expect(tile).toBeTruthy();
+    const closeCount = tile.features.length;
+
+    // Update with a much smaller radius - should produce more features (less clustering)
+    index.updateClusterOptions(true, {radius: 1});
+
+    tile = index.getTile(0, 0, 0);
+    expect(tile).toBeTruthy();
+    expect(tile.features.length).toBeGreaterThan(closeCount);
+});
+
+test('updateClusterOptions: can toggle clustering on and off', () => {
+    const points = {
+        type: 'FeatureCollection' as const,
+        features: Array.from({length: 20}, (_, i) => ({
+            type: 'Feature' as const,
+            geometry: {type: 'Point' as const, coordinates: [i * 0.0001, i * 0.0001]},
+            properties: {}
+        }))
+    };
+
+    const index = geojsonvt(points, {
+        updateable: true,
+        cluster: true,
+        clusterOptions: {radius: 100}
+    });
+
+    // Check presence of clustered tiles
+    const tile = index.getTile(0, 0, 0);
+    const clusterId = (tile.features.find(f => (f.tags as {cluster?: boolean})?.cluster).tags as {cluster_id: number}).cluster_id;
+    expect(index.getClusterExpansionZoom(clusterId)).toBeGreaterThan(0);
+    expect(index.getTile(0, 0, 0).features.some(f => (f.tags as {cluster?: boolean})?.cluster)).toBe(true);
+
+    // Disable clustering and check presence of non-clustered tiles
+    index.updateClusterOptions(false, {radius: 100});
+    expect(index.getClusterExpansionZoom(clusterId)).toBeUndefined();
+    expect(index.getTile(0, 0, 0).features.some(f => (f.tags as {cluster?: boolean})?.cluster)).toBe(false);
+
+    // Re-enable clustering and check presence of clustered tiles
+    index.updateClusterOptions(true, {radius: 100});
+    expect(index.getClusterExpansionZoom(clusterId)).toBeGreaterThan(0);
+    expect(index.getTile(0, 0, 0).features.some(f => (f.tags as {cluster?: boolean})?.cluster)).toBe(true);
+});
+
+test('publicly exposed cluster methods: getClusterExpansionZoom, getClusterChildren, getClusterLeaves', () => {
+    const points = {
+        type: 'FeatureCollection' as const,
+        features: Array.from({length: 20}, (_, i) => ({
+            type: 'Feature' as const,
+            geometry: {type: 'Point' as const, coordinates: [i * 0.0001, i * 0.0001]},
+            properties: {name: `Point ${i}`}
+        }))
+    };
+
+    const index = geojsonvt(points, {
+        updateable: true,
+        cluster: true,
+        clusterOptions: {radius: 100}
+    });
+
+    const tile = index.getTile(0, 0, 0);
+    const cluster = tile.features.find(f => (f.tags as {cluster?: boolean})?.cluster);
+    const clusterId = (cluster.tags as {cluster_id: number}).cluster_id;
+
+    expect(index.getClusterExpansionZoom(clusterId)).toBeGreaterThan(0);
+    expect(index.getClusterChildren(clusterId).length).toBeGreaterThan(0);
+    expect(index.getClusterLeaves(clusterId, 5, 0).length).toBeLessThanOrEqual(5);
+});
+
+test('publicly exposed cluster methods: return undefined when clustering is disabled', () => {
+    const index = geojsonvt({type: 'FeatureCollection', features: []}, {
+        updateable: true,
+        cluster: false,
+        clusterOptions: {radius: 100}
+    });
+
+    expect(index.getClusterExpansionZoom(123)).toBeUndefined();
+    expect(index.getClusterChildren(123)).toBeUndefined();
+    expect(index.getClusterLeaves(123, 10, 0)).toBeUndefined();
+});
+
 function toID(z: number, x: number, y: number): number {
     return (((1 << z) * y + x) * 32) + z;
 }

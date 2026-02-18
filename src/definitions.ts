@@ -1,3 +1,5 @@
+import type {SuperclusterOptions} from './supercluster';
+
 export type GeoJSONVTOptions = {
     /**
      * Max zoom to preserve detail on
@@ -53,6 +55,16 @@ export type GeoJSONVTOptions = {
      * @default 0
      */
     debug?: number;
+    /**
+     * Enable Supercluster for point features.
+     * @default false
+     */
+    cluster?: boolean;
+    /**
+     * Options for the Supercluster point clustering algorithm.
+     * @see {@link SuperclusterOptions}
+     */
+    clusterOptions?: SuperclusterOptions;
 };
 
 export type GeoJSONToTileOptions = GeoJSONVTOptions & {
@@ -73,10 +85,10 @@ export type StartEndSizeArray = number[] & { start?: number; end?: number; size?
 export type PartialGeoJSONVTFeature = {
     id?: number | string | undefined;
     tags: GeoJSON.GeoJsonProperties;
-    minX: number;
-    minY: number;
-    maxX: number;
-    maxY: number;
+    minX?: number;
+    minY?: number;
+    maxX?: number;
+    maxY?: number;
 }
 
 export type GeoJSONVTInternalPointFeature = PartialGeoJSONVTFeature & {
