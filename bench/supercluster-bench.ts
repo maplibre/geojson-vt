@@ -35,4 +35,4 @@ index.load(points);
 global.gc();
 console.log(`memory used: ${Math.round((v8.getHeapStatistics().used_heap_size - size) / 1024)} KB`);
 
-index.getClusters([-180, -90, 180, 90], 0).map(f => JSON.stringify(f.properties));
+index.getClusters([-180, -90, 180, 90], 0).map(f => JSON.stringify(f.tags));

@@ -85,10 +85,10 @@ export type StartEndSizeArray = number[] & { start?: number; end?: number; size?
 export type PartialGeoJSONVTFeature = {
     id?: number | string | undefined;
     tags: GeoJSON.GeoJsonProperties;
-    minX: number;
-    minY: number;
-    maxX: number;
-    maxY: number;
+    minX?: number;
+    minY?: number;
+    maxX?: number;
+    maxY?: number;
 }
 
 export type GeoJSONVTInternalPointFeature = PartialGeoJSONVTFeature & {

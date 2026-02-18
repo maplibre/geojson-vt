@@ -2,7 +2,7 @@ import KDBush from 'kdbush';
 import type {GeoJSONVTTile, GeoJSONVTFeature} from './transform';
 import type {GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature} from './definitions';
 import {projectX, projectY} from './convert';
-import {unprojectX, unprojectY} from './deconvert';
+import {unprojectX, unprojectY, featureToGeoJSON} from './deconvert';
 
 export type SuperclusterOptions = {
     /**
@@ -68,8 +68,14 @@ export type ClusterProperties = {
 export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
 
 /** @internal */
-export type ClusterInternalPointFeature = GeoJSON.Feature<GeoJSON.Point> | GeoJSONVTInternalPointFeature;
+export type ClusterFeatureInternal = GeoJSONVTInternalPointFeature & {
+    tags: ClusterProperties;
+};
 
+/** @internal */
+export type ClusterInternalPointFeature = GeoJSONVTInternalPointFeature | GeoJSON.Feature<GeoJSON.Point>;
+
+/** @internal */
 export type KDBushWithData = KDBush & {
     flatData: number[];
 };
@@ -98,7 +104,7 @@ export class Supercluster {
     trees: KDBushWithData[];
     stride: number;
     clusterProps: Record<string, unknown>[];
-    points: ClusterInternalPointFeature[];
+    points: GeoJSONVTInternalPointFeature[];
 
     constructor(options?: SuperclusterOptions) {
         this.options = Object.assign(Object.create(defaultClusterOptions), options) as Required<SuperclusterOptions>;
@@ -106,6 +112,38 @@ export class Supercluster {
         this.stride = this.options.reduce ? 7 : 6;
         this.clusterProps = [];
         this.points = [];
+    }
+
+    /**
+     * Loads GeoJSON point features and builds the internal clustering index.
+     * @param points - GeoJSON point features to cluster.
+     */
+    load(points: GeoJSON.Feature<GeoJSON.Point>[]): void {
+        const features: GeoJSONVTInternalPointFeature[] = [];
+        
+        // Convert GeoJSON point features to GeoJSONVT internal point features
+        for (let i = 0; i < points.length; i++) {
+            const point = points[i];
+            
+            if (!point.geometry) {
+                features[i] = null;
+                continue;
+            }
+
+            const [lng, lat] = point.geometry.coordinates;
+            const [x, y] = [projectX(lng), projectY(lat)];
+            
+            const feature: GeoJSONVTInternalPointFeature = {
+                id: point.id,
+                type: 'Point',
+                geometry: [x, y],
+                tags: point.properties
+            };
+            
+            features.push(feature);
+        }
+        
+        this.createIndex(features);
     }
 
     /**
@@ -121,14 +159,10 @@ export class Supercluster {
             points.push(feature);
         }
 
-        this.load(points);
+        this.createIndex(points);
     }
 
-    /**
-     * Loads input point features and builds the internal clustering index.
-     * @param points - Input GeoJSON point features to cluster.
-     */
-    load(points: ClusterInternalPointFeature[]): void {
+    private createIndex(points: GeoJSONVTInternalPointFeature[]): void {
         const {log, minZoom, maxZoom} = this.options;
 
         if (log) console.time('total time');
@@ -143,9 +177,9 @@ export class Supercluster {
 
         for (let i = 0; i < points.length; i++) {
             const p = points[i];
-            if (!p.geometry) continue;
+            if (!p?.geometry) continue;
 
-            let [x, y] = getPointCoords(p);
+            let [x, y] = p.geometry;
             x = Math.fround(x);
             y = Math.fround(y);
 
@@ -182,7 +216,7 @@ export class Supercluster {
      * @param bbox - Bounding box in `[westLng, southLat, eastLng, northLat]` order.
      * @param zoom - Zoom level to query.
      */
-    getClusters(bbox: [number, number, number, number], zoom: number): (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] {
+    getClusters(bbox: [number, number, number, number], zoom: number): (ClusterFeatureInternal | GeoJSONVTInternalPointFeature)[] {
         let minLng = ((bbox[0] + 180) % 360 + 360) % 360 - 180;
         const minLat = Math.max(-90, Math.min(90, bbox[1]));
         let maxLng = bbox[2] === 180 ? 180 : ((bbox[2] + 180) % 360 + 360) % 360 - 180;
@@ -200,16 +234,16 @@ export class Supercluster {
         const tree = this.trees[this.limitZoom(zoom)];
         const ids = tree.range(projectX(minLng), projectY(maxLat), projectX(maxLng), projectY(minLat));
         const data = tree.flatData;
-        const clusters: (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] = [];
+        const clusters: (ClusterFeatureInternal | GeoJSONVTInternalPointFeature)[] = [];
         for (const id of ids) {
             const k = this.stride * id;
-            clusters.push(data[k + OFFSET_NUM] > 1 ? getClusterJSON(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]] as GeoJSON.Feature<GeoJSON.Point>);
+            clusters.push(data[k + OFFSET_NUM] > 1 ? getClusterFeature(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]]);
         }
         return clusters;
     }
 
     /**
-     * Returns the immediate children (clusters or points) of a cluster.
+     * Returns the immediate children (clusters or points) of a cluster as GeoJSON.
      * @param clusterId - The target cluster id.
      */
     getChildren(clusterId: number): (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] {
@@ -231,7 +265,7 @@ export class Supercluster {
         for (const id of ids) {
             const k = id * this.stride;
             if (data[k + OFFSET_PARENT] === clusterId) {
-                children.push(data[k + OFFSET_NUM] > 1 ? getClusterJSON(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]] as GeoJSON.Feature<GeoJSON.Point>);
+                children.push(data[k + OFFSET_NUM] > 1 ? getClusterJSON(data, k, this.clusterProps) : featureToGeoJSON(this.points[data[k + OFFSET_ID]]) as GeoJSON.Feature<GeoJSON.Point>);
             }
         }
 
@@ -356,8 +390,8 @@ export class Supercluster {
                 py = data[k + 1];
             } else {
                 const p = this.points[data[k + OFFSET_ID]];
-                tags = getPointProps(p);
-                [px, py] = getPointCoords(p);
+                tags = p.tags;
+                [px, py] = p.geometry;
             }
 
             const f: GeoJSONVTFeature = {
@@ -486,11 +520,19 @@ export class Supercluster {
             const props = this.clusterProps[data[i + OFFSET_PROP]];
             return clone ? Object.assign({}, props) : props;
         }
-        const p = this.points[data[i + OFFSET_ID]];
-        const original = getPointProps(p);
+        const original = this.points[data[i + OFFSET_ID]].tags;
         const result = this.options.map(original);
         return clone && result === original ? Object.assign({}, result) : result;
     }
+}
+
+function getClusterFeature(data: number[], i: number, clusterProps: Record<string, unknown>[]): ClusterFeatureInternal {
+    return {
+        id: data[i + OFFSET_ID],
+        type: 'Point',
+        tags: getClusterProperties(data, i, clusterProps),
+        geometry: [data[i], data[i + 1]]
+    };
 }
 
 function getClusterJSON(data: number[], i: number, clusterProps: Record<string, unknown>[]): ClusterFeature {
@@ -519,30 +561,4 @@ function getClusterProperties(data: number[], i: number, clusterProps: Record<st
         point_count: count,
         point_count_abbreviated: abbrev
     });
-}
-
-/**
- * Type guard that narrows a {@link ClusterInternalPointFeature} to a GeoJSON point.
- */
-function isGeoJSONPoint(p: ClusterInternalPointFeature): p is GeoJSON.Feature<GeoJSON.Point> {
-    return 'coordinates' in p.geometry;
-}
-
-/**
- * Gets spherical mercator coordinates for a {@link ClusterInternalPointFeature}.
- */
-function getPointCoords(p: ClusterInternalPointFeature): [x: number, y: number] {
-    if (isGeoJSONPoint(p)) {
-        const [lng, lat] = p.geometry.coordinates;
-        return [projectX(lng), projectY(lat)];
-    }
-    const [x, y] = p.geometry;
-    return [x, y];
-}
-
-/**
- * Gets properties/tags for a {@link ClusterInternalPointFeature}.
- */
-function getPointProps(p: ClusterInternalPointFeature): GeoJSON.GeoJsonProperties {
-    return isGeoJSONPoint(p) ? p.properties : p.tags;
 }
