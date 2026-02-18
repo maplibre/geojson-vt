@@ -140,7 +140,7 @@ export class Supercluster {
                 tags: point.properties
             };
             
-            features.push(feature);
+            features[i] = feature;
         }
         
         this.createIndex(features);
