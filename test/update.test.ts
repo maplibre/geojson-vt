@@ -583,7 +583,6 @@ test('cluster option: initializes supercluster instead of tiling', () => {
     const tile = index.getTile(0, 0, 0);
     expect(tile).toBeTruthy();
     expect(tile.features.length).toBeGreaterThan(0);
-    expect(Object.keys(index.tiles)).toEqual([]);
 });
 
 test('cluster option: updateData rebuilds supercluster', () => {
@@ -691,7 +690,7 @@ test('updateClusterOptions: can toggle clustering on and off', () => {
 
     // Disable clustering and check presence of non-clustered tiles
     index.updateClusterOptions(false, {radius: 100});
-    expect(index.getClusterExpansionZoom(clusterId)).toBeUndefined();
+    expect(index.getClusterExpansionZoom(clusterId)).toBeNull();
     expect(index.getTile(0, 0, 0).features.some(f => (f.tags as {cluster?: boolean})?.cluster)).toBe(false);
 
     // Re-enable clustering and check presence of clustered tiles

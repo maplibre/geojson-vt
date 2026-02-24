@@ -128,3 +128,25 @@ export type GeoJSONVTInternalFeature =
     | GeoJSONVTInternalMultiLineStringFeature
     | GeoJSONVTInternalPolygonFeature
     | GeoJSONVTInternalMultiPolygonFeature;
+
+/**
+ * The geojson properies related to a cluster.
+ */
+export type ClusterProperties = {
+    cluster: true;
+    cluster_id: number;
+    point_count: number;
+    point_count_abbreviated: string | number;
+    [key: string]: unknown;
+};
+
+/**
+ * A geojson point that with cluster properties, see {@link ClusterProperties}.
+ */
+export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
+
+/**
+ * A geojson point that is either a regular point or a cluster, which is a point with cluster properties.
+ * See {@link ClusterFeature} for more information
+ */
+export type ClusterOrPointFeature = ClusterFeature | GeoJSON.Feature<GeoJSON.Point>;
