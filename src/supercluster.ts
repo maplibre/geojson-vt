@@ -57,6 +57,9 @@ export type SuperclusterOptions = {
     map?: (props: GeoJSON.GeoJsonProperties) => Record<string, unknown>;
 };
 
+/**
+ * The geojson properies related to a cluster.
+ */
 export type ClusterProperties = {
     cluster: true;
     cluster_id: number;
@@ -65,15 +68,23 @@ export type ClusterProperties = {
     [key: string]: unknown;
 };
 
+
+/**
+ * A geojson point that with cluster properties, see {@link ClusterProperties}.
+ */
 export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
 
-/** @internal */
-export type ClusterFeatureInternal = GeoJSONVTInternalPointFeature & {
+/**
+ * A geojson point that is either a regular point or a cluster, which is a point with cluster properties.
+ * See {@link ClusterFeature} for more information
+ */
+export type ClusterOrPointFeature = ClusterFeature | GeoJSON.Feature<GeoJSON.Point>;
+
+type ClusterFeatureInternal = GeoJSONVTInternalPointFeature & {
     tags: ClusterProperties;
 };
 
-/** @internal */
-export type ClusterInternalPointFeature = GeoJSONVTInternalPointFeature | GeoJSON.Feature<GeoJSON.Point>;
+type ClusterOrPointFeatureInternal = ClusterFeatureInternal | GeoJSONVTInternalPointFeature;
 
 /** @internal */
 export type KDBushWithData = KDBush & {
@@ -99,6 +110,9 @@ const OFFSET_PARENT = 4;
 const OFFSET_NUM = 5;
 const OFFSET_PROP = 6;
 
+/**
+ * This class allow clustering of geojson points.
+ */
 export class Supercluster {
     options: Required<SuperclusterOptions>;
     trees: KDBushWithData[];
@@ -122,11 +136,9 @@ export class Supercluster {
         const features: GeoJSONVTInternalPointFeature[] = [];
         
         // Convert GeoJSON point features to GeoJSONVT internal point features
-        for (let i = 0; i < points.length; i++) {
-            const point = points[i];
+        for (let point of points) {
             
             if (!point.geometry) {
-                features[i] = null;
                 continue;
             }
 
@@ -140,7 +152,7 @@ export class Supercluster {
                 tags: point.properties
             };
             
-            features[i] = feature;
+            features.push(feature);
         }
         
         this.createIndex(features);
@@ -216,7 +228,12 @@ export class Supercluster {
      * @param bbox - Bounding box in `[westLng, southLat, eastLng, northLat]` order.
      * @param zoom - Zoom level to query.
      */
-    getClusters(bbox: [number, number, number, number], zoom: number): (ClusterFeatureInternal | GeoJSONVTInternalPointFeature)[] {
+    public getClusters(bbox: [number, number, number, number], zoom: number): ClusterOrPointFeature[] {
+        const clusterInternal = this.getClustersInternal(bbox, zoom);
+        return clusterInternal.map((f) => featureToGeoJSON(f) as ClusterOrPointFeature);
+    }
+
+    private getClustersInternal(bbox: [number, number, number, number], zoom: number): ClusterOrPointFeatureInternal[] {
         let minLng = ((bbox[0] + 180) % 360 + 360) % 360 - 180;
         const minLat = Math.max(-90, Math.min(90, bbox[1]));
         let maxLng = bbox[2] === 180 ? 180 : ((bbox[2] + 180) % 360 + 360) % 360 - 180;
@@ -226,15 +243,15 @@ export class Supercluster {
             minLng = -180;
             maxLng = 180;
         } else if (minLng > maxLng) {
-            const easternHem = this.getClusters([minLng, minLat, 180, maxLat], zoom);
-            const westernHem = this.getClusters([-180, minLat, maxLng, maxLat], zoom);
+            const easternHem = this.getClustersInternal([minLng, minLat, 180, maxLat], zoom);
+            const westernHem = this.getClustersInternal([-180, minLat, maxLng, maxLat], zoom);
             return easternHem.concat(westernHem);
         }
 
         const tree = this.trees[this.limitZoom(zoom)];
         const ids = tree.range(projectX(minLng), projectY(maxLat), projectX(maxLng), projectY(minLat));
         const data = tree.flatData;
-        const clusters: (ClusterFeatureInternal | GeoJSONVTInternalPointFeature)[] = [];
+        const clusters: ClusterOrPointFeatureInternal[] = [];
         for (const id of ids) {
             const k = this.stride * id;
             clusters.push(data[k + OFFSET_NUM] > 1 ? getClusterFeature(data, k, this.clusterProps) : this.points[data[k + OFFSET_ID]]);
@@ -246,7 +263,7 @@ export class Supercluster {
      * Returns the immediate children (clusters or points) of a cluster as GeoJSON.
      * @param clusterId - The target cluster id.
      */
-    getChildren(clusterId: number): (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] {
+    getChildren(clusterId: number): ClusterOrPointFeature[] {
         const originId = this.getOriginId(clusterId);
         const originZoom = this.getOriginZoom(clusterId);
         const clusterError = new Error('No cluster with the specified id: ' + clusterId);
@@ -261,11 +278,11 @@ export class Supercluster {
         const x = data[originId * this.stride];
         const y = data[originId * this.stride + 1];
         const ids = tree.within(x, y, r);
-        const children: (ClusterFeature | GeoJSON.Feature<GeoJSON.Point>)[] = [];
+        const children: ClusterOrPointFeature[] = [];
         for (const id of ids) {
             const k = id * this.stride;
             if (data[k + OFFSET_PARENT] === clusterId) {
-                children.push(data[k + OFFSET_NUM] > 1 ? getClusterJSON(data, k, this.clusterProps) : featureToGeoJSON(this.points[data[k + OFFSET_ID]]) as GeoJSON.Feature<GeoJSON.Point>);
+                children.push(data[k + OFFSET_NUM] > 1 ? getClusterGeoJSON(data, k, this.clusterProps) : featureToGeoJSON(this.points[data[k + OFFSET_ID]]) as GeoJSON.Feature<GeoJSON.Point>);
             }
         }
 
@@ -535,7 +552,7 @@ function getClusterFeature(data: number[], i: number, clusterProps: Record<strin
     };
 }
 
-function getClusterJSON(data: number[], i: number, clusterProps: Record<string, unknown>[]): ClusterFeature {
+function getClusterGeoJSON(data: number[], i: number, clusterProps: Record<string, unknown>[]): ClusterFeature {
     return {
         type: 'Feature',
         id: data[i + OFFSET_ID],

@@ -25,14 +25,14 @@ test('supports minPoints option', () => {
 test('returns children of a cluster', () => {
     const index = new Supercluster();
     index.load(places.features);
-    const childCounts = index.getChildren(164).map(p => (p.properties as ClusterProperties)?.point_count || 1);
+    const childCounts = index.getChildren(163).map(p => (p.properties as ClusterProperties)?.point_count || 1);
     expect(childCounts).toEqual([6, 7, 2, 1]);
 });
 
 test('returns leaves of a cluster', () => {
     const index = new Supercluster();
     index.load(places.features);
-    const leafNames = index.getLeaves(164, 10, 5).map(p => (p.properties as {name: string} | null)?.name);
+    const leafNames = index.getLeaves(163, 10, 5).map(p => (p.properties as {name: string} | null)?.name);
     expect(leafNames).toEqual([
         'Niagara Falls',
         'Cape San Blas',
@@ -65,18 +65,18 @@ test('getLeaves handles null-property features', () => {
             coordinates: [-79.04411780507252, 43.08771393436908]
         }
     }]));
-    const leaves = index.getLeaves(165, 1, 6);
+    const leaves = index.getLeaves(164, 1, 6);
     expect(leaves[0].properties).toBe(null);
 });
 
 test('returns cluster expansion zoom', () => {
     const index = new Supercluster();
     index.load(places.features);
-    expect(index.getClusterExpansionZoom(164)).toBe(1);
-    expect(index.getClusterExpansionZoom(196)).toBe(1);
-    expect(index.getClusterExpansionZoom(581)).toBe(2);
-    expect(index.getClusterExpansionZoom(1157)).toBe(2);
-    expect(index.getClusterExpansionZoom(4134)).toBe(3);
+    expect(index.getClusterExpansionZoom(163)).toBe(1);
+    expect(index.getClusterExpansionZoom(195)).toBe(1);
+    expect(index.getClusterExpansionZoom(580)).toBe(2);
+    expect(index.getClusterExpansionZoom(1156)).toBe(2);
+    expect(index.getClusterExpansionZoom(4133)).toBe(3);
 });
 
 test('returns cluster expansion zoom for maxZoom', () => {
@@ -87,7 +87,7 @@ test('returns cluster expansion zoom for maxZoom', () => {
     });
     index.load(places.features);
 
-    expect(index.getClusterExpansionZoom(2504)).toBe(5);
+    expect(index.getClusterExpansionZoom(2503)).toBe(5);
 });
 
 test('aggregates cluster properties with reduce', () => {
