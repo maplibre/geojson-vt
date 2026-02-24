@@ -132,13 +132,6 @@ export class GeoJSONVT {
         // update source with new simplified feature set
         this.source = source;
 
-        this.updateIndex(source, affected, options);
-    }
-
-    /**
-     * Updates the tile index - invalidates tiles that are affected by the update
-     */
-    private updateIndex(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions) {
         this.tileIndex.updateIndex(source, affected, options);
     }
 
@@ -178,7 +171,7 @@ export class GeoJSONVT {
         this.options.clusterOptions = clusterOptions;
 
         if (wasCluster == cluster) {
-            this.updateIndex(this.source, [], this.options);
+            this.tileIndex.updateIndex(this.source, [], this.options);
             return;    
         }
 
