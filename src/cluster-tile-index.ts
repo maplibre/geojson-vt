@@ -1,60 +1,7 @@
 import KDBush from 'kdbush';
 import {projectX, projectY} from './convert';
 import {unprojectX, unprojectY, featureToGeoJSON} from './deconvert';
-import type {ClusterFeature, ClusterOrPointFeature, ClusterProperties, GeoJSONDataHandler, GeoJSONVTFeature, GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature, GeoJSONVTOptions, GeoJSONVTTile} from './definitions';
-
-export type SuperclusterOptions = {
-    /**
-     * Min zoom to generate clusters on
-     * @default 0
-     */
-    minZoom?: number;
-    /**
-     * Max zoom level to cluster the points on
-     * @default 16
-     */
-    maxZoom?: number;
-    /**
-     * Minimum points to form a cluster
-     * @default 2
-     */
-    minPoints?: number;
-    /**
-     * Cluster radius in pixels
-     * @default 40
-     */
-    radius?: number;
-    /**
-     * Tile extent (radius is calculated relative to it)
-     * @default 512
-     */
-    extent?: number;
-    /**
-     * Size of the KD-tree leaf node, affects performance
-     * @default 64
-     */
-    nodeSize?: number;
-    /**
-     * Whether to log timing info
-     * @default false
-     */
-    log?: boolean;
-    /**
-     * Whether to generate numeric ids for input features (in vector tiles)
-     * @default false
-     */
-    generateId?: boolean;
-    /**
-     * A reduce function for calculating custom cluster properties
-     * @default null
-     */
-    reduce?: ((accumulated: Record<string, unknown>, props: Record<string, unknown>) => void) | null;
-    /**
-     * Properties to use for individual points when running the reducer
-     * @default props => props
-     */
-    map?: (props: GeoJSON.GeoJsonProperties) => Record<string, unknown>;
-};
+import type {ClusterFeature, ClusterOrPointFeature, ClusterProperties, GeoJSONVTTileIndex, GeoJSONVTFeature, GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature, GeoJSONVTOptions, GeoJSONVTTile, SuperclusterOptions} from './definitions';
 
 type ClusterFeatureInternal = GeoJSONVTInternalPointFeature & {
     tags: ClusterProperties;
@@ -89,7 +36,7 @@ const OFFSET_PROP = 6;
 /**
  * This class allow clustering of geojson points.
  */
-export class Supercluster implements GeoJSONDataHandler {
+export class ClusterTileIndex implements GeoJSONVTTileIndex {
     options: Required<SuperclusterOptions>;
     trees: KDBushWithData[];
     stride: number;

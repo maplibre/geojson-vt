@@ -1,5 +1,3 @@
-import type {SuperclusterOptions} from './supercluster';
-
 export type GeoJSONVTOptions = {
     /**
      * Max zoom to preserve detail on
@@ -203,7 +201,7 @@ export type GeoJSONVTTile = GeoJSONVTInternalTile & {
     features: GeoJSONVTFeature[]
 }
 
-export interface GeoJSONDataHandler {
+export interface GeoJSONVTTileIndex {
     initialize(features: GeoJSONVTInternalFeature[]): void;
     updateIndex(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): void;
     getClusterExpansionZoom(clusterId: number): number | null;
@@ -211,3 +209,56 @@ export interface GeoJSONDataHandler {
     getLeaves(clusterId: number, limit?: number, offset?: number): GeoJSON.Feature<GeoJSON.Point>[] | null
     getTile(z: number, x: number, y: number): GeoJSONVTTile | null
 }
+
+export type SuperclusterOptions = {
+    /**
+     * Min zoom to generate clusters on
+     * @default 0
+     */
+    minZoom?: number;
+    /**
+     * Max zoom level to cluster the points on
+     * @default 16
+     */
+    maxZoom?: number;
+    /**
+     * Minimum points to form a cluster
+     * @default 2
+     */
+    minPoints?: number;
+    /**
+     * Cluster radius in pixels
+     * @default 40
+     */
+    radius?: number;
+    /**
+     * Tile extent (radius is calculated relative to it)
+     * @default 512
+     */
+    extent?: number;
+    /**
+     * Size of the KD-tree leaf node, affects performance
+     * @default 64
+     */
+    nodeSize?: number;
+    /**
+     * Whether to log timing info
+     * @default false
+     */
+    log?: boolean;
+    /**
+     * Whether to generate numeric ids for input features (in vector tiles)
+     * @default false
+     */
+    generateId?: boolean;
+    /**
+     * A reduce function for calculating custom cluster properties
+     * @default null
+     */
+    reduce?: ((accumulated: Record<string, unknown>, props: Record<string, unknown>) => void) | null;
+    /**
+     * Properties to use for individual points when running the reducer
+     * @default props => props
+     */
+    map?: (props: GeoJSON.GeoJsonProperties) => Record<string, unknown>;
+};

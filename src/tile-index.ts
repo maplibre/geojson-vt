@@ -1,9 +1,9 @@
 import { clip } from "./clip";
 import { createTile } from "./tile";
 import { transformTile } from "./transform";
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, ClusterOrPointFeature, GeoJSONDataHandler, GeoJSONVTInternalTile, GeoJSONVTTile } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, ClusterOrPointFeature, GeoJSONVTTileIndex, GeoJSONVTInternalTile, GeoJSONVTTile } from "./definitions";
 
-export class NonClusterDataHandler implements GeoJSONDataHandler {
+export class TileIndex implements GeoJSONVTTileIndex {
 
     private tileCoords: {z: number, x: number, y: number, id: number}[];
 
@@ -233,6 +233,7 @@ export class NonClusterDataHandler implements GeoJSONDataHandler {
      * @param features 
      */
     private invalidateTiles(features: GeoJSONVTInternalFeature[]) {
+        if (!features.length) return;
         const options = this.options;
         const {debug} = options;
 

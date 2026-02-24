@@ -2,9 +2,9 @@ import {convertToInternal} from './convert';
 import {convertToGeoJSON, featureToGeoJSON} from './deconvert';
 import {wrap} from './wrap';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
-import {Supercluster, type SuperclusterOptions, defaultClusterOptions} from './supercluster';
-import {NonClusterDataHandler} from './noncluster';
-import type {ClusterOrPointFeature, GeoJSONDataHandler, GeoJSONVTInternalFeature, GeoJSONVTOptions, GeoJSONVTTile} from './definitions';
+import {ClusterTileIndex, defaultClusterOptions} from './cluster-tile-index';
+import {TileIndex} from './tile-index';
+import type {ClusterOrPointFeature, GeoJSONVTTileIndex, GeoJSONVTInternalFeature, GeoJSONVTOptions, GeoJSONVTTile, SuperclusterOptions} from './definitions';
 
 export const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
@@ -33,7 +33,7 @@ export class GeoJSONVT {
      */
     public get tiles() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (this.dataHandler as any)?.tiles ?? {};
+        return (this.tileIndex as any)?.tiles ?? {};
     }
     /** 
      * @internal
@@ -41,7 +41,7 @@ export class GeoJSONVT {
      */
     public get stats() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (this.dataHandler as any).stats;
+        return (this.tileIndex as any).stats;
     }
      /** 
      * @internal
@@ -49,13 +49,13 @@ export class GeoJSONVT {
      */
     public get total() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (this.dataHandler as any).total;
+        return (this.tileIndex as any).total;
     }
 
     private options: GeoJSONVTOptions;
     
     private source?: GeoJSONVTInternalFeature[];
-    private dataHandler?: GeoJSONDataHandler;
+    private tileIndex: GeoJSONVTTileIndex;
 
     constructor(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
         options = this.options = Object.assign({}, defaultOptions, options);
@@ -88,9 +88,9 @@ export class GeoJSONVT {
     }
 
     private initializeIndex(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions) {
-        this.dataHandler = options.cluster ? new Supercluster(options.clusterOptions) : new NonClusterDataHandler(options);
+        this.tileIndex = options.cluster ? new ClusterTileIndex(options.clusterOptions) : new TileIndex(options);
         if (!features.length) return;
-        this.dataHandler.initialize(features);
+        this.tileIndex.initialize(features);
     }
 
     /**
@@ -107,7 +107,7 @@ export class GeoJSONVT {
 
         if (z < 0 || z > 24) return null;
 
-        return this.dataHandler.getTile(z, x, y);
+        return this.tileIndex.getTile(z, x, y);
     }
 
     /**
@@ -139,7 +139,7 @@ export class GeoJSONVT {
      * Updates the tile index - invalidates tiles that are affected by the update
      */
     private updateIndex(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions) {
-        this.dataHandler.updateIndex(source, affected, options);
+        this.tileIndex.updateIndex(source, affected, options);
     }
 
     /**
@@ -177,11 +177,13 @@ export class GeoJSONVT {
         this.options.cluster = cluster;
         this.options.clusterOptions = clusterOptions;
 
-        if (wasCluster != cluster) {
-            this.dataHandler = cluster ? new Supercluster(this.options.clusterOptions) : new NonClusterDataHandler(this.options);
+        if (wasCluster == cluster) {
+            this.updateIndex(this.source, [], this.options);
+            return;    
         }
 
-        this.updateIndex(this.source, [], this.options);
+        this.tileIndex = cluster ? new ClusterTileIndex(this.options.clusterOptions) : new TileIndex(this.options);
+        this.initializeIndex(this.source, this.options);
     }
 
     /**
@@ -190,7 +192,7 @@ export class GeoJSONVT {
      * @returns the expansion zoom or null in case of non-clustered source
      */
     getClusterExpansionZoom(clusterId: number): number | null {
-        return this.dataHandler.getClusterExpansionZoom(clusterId);
+        return this.tileIndex.getClusterExpansionZoom(clusterId);
     }
 
     /**
@@ -199,7 +201,7 @@ export class GeoJSONVT {
      * @returns the immediate children or null in case of non-clustered source
      */
     getClusterChildren(clusterId: number): ClusterOrPointFeature[] | null {
-        return this.dataHandler.getChildren(clusterId);
+        return this.tileIndex.getChildren(clusterId);
     }
 
     /**
@@ -210,6 +212,6 @@ export class GeoJSONVT {
      * @returns leaf point features under a cluster or null in case of non-clustered source
      */
     getClusterLeaves(clusterId: number, limit: number, offset: number): GeoJSON.Feature<GeoJSON.Point>[] | null {
-        return this.dataHandler.getLeaves(clusterId, limit, offset);
+        return this.tileIndex.getLeaves(clusterId, limit, offset);
     }
 }
