@@ -1,5 +1,6 @@
 ## main
 ### ✨ Features and improvements
+- Add supercluster to updateable geojsonvt ([#52](https://github.com/maplibre/geojson-vt/pull/52)) (by [wayofthefuture](https://github.com/wayofthefuture) and [HarelM](https://github.com/HarelM)) 
 - Add `geoJSONToTile` function to generate a single tile directly from GeoJSON without building the full tile index. (by [montzkie18](https://github.com/montzkie18) and [lucaswoj](https://github.com/lucaswoj)).
 - Add getData and filter functions for GeoJSON worker support. ([#41](https://github.com/maplibre/geojson-vt/pull/41)) (by [wayofthefuture](https://github.com/wayofthefuture))
 - Copy supercluster and typescripify ([#37](https://github.com/maplibre/geojson-vt/pull/37)) (by [wayofthefuture](https://github.com/wayofthefuture))

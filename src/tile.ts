@@ -1,35 +1,6 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, StartEndSizeArray } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTOptions, StartEndSizeArray } from "./definitions";
 
-export type GeoJSONVTInternalTileFeaturePoint = {
-    id? : number | string | undefined;
-    type: 1;
-    tags: GeoJSON.GeoJsonProperties | null;
-    geometry: number[];
-}
 
-export type GeoJSONVTInternalTileFeatureNonPoint = {
-    id? : number | string | undefined;
-    type: 2 | 3;
-    tags: GeoJSON.GeoJsonProperties | null;
-    geometry: number[][];
-}
-export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeatureNonPoint;
-
-export type GeoJSONVTInternalTile = {
-    features: GeoJSONVTInternalTileFeature[];
-    numPoints: number;
-    numSimplified: number;
-    numFeatures: number;
-    x: number;
-    y: number;
-    z: number;
-    transformed: boolean;
-    minX: number;
-    minY: number;
-    maxX: number;
-    maxY: number;
-    source: GeoJSONVTInternalFeature[] | null;
-}
 
 /**
  * Creates a tile object from the given features
@@ -44,19 +15,19 @@ export function createTile(features: GeoJSONVTInternalFeature[], z: number, tx: 
     const tolerance = z === options.maxZoom ? 0 : options.tolerance / ((1 << z) * options.extent);
 
     const tile = {
+        transformed: false,
         features: [] as GeoJSONVTInternalTileFeature[],
-        numPoints: 0,
-        numSimplified: 0,
-        numFeatures: features.length,
-        source: null as GeoJSONVTInternalFeature[] | null,
+        source: null as GeoJSONVTInternalFeature[],
         x: tx,
         y: ty,
-        z,
-        transformed: false,
+        z: z,
         minX: 2,
         minY: 1,
         maxX: -1,
-        maxY: 0
+        maxY: 0,
+        numPoints: 0,
+        numSimplified: 0,
+        numFeatures: features.length
     };
 
     for (const feature of features) {

@@ -1,7 +1,7 @@
 
 import {test, expect} from 'vitest';
 import fs from 'fs';
-import {geoJSONToTile} from '../src/geoJSONToTile';
+import {geoJSONToTile} from '../src/geojson-to-tile';
 
 const square = [{
     geometry: [[[4160, -64], [4160, 4160], [-64, 4160], [-64, -64], [4160, -64]]],
