@@ -731,9 +731,9 @@ test('publicly exposed cluster methods: return undefined when clustering is disa
         clusterOptions: {radius: 100}
     });
 
-    expect(index.getClusterExpansionZoom(123)).toBeUndefined();
-    expect(index.getClusterChildren(123)).toBeUndefined();
-    expect(index.getClusterLeaves(123, 10, 0)).toBeUndefined();
+    expect(index.getClusterExpansionZoom(123)).toBeNull();
+    expect(index.getClusterChildren(123)).toBeNull();
+    expect(index.getClusterLeaves(123, 10, 0)).toBeNull();
 });
 
 function toID(z: number, x: number, y: number): number {

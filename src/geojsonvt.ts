@@ -90,9 +90,8 @@ export class GeoJSONVT {
     }
 
     private initializeIndex(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions) {
-        if (!features.length) return;
-
         this.dataHandler = options.cluster ? new Supercluster(options.clusterOptions) : new NonClusterDataHandler(options);
+        if (!features.length) return;
         this.dataHandler.initialize(features);
     }
 
@@ -193,7 +192,7 @@ export class GeoJSONVT {
      * @returns the expansion zoom or null in case of non-clustered source
      */
     getClusterExpansionZoom(clusterId: number): number | null {
-        return this.dataHandler?.getClusterExpansionZoom(clusterId);
+        return this.dataHandler.getClusterExpansionZoom(clusterId);
     }
 
     /**
@@ -202,7 +201,7 @@ export class GeoJSONVT {
      * @returns the immediate children or null in case of non-clustered source
      */
     getClusterChildren(clusterId: number): ClusterOrPointFeature[] | null {
-        return this.dataHandler?.getChildren(clusterId);
+        return this.dataHandler.getChildren(clusterId);
     }
 
     /**
@@ -213,6 +212,6 @@ export class GeoJSONVT {
      * @returns leaf point features under a cluster or null in case of non-clustered source
      */
     getClusterLeaves(clusterId: number, limit: number, offset: number): GeoJSON.Feature<GeoJSON.Point>[] | null {
-        return this.dataHandler?.getLeaves(clusterId, limit, offset);
+        return this.dataHandler.getLeaves(clusterId, limit, offset);
     }
 }
