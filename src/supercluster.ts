@@ -136,7 +136,7 @@ export class Supercluster {
         const features: GeoJSONVTInternalPointFeature[] = [];
         
         // Convert GeoJSON point features to GeoJSONVT internal point features
-        for (let point of points) {
+        for (const point of points) {
             
             if (!point.geometry) {
                 continue;
