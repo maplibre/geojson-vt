@@ -141,7 +141,7 @@ export type ClusterProperties = {
 };
 
 /**
- * A geojson point that with cluster properties, see {@link ClusterProperties}.
+ * A geojson point with cluster properties, see {@link ClusterProperties}.
  */
 export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
 
