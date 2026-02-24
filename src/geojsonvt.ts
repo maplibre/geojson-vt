@@ -182,7 +182,6 @@ export class GeoJSONVT {
             return;    
         }
 
-        this.tileIndex = cluster ? new ClusterTileIndex(this.options.clusterOptions) : new TileIndex(this.options);
         this.initializeIndex(this.source, this.options);
     }
 
