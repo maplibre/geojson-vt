@@ -62,16 +62,19 @@ export class NonClusterDataHandler implements GeoJSONDataHandler {
     }
 
     /** {@inheritdoc} */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getClusterExpansionZoom(_clusterId: number): number | null {
         return null;
     }
 
     /** {@inheritdoc} */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getChildren(_clusterId: number): ClusterOrPointFeature[] | null {
         return null;
     }
 
     /** {@inheritdoc} */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getLeaves(_clusterId: number, _limit?: number, _offset?: number): GeoJSON.Feature<GeoJSON.Point>[] | null {
         return null;
     }

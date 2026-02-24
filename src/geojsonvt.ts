@@ -34,6 +34,7 @@ export class GeoJSONVT {
      * This is for the tests
      */
     public get tiles() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (this.dataHandler as any)?.tiles ?? {};
     }
     /** 
@@ -41,6 +42,7 @@ export class GeoJSONVT {
      * This is for the tests
      */
     public get stats() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (this.dataHandler as any).stats;
     }
      /** 
@@ -48,6 +50,7 @@ export class GeoJSONVT {
      * This is for the tests
      */
     public get total() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (this.dataHandler as any).total;
     }
 
