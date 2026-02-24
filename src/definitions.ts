@@ -1,5 +1,3 @@
-import type {SuperclusterOptions} from './supercluster';
-
 export type GeoJSONVTOptions = {
     /**
      * Max zoom to preserve detail on
@@ -128,3 +126,139 @@ export type GeoJSONVTInternalFeature =
     | GeoJSONVTInternalMultiLineStringFeature
     | GeoJSONVTInternalPolygonFeature
     | GeoJSONVTInternalMultiPolygonFeature;
+
+/**
+ * The geojson properies related to a cluster.
+ */
+export type ClusterProperties = {
+    cluster: true;
+    cluster_id: number;
+    point_count: number;
+    point_count_abbreviated: string | number;
+    [key: string]: unknown;
+};
+
+/**
+ * A geojson point with cluster properties, see {@link ClusterProperties}.
+ */
+export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
+
+/**
+ * A geojson point that is either a regular point or a cluster, which is a point with cluster properties.
+ * See {@link ClusterFeature} for more information
+ */
+export type ClusterOrPointFeature = ClusterFeature | GeoJSON.Feature<GeoJSON.Point>;
+
+export type GeoJSONVTInternalTileFeaturePoint = {
+    id? : number | string | undefined;
+    type: 1;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: number[];
+}
+
+export type GeoJSONVTInternalTileFeatureNonPoint = {
+    id? : number | string | undefined;
+    type: 2 | 3;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: number[][];
+}
+export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeatureNonPoint;
+
+export type GeoJSONVTInternalTile = {
+    transformed: boolean;
+    features: GeoJSONVTInternalTileFeature[];
+    source: GeoJSONVTInternalFeature[] | null;
+    x: number;
+    y: number;
+    z: number;
+    minX?: number;
+    minY?: number;
+    maxX?: number;
+    maxY?: number;
+    numPoints?: number;
+    numSimplified?: number;
+    numFeatures?: number;
+}
+
+export type GeoJSONVTFeaturePoint = {
+    id? : number | string | undefined;
+    type: 1;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: [number, number][]
+}
+
+export type GeoJSONVTFeatureNonPoint = {
+    id? : number | string | undefined;
+    type: 2 | 3;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: [number, number][][]
+}
+
+export type GeoJSONVTFeature = GeoJSONVTFeaturePoint | GeoJSONVTFeatureNonPoint;
+
+export type GeoJSONVTTile = GeoJSONVTInternalTile & {
+    transformed: true;
+    features: GeoJSONVTFeature[]
+}
+
+export interface GeoJSONVTTileIndex {
+    initialize(features: GeoJSONVTInternalFeature[]): void;
+    updateIndex(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): void;
+    getClusterExpansionZoom(clusterId: number): number | null;
+    getChildren(clusterId: number): ClusterOrPointFeature[] | null;
+    getLeaves(clusterId: number, limit?: number, offset?: number): GeoJSON.Feature<GeoJSON.Point>[] | null
+    getTile(z: number, x: number, y: number): GeoJSONVTTile | null
+}
+
+export type SuperclusterOptions = {
+    /**
+     * Min zoom to generate clusters on
+     * @default 0
+     */
+    minZoom?: number;
+    /**
+     * Max zoom level to cluster the points on
+     * @default 16
+     */
+    maxZoom?: number;
+    /**
+     * Minimum points to form a cluster
+     * @default 2
+     */
+    minPoints?: number;
+    /**
+     * Cluster radius in pixels
+     * @default 40
+     */
+    radius?: number;
+    /**
+     * Tile extent (radius is calculated relative to it)
+     * @default 512
+     */
+    extent?: number;
+    /**
+     * Size of the KD-tree leaf node, affects performance
+     * @default 64
+     */
+    nodeSize?: number;
+    /**
+     * Whether to log timing info
+     * @default false
+     */
+    log?: boolean;
+    /**
+     * Whether to generate numeric ids for input features (in vector tiles)
+     * @default false
+     */
+    generateId?: boolean;
+    /**
+     * A reduce function for calculating custom cluster properties
+     * @default null
+     */
+    reduce?: ((accumulated: Record<string, unknown>, props: Record<string, unknown>) => void) | null;
+    /**
+     * Properties to use for individual points when running the reducer
+     * @default props => props
+     */
+    map?: (props: GeoJSON.GeoJsonProperties) => Record<string, unknown>;
+};

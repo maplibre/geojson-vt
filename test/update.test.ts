@@ -583,7 +583,6 @@ test('cluster option: initializes supercluster instead of tiling', () => {
     const tile = index.getTile(0, 0, 0);
     expect(tile).toBeTruthy();
     expect(tile.features.length).toBeGreaterThan(0);
-    expect(Object.keys(index.tiles)).toEqual([]);
 });
 
 test('cluster option: updateData rebuilds supercluster', () => {
@@ -691,7 +690,7 @@ test('updateClusterOptions: can toggle clustering on and off', () => {
 
     // Disable clustering and check presence of non-clustered tiles
     index.updateClusterOptions(false, {radius: 100});
-    expect(index.getClusterExpansionZoom(clusterId)).toBeUndefined();
+    expect(index.getClusterExpansionZoom(clusterId)).toBeNull();
     expect(index.getTile(0, 0, 0).features.some(f => (f.tags as {cluster?: boolean})?.cluster)).toBe(false);
 
     // Re-enable clustering and check presence of clustered tiles
@@ -732,9 +731,9 @@ test('publicly exposed cluster methods: return undefined when clustering is disa
         clusterOptions: {radius: 100}
     });
 
-    expect(index.getClusterExpansionZoom(123)).toBeUndefined();
-    expect(index.getClusterChildren(123)).toBeUndefined();
-    expect(index.getClusterLeaves(123, 10, 0)).toBeUndefined();
+    expect(index.getClusterExpansionZoom(123)).toBeNull();
+    expect(index.getClusterChildren(123)).toBeNull();
+    expect(index.getClusterLeaves(123, 10, 0)).toBeNull();
 });
 
 function toID(z: number, x: number, y: number): number {

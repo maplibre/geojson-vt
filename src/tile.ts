@@ -1,35 +1,6 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, StartEndSizeArray } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTOptions, StartEndSizeArray } from "./definitions";
 
-export type GeoJSONVTInternalTileFeaturePoint = {
-    id? : number | string | undefined;
-    type: 1;
-    tags: GeoJSON.GeoJsonProperties | null;
-    geometry: number[];
-}
 
-export type GeoJSONVTInternalTileFeatureNonPoint = {
-    id? : number | string | undefined;
-    type: 2 | 3;
-    tags: GeoJSON.GeoJsonProperties | null;
-    geometry: number[][];
-}
-export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeatureNonPoint;
-
-export type GeoJSONVTInternalTile = {
-    transformed: boolean;
-    features: GeoJSONVTInternalTileFeature[];
-    source: GeoJSONVTInternalFeature[] | null;
-    x: number;
-    y: number;
-    z: number;
-    minX?: number;
-    minY?: number;
-    maxX?: number;
-    maxY?: number;
-    numPoints?: number;
-    numSimplified?: number;
-    numFeatures?: number;
-}
 
 /**
  * Creates a tile object from the given features

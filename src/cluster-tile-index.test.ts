@@ -1,36 +1,35 @@
 import {test, expect} from 'vitest';
 import {readFileSync} from 'fs';
-import {Supercluster} from './supercluster';
-import type {ClusterProperties} from './supercluster';
-import type {GeoJSONVTTile} from './transform';
+import {ClusterTileIndex} from './cluster-tile-index';
+import type {ClusterProperties, GeoJSONVTTile} from './definitions';
 
 const places = JSON.parse(readFileSync(new URL('../test/fixtures/places.json', import.meta.url), 'utf-8')) as GeoJSON.FeatureCollection<GeoJSON.Point>;
 const placesTile = JSON.parse(readFileSync(new URL('../test/fixtures/places-z0-0-0.json', import.meta.url), 'utf-8')) as GeoJSONVTTile;
 const placesTileMin5 = JSON.parse(readFileSync(new URL('../test/fixtures/places-z0-0-0-min5.json', import.meta.url), 'utf-8')) as GeoJSONVTTile;
 
 test('generates clusters properly', () => {
-    const index = new Supercluster();
+    const index = new ClusterTileIndex();
     index.load(places.features);
     const tile = index.getTile(0, 0, 0);
     expect(tile?.features).toEqual(placesTile.features);
 });
 
 test('supports minPoints option', () => {
-    const index = new Supercluster({minPoints: 5});
+    const index = new ClusterTileIndex({minPoints: 5});
     index.load(places.features);
     const tile = index.getTile(0, 0, 0);
     expect(tile?.features).toEqual(placesTileMin5.features);
 });
 
 test('returns children of a cluster', () => {
-    const index = new Supercluster();
+    const index = new ClusterTileIndex();
     index.load(places.features);
     const childCounts = index.getChildren(163).map(p => (p.properties as ClusterProperties)?.point_count || 1);
     expect(childCounts).toEqual([6, 7, 2, 1]);
 });
 
 test('returns leaves of a cluster', () => {
-    const index = new Supercluster();
+    const index = new ClusterTileIndex();
     index.load(places.features);
     const leafNames = index.getLeaves(163, 10, 5).map(p => (p.properties as {name: string} | null)?.name);
     expect(leafNames).toEqual([
@@ -48,7 +47,7 @@ test('returns leaves of a cluster', () => {
 });
 
 test('generates unique ids with generateId option', () => {
-    const index = new Supercluster({generateId: true});
+    const index = new ClusterTileIndex({generateId: true});
     index.load(places.features);
     const tile = index.getTile(0, 0, 0)!;
     const ids = tile.features.filter(f => !(f.tags as ClusterProperties)?.cluster).map(f => f.id);
@@ -56,7 +55,7 @@ test('generates unique ids with generateId option', () => {
 });
 
 test('getLeaves handles null-property features', () => {
-    const index = new Supercluster();
+    const index = new ClusterTileIndex();
     index.load(places.features.concat([{
         type: 'Feature',
         properties: null,
@@ -70,7 +69,7 @@ test('getLeaves handles null-property features', () => {
 });
 
 test('returns cluster expansion zoom', () => {
-    const index = new Supercluster();
+    const index = new ClusterTileIndex();
     index.load(places.features);
     expect(index.getClusterExpansionZoom(163)).toBe(1);
     expect(index.getClusterExpansionZoom(195)).toBe(1);
@@ -80,7 +79,7 @@ test('returns cluster expansion zoom', () => {
 });
 
 test('returns cluster expansion zoom for maxZoom', () => {
-    const index = new Supercluster({
+    const index = new ClusterTileIndex({
         radius: 60,
         extent: 256,
         maxZoom: 4,
@@ -91,7 +90,7 @@ test('returns cluster expansion zoom for maxZoom', () => {
 });
 
 test('aggregates cluster properties with reduce', () => {
-    const index = new Supercluster({
+    const index = new ClusterTileIndex({
         map: (props) => ({sum: (props as {scalerank: number})?.scalerank}),
         reduce: (a, b) => { (a as {sum: number}).sum += (b as {sum: number}).sum; },
         radius: 100
@@ -105,7 +104,7 @@ test('aggregates cluster properties with reduce', () => {
 });
 
 test('uses default map function with reduce', () => {
-    const index = new Supercluster({
+    const index = new ClusterTileIndex({
         reduce: () => {},
         radius: 100
     });
@@ -115,7 +114,7 @@ test('uses default map function with reduce', () => {
 });
 
 test('returns clusters when query crosses international dateline', () => {
-    const index = new Supercluster();
+    const index = new ClusterTileIndex();
     index.load([
         {
             type: 'Feature',
@@ -157,7 +156,7 @@ test('returns clusters when query crosses international dateline', () => {
 });
 
 test('does not crash on weird bbox values', () => {
-    const index = new Supercluster();
+    const index = new ClusterTileIndex();
     index.load(places.features);
     expect(index.getClusters([129.426390, -103.720017, -445.930843, 114.518236], 1).length).toBe(26);
     expect(index.getClusters([112.207836, -84.578666, -463.149397, 120.169159], 1).length).toBe(27);
@@ -169,13 +168,13 @@ test('does not crash on weird bbox values', () => {
 });
 
 test('does not crash on non-integer zoom values', () => {
-    const index = new Supercluster();
+    const index = new ClusterTileIndex();
     index.load(places.features);
     expect(index.getClusters([179, -10, -177, 10], 1.25)).toBeTruthy();
 });
 
 test('makes sure same-location points are clustered', () => {
-    const index = new Supercluster({
+    const index = new ClusterTileIndex({
         maxZoom: 20,
         extent: 8192,
         radius: 16
@@ -189,7 +188,7 @@ test('makes sure same-location points are clustered', () => {
 });
 
 test('makes sure unclustered point coords are not rounded', () => {
-    const index = new Supercluster({maxZoom: 19});
+    const index = new ClusterTileIndex({maxZoom: 19});
     index.load([
         {type: 'Feature', properties: null, geometry: {type: 'Point', coordinates: [173.19150559062456, -41.340357424709275]}}
     ]);
@@ -199,7 +198,7 @@ test('makes sure unclustered point coords are not rounded', () => {
 
 test('does not throw on zero items', () => {
     expect(() => {
-        const index = new Supercluster();
+        const index = new ClusterTileIndex();
         index.load([]);
         expect(index.getClusters([-180, -85, 180, 85], 0)).toEqual([]);
     }).not.toThrow();

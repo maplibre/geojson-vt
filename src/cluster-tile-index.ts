@@ -1,84 +1,7 @@
 import KDBush from 'kdbush';
-import type {GeoJSONVTTile, GeoJSONVTFeature} from './transform';
-import type {GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature} from './definitions';
 import {projectX, projectY} from './convert';
 import {unprojectX, unprojectY, featureToGeoJSON} from './deconvert';
-
-export type SuperclusterOptions = {
-    /**
-     * Min zoom to generate clusters on
-     * @default 0
-     */
-    minZoom?: number;
-    /**
-     * Max zoom level to cluster the points on
-     * @default 16
-     */
-    maxZoom?: number;
-    /**
-     * Minimum points to form a cluster
-     * @default 2
-     */
-    minPoints?: number;
-    /**
-     * Cluster radius in pixels
-     * @default 40
-     */
-    radius?: number;
-    /**
-     * Tile extent (radius is calculated relative to it)
-     * @default 512
-     */
-    extent?: number;
-    /**
-     * Size of the KD-tree leaf node, affects performance
-     * @default 64
-     */
-    nodeSize?: number;
-    /**
-     * Whether to log timing info
-     * @default false
-     */
-    log?: boolean;
-    /**
-     * Whether to generate numeric ids for input features (in vector tiles)
-     * @default false
-     */
-    generateId?: boolean;
-    /**
-     * A reduce function for calculating custom cluster properties
-     * @default null
-     */
-    reduce?: ((accumulated: Record<string, unknown>, props: Record<string, unknown>) => void) | null;
-    /**
-     * Properties to use for individual points when running the reducer
-     * @default props => props
-     */
-    map?: (props: GeoJSON.GeoJsonProperties) => Record<string, unknown>;
-};
-
-/**
- * The geojson properies related to a cluster.
- */
-export type ClusterProperties = {
-    cluster: true;
-    cluster_id: number;
-    point_count: number;
-    point_count_abbreviated: string | number;
-    [key: string]: unknown;
-};
-
-
-/**
- * A geojson point that with cluster properties, see {@link ClusterProperties}.
- */
-export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
-
-/**
- * A geojson point that is either a regular point or a cluster, which is a point with cluster properties.
- * See {@link ClusterFeature} for more information
- */
-export type ClusterOrPointFeature = ClusterFeature | GeoJSON.Feature<GeoJSON.Point>;
+import type {ClusterFeature, ClusterOrPointFeature, ClusterProperties, GeoJSONVTTileIndex, GeoJSONVTFeature, GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature, GeoJSONVTOptions, GeoJSONVTTile, SuperclusterOptions} from './definitions';
 
 type ClusterFeatureInternal = GeoJSONVTInternalPointFeature & {
     tags: ClusterProperties;
@@ -113,7 +36,7 @@ const OFFSET_PROP = 6;
 /**
  * This class allow clustering of geojson points.
  */
-export class Supercluster {
+export class ClusterTileIndex implements GeoJSONVTTileIndex {
     options: Required<SuperclusterOptions>;
     trees: KDBushWithData[];
     stride: number;
@@ -163,7 +86,7 @@ export class Supercluster {
      * Loads internal GeoJSONVT point features from a data source and builds the clustering index.
      * @param features - {@link GeoJSONVTInternalFeature} data source features to filter and cluster.
      */
-    loadInternal(features: GeoJSONVTInternalFeature[]): void {
+    initialize(features: GeoJSONVTInternalFeature[]): void {
         const points: GeoJSONVTInternalPointFeature[] = [];
 
         for (const feature of features) {
@@ -172,6 +95,16 @@ export class Supercluster {
         }
 
         this.createIndex(points);
+    }
+
+    /**
+     * @internal
+     * Updates the cluster data by rebuilding.
+     * @param features 
+     */
+    updateIndex(features: GeoJSONVTInternalFeature[], _affected: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions) {
+        this.options = Object.assign(Object.create(defaultClusterOptions), options.clusterOptions) as Required<SuperclusterOptions>;
+        this.initialize(features);
     }
 
     private createIndex(points: GeoJSONVTInternalPointFeature[]): void {

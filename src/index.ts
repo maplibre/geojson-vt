@@ -1,19 +1,17 @@
 
-import type {GeoJSONVTFeature, GeoJSONVTFeatureNonPoint, GeoJSONVTFeaturePoint, GeoJSONVTTile} from './transform';
-import type {GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTInternalTileFeatureNonPoint} from './tile';
 import type {GeoJSONVTFeatureDiff, GeoJSONVTSourceDiff} from './difference';
-import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, GeoJSONToTileOptions, PartialGeoJSONVTFeature, StartEndSizeArray} from './definitions';
-import type {SuperclusterOptions, ClusterProperties, ClusterFeature, KDBushWithData, ClusterOrPointFeature} from './supercluster';
+import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, GeoJSONToTileOptions, PartialGeoJSONVTFeature, StartEndSizeArray, ClusterProperties, ClusterFeature, ClusterOrPointFeature, GeoJSONVTTile, GeoJSONVTFeature, GeoJSONVTFeaturePoint, GeoJSONVTFeatureNonPoint, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTInternalTileFeatureNonPoint, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTTileIndex, SuperclusterOptions} from './definitions';
+import type {KDBushWithData} from './cluster-tile-index';
 import {GeoJSONVT} from './geojsonvt';
-import {Supercluster} from './supercluster';
-import {geoJSONToTile} from './geoJSONToTile';
+import {ClusterTileIndex} from './cluster-tile-index';
+import {geoJSONToTile} from './geojson-to-tile';
 
 function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
     return new GeoJSONVT(data, options);
 }
 
 geojsonvt.GeoJSONVT = GeoJSONVT;
-geojsonvt.Supercluster = Supercluster;
+geojsonvt.Supercluster = ClusterTileIndex;
 geojsonvt.geoJSONToTile = geoJSONToTile;
 
 export default geojsonvt;
@@ -41,10 +39,11 @@ export type {
     GeoJSONVTInternalMultiLineStringFeature,
     GeoJSONVTInternalPolygonFeature,
     GeoJSONVTInternalMultiPolygonFeature,
-    Supercluster,
+    ClusterTileIndex as Supercluster,
     SuperclusterOptions,
     ClusterProperties,
     ClusterFeature,
     ClusterOrPointFeature,
-    KDBushWithData
+    KDBushWithData,
+    GeoJSONVTTileIndex
 };
