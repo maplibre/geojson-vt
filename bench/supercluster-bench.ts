@@ -1,6 +1,6 @@
 
 import v8 from 'v8';
-import geojsonvt from '../src';
+import {Supercluster} from '../src';
 
 const points: GeoJSON.Feature<GeoJSON.Point, {index: number}>[] = [];
 for (let i = 0; i < 1000000; i++) {
@@ -24,7 +24,7 @@ declare const global: typeof globalThis & { gc: () => void };
 global.gc();
 const size = v8.getHeapStatistics().used_heap_size;
 
-const index = new geojsonvt.Supercluster({
+const index = new Supercluster({
     log: true,
     maxZoom: 6,
     // map: props => ({sum: props.index}),

@@ -1,8 +1,8 @@
 import {test, expect} from 'vitest';
-import geojsonvt, { type ClusterProperties } from '../src';
+import {GeoJSONVT, type ClusterProperties } from '../src';
 
 test('updateData: requires updateable option', () => {
-    const index = geojsonvt({
+    const index = new GeoJSONVT({
         type: 'FeatureCollection' as const,
         features: []
     });
@@ -25,7 +25,7 @@ test('updateData: adds new features', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {updateable: true});
+    const index = new GeoJSONVT(initialData, {updateable: true});
 
     const newFeature = {
         type: 'Feature' as const,
@@ -59,7 +59,7 @@ test('updateData: removes features by id', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {updateable: true});
+    const index = new GeoJSONVT(initialData, {updateable: true});
 
     index.updateData({remove: ['feature1']});
 
@@ -80,7 +80,7 @@ test('updateData: replaces features with duplicate ids', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {updateable: true});
+    const index = new GeoJSONVT(initialData, {updateable: true});
 
     const updatedFeature = {
         type: 'Feature' as const,
@@ -116,7 +116,7 @@ test('updateData: handles both add and remove in same call', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {updateable: true});
+    const index = new GeoJSONVT(initialData, {updateable: true});
 
     const newFeature = {
         type: 'Feature' as const,
@@ -138,7 +138,7 @@ test('updateData: handles both add and remove in same call', () => {
 });
 
 test('updateData: works with empty diff', () => {
-    const index = geojsonvt({
+    const index = new GeoJSONVT({
         type: 'FeatureCollection',
         features: []
     }, {updateable: true});
@@ -165,7 +165,7 @@ test('updateData: invalidates tiles at deeper zoom', () => {
         }]
     };
 
-    const index = geojsonvt(initialData, {
+    const index = new GeoJSONVT(initialData, {
         updateable: true,
         indexMaxZoom: 5,
         indexMaxPoints: 0
@@ -215,7 +215,7 @@ test('updateData: invalidates tiles with partial intersection', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {
+    const index = new GeoJSONVT(initialData, {
         updateable: true,
         indexMaxZoom: 2,
         indexMaxPoints: 0
@@ -254,7 +254,7 @@ test('updateData: invalidates empty tiles', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {
+    const index = new GeoJSONVT(initialData, {
         updateable: true,
         indexMaxZoom: 1,
         indexMaxPoints: 0,
@@ -301,7 +301,7 @@ test('updateData: does not invalidate unaffected tiles', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {
+    const index = new GeoJSONVT(initialData, {
         updateable: true,
         indexMaxZoom: 2,
         indexMaxPoints: 0
@@ -357,7 +357,7 @@ test('updateData: invalidates and regenerates tiles at multiple zoom levels', ()
         ]
     };
 
-    const index = geojsonvt(initialData, {
+    const index = new GeoJSONVT(initialData, {
         updateable: true,
         indexMaxZoom: 7,
         indexMaxPoints: 0
@@ -413,7 +413,7 @@ test('updateData: invalidates tiles when feature is within the buffer edge', () 
         }]
     };
 
-    const index = geojsonvt(initialData, {
+    const index = new GeoJSONVT(initialData, {
         updateable: true,
         indexMaxZoom: 1,
         indexMaxPoints: 0
@@ -453,7 +453,7 @@ test('updateData: handles drill-down after update', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {
+    const index = new GeoJSONVT(initialData, {
         updateable: true,
         indexMaxZoom: 5
     });
@@ -487,7 +487,7 @@ test('updateData: filter keeps all features when predicate matches all', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {updateable: true});
+    const index = new GeoJSONVT(initialData, {updateable: true});
     expect(index.getTile(0, 0, 0).features.length).toBe(3);
 
     index.updateData({}, feature => feature.geometry.type === 'Point');
@@ -507,7 +507,7 @@ test('updateData: filter removes features not matching predicate', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {updateable: true});
+    const index = new GeoJSONVT(initialData, {updateable: true});
 
     index.updateData({}, feature => feature.properties.population > 500);
     expect(index.getTile(0, 0, 0).features.length).toBe(1);
@@ -524,7 +524,7 @@ test('updateData: filter removes all features when none match predicate', () => 
         ]
     };
 
-    const index = geojsonvt(initialData, {updateable: true});
+    const index = new GeoJSONVT(initialData, {updateable: true});
 
     index.updateData({}, feature => feature.properties.population < 100);
     expect(index.getTile(0, 0, 0).features.length).toBe(0);
@@ -541,14 +541,14 @@ test('getData: returns source data when updateable', () => {
         }]
     };
 
-    const updateable = geojsonvt(geojson, {updateable: true});
+    const updateable = new GeoJSONVT(geojson, {updateable: true});
     const result = updateable.getData() as GeoJSON.FeatureCollection;
 
     expect(result.type).toBe('FeatureCollection');
     expect(result.features.length).toBe(1);
     expect(result.features[0].id).toBe('point1');
 
-    const notUpdateable = geojsonvt(geojson, {updateable: false});
+    const notUpdateable = new GeoJSONVT(geojson, {updateable: false});
     expect(() => notUpdateable.getData()).toThrow();
 });
 
@@ -578,7 +578,7 @@ test('cluster option: initializes supercluster instead of tiling', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {cluster: true});
+    const index = new GeoJSONVT(initialData, {cluster: true});
 
     const tile = index.getTile(0, 0, 0);
     expect(tile).toBeTruthy();
@@ -598,7 +598,7 @@ test('cluster option: updateData rebuilds supercluster', () => {
         ]
     };
 
-    const index = geojsonvt(initialData, {cluster: true, updateable: true});
+    const index = new GeoJSONVT(initialData, {cluster: true, updateable: true});
 
     let tile = index.getTile(0, 0, 0);
     expect(tile).toBeTruthy();
@@ -648,7 +648,7 @@ test('updateClusterOptions: rebuilds supercluster with new options', () => {
         ]
     };
 
-    const index = geojsonvt(closePoints, {
+    const index = new GeoJSONVT(closePoints, {
         updateable: true,
         cluster: true,
         clusterOptions: {radius: 200}
@@ -676,7 +676,7 @@ test('updateClusterOptions: can toggle clustering from on to off', () => {
         }))
     };
 
-    const index = geojsonvt(points, {
+    const index = new GeoJSONVT(points, {
         updateable: true,
         cluster: true,
         clusterOptions: {radius: 100}
@@ -699,7 +699,7 @@ test('updateClusterOptions: can toggle clustering from on to off and then back o
         }))
     };
 
-    const index = geojsonvt(points, {
+    const index = new GeoJSONVT(points, {
         updateable: true,
         cluster: true,
         clusterOptions: {radius: 100}

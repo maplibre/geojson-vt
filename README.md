@@ -39,7 +39,7 @@ Just drag any GeoJSON on the page, watching the console.
 
 ```js
 // build an initial index of tiles
-var tileIndex = geojsonvt(geoJSON);
+var tileIndex = new GeoJSONVT(geoJSON);
 
 // request a particular tile
 var features = tileIndex.getTile(z, x, y).features;
@@ -54,7 +54,7 @@ You can fine-tune the results with an options object,
 although the defaults are sensible and work well for most use cases.
 
 ```js
-var tileIndex = geojsonvt(data, {
+var tileIndex = new GeoJSONVT(data, {
 	maxZoom: 14,  // max zoom to preserve detail on; can't be higher than 24
 	tolerance: 3, // simplification tolerance (higher means simpler)
 	extent: 4096, // tile extent (both width and height)
@@ -110,17 +110,7 @@ To use `updateData`, the index must be created with the `updateable: true` optio
 Install using NPM (`npm install @maplibre/geojson-vt`), then:
 
 ```js
-// import as a ES module
-import geojsonvt from '@maplibre/geojson-vt';
-
-// import from a CDN in the browser:
-import geojsonvt from 'https://esm.run/@maplibre/geojson-vt';
-```
-
-Or use a browser build directly:
-
-```html
-<script src="https://unpkg.com/@maplibre/geojson-vt/geojson-vt.js"></script>
+import {GeoJSONVT} from '@maplibre/geojson-vt';
 ```
 
 ### Getting Involved

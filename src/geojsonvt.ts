@@ -57,7 +57,7 @@ export class GeoJSONVT {
     private source?: GeoJSONVTInternalFeature[];
     private tileIndex: GeoJSONVTTileIndex;
 
-    constructor(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions) {
+    constructor(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
         options = this.options = Object.assign({}, defaultOptions, options);
 
         const debug = options.debug;

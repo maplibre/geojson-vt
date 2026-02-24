@@ -2,7 +2,7 @@
 import {test, expect} from 'vitest';
 import fs from 'fs';
 
-import geojsonvt, {type GeoJSONVTOptions, type GeoJSONVTInternalTileFeature } from '../src';
+import {GeoJSONVT, type GeoJSONVTOptions, type GeoJSONVTInternalTileFeature } from '../src';
 
 testTiles('us-states.json', 'us-states-tiles.json', {indexMaxZoom: 7, indexMaxPoints: 200});
 testTiles('dateline.json', 'dateline-tiles.json', {indexMaxZoom: 0, indexMaxPoints: 10000});
@@ -46,7 +46,7 @@ function getJSON(name: string) {
 }
 
 function genTiles(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
-    const index = geojsonvt(data, Object.assign({
+    const index = new GeoJSONVT(data, Object.assign({
         indexMaxZoom: 0,
         indexMaxPoints: 10000
     }, options));
