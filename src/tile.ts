@@ -88,9 +88,8 @@ function addLineTileFeautre(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInter
     if (options.lineMetrics) {
         tags = {};
         for (const key in feature.tags) tags[key] = feature.tags[key];
-        // HM TODO: replace with geojsonvt
-        tags['mapbox_clip_start'] = feature.geometry.start / feature.geometry.size;
-        tags['mapbox_clip_end'] = feature.geometry.end / feature.geometry.size;
+        tags['geojsonvt_clip_start'] = feature.geometry.start / feature.geometry.size;
+        tags['geojsonvt_clip_end'] = feature.geometry.end / feature.geometry.size;
     }
     const tileFeature: GeoJSONVTInternalTileFeature = {
         type: 2,
