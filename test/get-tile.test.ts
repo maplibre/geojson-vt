@@ -2,7 +2,7 @@
 import {test, expect} from 'vitest';
 import fs from 'fs';
 
-import geojsonvt from '../src';
+import {GeoJSONVT} from '../src';
 
 const square = [{
     geometry: [[[-64, 4160], [-64, -64], [4160, -64], [4160, 4160], [-64, 4160]]],
@@ -15,7 +15,7 @@ test('getTile: us-states.json', () => {
     const log = console.log;
 
     console.log = function () {};
-    const index = geojsonvt(getJSON('us-states.json'), {debug: 2});
+    const index = new GeoJSONVT(getJSON('us-states.json'), {debug: 2});
 
     expect(index.getTile(7, 37, 48).features).toEqual(getJSON('us-states-z7-37-48.json'));
     expect(index.getTile('7', '37', '48').features).toEqual(getJSON('us-states-z7-37-48.json'));
@@ -32,7 +32,7 @@ test('getTile: us-states.json', () => {
 });
 
 test('getTile: unbuffered tile left/right edges', () => {
-    const index = geojsonvt({
+    const index = new GeoJSONVT({
         type: 'LineString',
         coordinates: [[0, 90], [0, -90]]
     }, {
@@ -44,7 +44,7 @@ test('getTile: unbuffered tile left/right edges', () => {
 });
 
 test('getTile: unbuffered tile top/bottom edges', () => {
-    const index = geojsonvt({
+    const index = new GeoJSONVT({
         type: 'LineString',
         coordinates: [[-90, 66.51326044311188], [90, 66.51326044311188]]
     }, {
@@ -56,7 +56,7 @@ test('getTile: unbuffered tile top/bottom edges', () => {
 });
 
 test('getTile: polygon clipping on the boundary', () => {
-    const index = geojsonvt({
+    const index = new GeoJSONVT({
         type: 'Polygon',
         coordinates: [[
             [42.1875, 57.32652122521708],

@@ -6,18 +6,13 @@ import {GeoJSONVT} from './geojsonvt';
 import {ClusterTileIndex} from './cluster-tile-index';
 import {geoJSONToTile} from './geojson-to-tile';
 
-function geojsonvt(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
-    return new GeoJSONVT(data, options);
+export {
+    GeoJSONVT,
+    ClusterTileIndex as Supercluster,
+    geoJSONToTile
 }
 
-geojsonvt.GeoJSONVT = GeoJSONVT;
-geojsonvt.Supercluster = ClusterTileIndex;
-geojsonvt.geoJSONToTile = geoJSONToTile;
-
-export default geojsonvt;
-
 export type {
-    GeoJSONVT,
     GeoJSONVTInternalFeature, 
     GeoJSONVTOptions,
     GeoJSONToTileOptions,
@@ -39,7 +34,6 @@ export type {
     GeoJSONVTInternalMultiLineStringFeature,
     GeoJSONVTInternalPolygonFeature,
     GeoJSONVTInternalMultiPolygonFeature,
-    ClusterTileIndex as Supercluster,
     SuperclusterOptions,
     ClusterProperties,
     ClusterFeature,

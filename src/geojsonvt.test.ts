@@ -1,5 +1,5 @@
 import {test, expect} from 'vitest';
-import geojsonvt from '.';
+import {GeoJSONVT} from '.';
 
 test('publicly exposed cluster methods: getClusterExpansionZoom, getClusterChildren, getClusterLeaves', () => {
     const points = {
@@ -11,7 +11,7 @@ test('publicly exposed cluster methods: getClusterExpansionZoom, getClusterChild
         }))
     };
 
-    const index = geojsonvt(points, {
+    const index = new GeoJSONVT(points, {
         updateable: true,
         cluster: true,
         clusterOptions: {radius: 100}
@@ -27,7 +27,7 @@ test('publicly exposed cluster methods: getClusterExpansionZoom, getClusterChild
 });
 
 test('publicly exposed cluster methods: return undefined when clustering is disabled', () => {
-    const index = geojsonvt({type: 'FeatureCollection', features: []}, {
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: []}, {
         updateable: true,
         cluster: false,
         clusterOptions: {radius: 100}

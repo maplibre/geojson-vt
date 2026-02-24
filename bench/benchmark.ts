@@ -1,6 +1,6 @@
 import Benchmark from 'benchmark';
 import type {Feature, FeatureCollection, Polygon} from 'geojson';
-import geojsonvt from '../src';
+import {GeoJSONVT, geoJSONToTile} from '../src';
 
 type BenchmarkResult = {
     hz: number;
@@ -91,7 +91,7 @@ testConfigs.forEach((config) => {
     const tileX = Math.floor(Math.pow(2, config.z) / 2);
     const tileY = Math.floor(Math.pow(2, config.z) / 2);
 
-    let reusableIndex = geojsonvt(initialData, optionsUpdate);
+    let reusableIndex = new GeoJSONVT(initialData, optionsUpdate);
 
     console.log(`\n${config.initial.toLocaleString()} Initial, ${config.changing.toLocaleString()} changing, getTile z=${config.z}:`);
 
@@ -99,7 +99,7 @@ testConfigs.forEach((config) => {
 
     suite
         .add('constructor', () => {
-            const index = geojsonvt(updatedData, optionsConstructor);
+            const index = new GeoJSONVT(updatedData, optionsConstructor);
             index.getTile(config.z, tileX, tileY);
         })
         .add('updateData', () => {
@@ -110,7 +110,7 @@ testConfigs.forEach((config) => {
             reusableIndex.getTile(config.z, tileX, tileY);
         }, {
             onCycle: () => {
-                reusableIndex = geojsonvt(initialData, optionsUpdate);
+                reusableIndex = new GeoJSONVT(initialData, optionsUpdate);
             }
         })
         .on('cycle', (event: Benchmark.Event) => {
@@ -160,7 +160,7 @@ for (const config of getTileConfigs) {
 
     const features = generateFeatures(config.featureCount);
     const geojsonData: FeatureCollection<Polygon> = {type: 'FeatureCollection', features};
-    const index = geojsonvt(geojsonData, {maxZoom: 14});
+    const index = new GeoJSONVT(geojsonData, {maxZoom: 14});
 
     const results: Record<string, BenchmarkResult> = {};
 
@@ -171,14 +171,14 @@ for (const config of getTileConfigs) {
             }
         })
         .add('geojsonvt.getTile (non-indexed)', () => {
-            const newIndex = geojsonvt(geojsonData, {maxZoom: 14, indexMaxZoom: 0});
+            const newIndex = new GeoJSONVT(geojsonData, {maxZoom: 14, indexMaxZoom: 0});
             for (const tile of tilesToFetch) {
                 newIndex.getTile(tile.z, tile.x, tile.y);
             }
         })
         .add('geoJSONToTile (on-demand)', () => {
             for (const tile of tilesToFetch) {
-                geojsonvt.geoJSONToTile(geojsonData, tile.z, tile.x, tile.y, {clip: true});
+                geoJSONToTile(geojsonData, tile.z, tile.x, tile.y, {clip: true});
             }
         })
         .on('cycle', (event: Benchmark.Event) => {
