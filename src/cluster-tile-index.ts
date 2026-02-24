@@ -60,7 +60,6 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
         
         // Convert GeoJSON point features to GeoJSONVT internal point features
         for (const point of points) {
-            
             if (!point.geometry) {
                 continue;
             }
