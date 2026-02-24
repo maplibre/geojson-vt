@@ -1,25 +1,4 @@
-import type { GeoJSONVTInternalTile, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTInternalTileFeatureNonPoint } from "./tile";
-
-export type GeoJSONVTFeaturePoint = {
-    id? : number | string | undefined;
-    type: 1;
-    tags: GeoJSON.GeoJsonProperties | null;
-    geometry: [number, number][]
-}
-
-export type GeoJSONVTFeatureNonPoint = {
-    id? : number | string | undefined;
-    type: 2 | 3;
-    tags: GeoJSON.GeoJsonProperties | null;
-    geometry: [number, number][][]
-}
-
-export type GeoJSONVTFeature = GeoJSONVTFeaturePoint | GeoJSONVTFeatureNonPoint;
-
-export type GeoJSONVTTile = GeoJSONVTInternalTile & {
-    transformed: true;
-    features: GeoJSONVTFeature[]
-}
+import type { GeoJSONVTFeatureNonPoint, GeoJSONVTFeaturePoint, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeatureNonPoint, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTTile } from "./definitions";
 
 /**
  * Transforms the coordinates of each feature in the given tile from

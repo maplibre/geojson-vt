@@ -1,9 +1,7 @@
 import KDBush from 'kdbush';
-import type {GeoJSONVTTile, GeoJSONVTFeature} from './transform';
-import type {ClusterFeature, ClusterOrPointFeature, ClusterProperties, GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature, GeoJSONVTOptions} from './definitions';
 import {projectX, projectY} from './convert';
 import {unprojectX, unprojectY, featureToGeoJSON} from './deconvert';
-import type { GeoJSONDataHandler } from './geojson-data-handler';
+import type {ClusterFeature, ClusterOrPointFeature, ClusterProperties, GeoJSONDataHandler, GeoJSONVTFeature, GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature, GeoJSONVTOptions, GeoJSONVTTile} from './definitions';
 
 export type SuperclusterOptions = {
     /**

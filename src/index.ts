@@ -1,8 +1,6 @@
 
-import type {GeoJSONVTFeature, GeoJSONVTFeatureNonPoint, GeoJSONVTFeaturePoint, GeoJSONVTTile} from './transform';
-import type {GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTInternalTileFeatureNonPoint} from './tile';
 import type {GeoJSONVTFeatureDiff, GeoJSONVTSourceDiff} from './difference';
-import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, GeoJSONToTileOptions, PartialGeoJSONVTFeature, StartEndSizeArray, ClusterProperties, ClusterFeature, ClusterOrPointFeature} from './definitions';
+import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, GeoJSONToTileOptions, PartialGeoJSONVTFeature, StartEndSizeArray, ClusterProperties, ClusterFeature, ClusterOrPointFeature, GeoJSONVTTile, GeoJSONVTFeature, GeoJSONVTFeaturePoint, GeoJSONVTFeatureNonPoint, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTInternalTileFeatureNonPoint, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONDataHandler} from './definitions';
 import type {SuperclusterOptions, KDBushWithData} from './supercluster';
 import {GeoJSONVT} from './geojsonvt';
 import {Supercluster} from './supercluster';
@@ -46,5 +44,6 @@ export type {
     ClusterProperties,
     ClusterFeature,
     ClusterOrPointFeature,
-    KDBushWithData
+    KDBushWithData,
+    GeoJSONDataHandler
 };

@@ -150,3 +150,64 @@ export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
  * See {@link ClusterFeature} for more information
  */
 export type ClusterOrPointFeature = ClusterFeature | GeoJSON.Feature<GeoJSON.Point>;
+
+export type GeoJSONVTInternalTileFeaturePoint = {
+    id? : number | string | undefined;
+    type: 1;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: number[];
+}
+
+export type GeoJSONVTInternalTileFeatureNonPoint = {
+    id? : number | string | undefined;
+    type: 2 | 3;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: number[][];
+}
+export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeatureNonPoint;
+
+export type GeoJSONVTInternalTile = {
+    transformed: boolean;
+    features: GeoJSONVTInternalTileFeature[];
+    source: GeoJSONVTInternalFeature[] | null;
+    x: number;
+    y: number;
+    z: number;
+    minX?: number;
+    minY?: number;
+    maxX?: number;
+    maxY?: number;
+    numPoints?: number;
+    numSimplified?: number;
+    numFeatures?: number;
+}
+
+export type GeoJSONVTFeaturePoint = {
+    id? : number | string | undefined;
+    type: 1;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: [number, number][]
+}
+
+export type GeoJSONVTFeatureNonPoint = {
+    id? : number | string | undefined;
+    type: 2 | 3;
+    tags: GeoJSON.GeoJsonProperties | null;
+    geometry: [number, number][][]
+}
+
+export type GeoJSONVTFeature = GeoJSONVTFeaturePoint | GeoJSONVTFeatureNonPoint;
+
+export type GeoJSONVTTile = GeoJSONVTInternalTile & {
+    transformed: true;
+    features: GeoJSONVTFeature[]
+}
+
+export interface GeoJSONDataHandler {
+    initialize(features: GeoJSONVTInternalFeature[]): void;
+    updateIndex(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): void;
+    getClusterExpansionZoom(clusterId: number): number | null;
+    getChildren(clusterId: number): ClusterOrPointFeature[] | null;
+    getLeaves(clusterId: number, limit?: number, offset?: number): GeoJSON.Feature<GeoJSON.Point>[] | null
+    getTile(z: number, x: number, y: number): GeoJSONVTTile | null
+}

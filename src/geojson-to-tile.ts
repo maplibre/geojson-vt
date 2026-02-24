@@ -1,10 +1,10 @@
 import {clip} from './clip';
 import {convertToInternal} from './convert';
-import type {GeoJSONToTileOptions} from './definitions';
 import {defaultOptions} from './geojsonvt';
 import {createTile} from './tile';
-import {transformTile, type GeoJSONVTTile} from './transform';
+import {transformTile} from './transform';
 import {wrap} from './wrap';
+import type {GeoJSONToTileOptions, GeoJSONVTTile} from './definitions';
 
 /**
  * Converts GeoJSON data directly to a single vector tile without building a tile index.

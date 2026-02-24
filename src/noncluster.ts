@@ -1,8 +1,7 @@
 import { clip } from "./clip";
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, ClusterOrPointFeature } from "./definitions";
-import type { GeoJSONDataHandler } from "./geojson-data-handler";
-import { createTile, type GeoJSONVTInternalTile } from "./tile";
-import { transformTile, type GeoJSONVTTile } from "./transform";
+import { createTile } from "./tile";
+import { transformTile } from "./transform";
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, ClusterOrPointFeature, GeoJSONDataHandler, GeoJSONVTInternalTile, GeoJSONVTTile } from "./definitions";
 
 export class NonClusterDataHandler implements GeoJSONDataHandler {
 

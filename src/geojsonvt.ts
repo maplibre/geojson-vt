@@ -4,9 +4,7 @@ import {wrap} from './wrap';
 import {applySourceDiff, type GeoJSONVTSourceDiff} from './difference';
 import {Supercluster, type SuperclusterOptions, defaultClusterOptions} from './supercluster';
 import {NonClusterDataHandler} from './noncluster';
-import type {ClusterOrPointFeature, GeoJSONVTInternalFeature, GeoJSONVTOptions} from './definitions';
-import type {GeoJSONDataHandler} from './geojson-data-handler';
-import type {GeoJSONVTTile} from './transform';
+import type {ClusterOrPointFeature, GeoJSONDataHandler, GeoJSONVTInternalFeature, GeoJSONVTOptions, GeoJSONVTTile} from './definitions';
 
 export const defaultOptions: GeoJSONVTOptions = {
     maxZoom: 14,
