@@ -1,5 +1,5 @@
 
-import {clip} from './clip';
+import {AxisType, clip} from './clip';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 import {createFeature} from './feature';
 
@@ -7,12 +7,12 @@ export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOpt
     const buffer = options.buffer / options.extent;
     let merged = features;
 
-    const left  = clip(features, 1, -1 - buffer, buffer,     0, -1, 2, options); // left world copy
-    const right = clip(features, 1,  1 - buffer, 2 + buffer, 0, -1, 2, options); // right world copy
+    const left  = clip(features, 1, -1 - buffer, buffer,     AxisType.X, -1, 2, options); // left world copy
+    const right = clip(features, 1,  1 - buffer, 2 + buffer, AxisType.X, -1, 2, options); // right world copy
 
     if (!left && !right) return merged;
 
-    merged = clip(features, 1, -buffer, 1 + buffer, 0, -1, 2, options) || []; // center world copy
+    merged = clip(features, 1, -buffer, 1 + buffer, AxisType.X, -1, 2, options) || []; // center world copy
 
     if (left) merged = shiftFeatureCoords(left, 1).concat(merged); // merge left into center
     if (right) merged = merged.concat(shiftFeatureCoords(right, -1)); // merge right into center

@@ -1,4 +1,4 @@
-import {clip} from './clip';
+import {AxisType, clip} from './clip';
 import {convertToInternal} from './convert';
 import {defaultOptions} from './geojsonvt';
 import {createTile} from './tile';
@@ -50,8 +50,8 @@ export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: nu
     if (shouldClip || options.lineMetrics) {
         const pow2 = 1 << z;
         const buffer = options.buffer / options.extent;
-        const left = clip(features, pow2, (x - buffer), (x + 1 + buffer), 0, -1, 2, options);
-        features = clip(left || [], pow2, (y - buffer), (y + 1 + buffer), 1, -1, 2, options);
+        const left = clip(features, pow2, (x - buffer), (x + 1 + buffer), AxisType.X, -1, 2, options);
+        features = clip(left || [], pow2, (y - buffer), (y + 1 + buffer), AxisType.Y, -1, 2, options);
     }
 
     return transformTile(createTile(features ?? [], z, x, y, options), options.extent);

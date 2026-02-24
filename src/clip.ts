@@ -2,67 +2,77 @@
 import {createFeature} from './feature';
 import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 
-/* clip features between two vertical or horizontal axis-parallel lines:
+export const enum AxisType {
+    X = 0,
+    Y = 1
+}
+
+/** 
+ * clip features between two vertical or horizontal axis-parallel lines:
  *     |        |
  *  ___|___     |     /
  * /   |   \____|____/
  *     |        |
  *
- * k1 and k2 are the line coordinates
- * axis: 0 for x, 1 for y
- * minAll and maxAll: minimum and maximum coordinate value for all features
+ * @param features - the features to clip
+ * @param scale - the scale to divide start and end inputs
+ * @param start - the start of the clip range
+ * @param end - the end of the clip range
+ * @param axis - which axis to clip against
+ * @param minAll - the minimum for all features in the relevant axis
+ * @param maxAll - the maximum for all features in the relevant axis
  */
-export function clip(features: GeoJSONVTInternalFeature[], scale: number, k1: number, k2: number, axis: number, minAll: number, maxAll: number, options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] | null {
-    k1 /= scale;
-    k2 /= scale;
+export function clip(features: GeoJSONVTInternalFeature[], scale: number, start: number, end: number, axis: AxisType, minAll: number, maxAll: number, options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] | null {
+    start /= scale;
+    end /= scale;
 
-    if (minAll >= k1 && maxAll < k2) { // trivial accept
+    if (minAll >= start && maxAll < end) { // trivial accept
         return features;
     }
 
-    if (maxAll < k1 || minAll >= k2) { // trivial reject
+    if (maxAll < start || minAll >= end) { // trivial reject
         return null;
     }
 
     const clipped: GeoJSONVTInternalFeature[] = [];
 
     for (const feature of features) {
-        const min = axis === 0 ? feature.minX : feature.minY;
-        const max = axis === 0 ? feature.maxX : feature.maxY;
+        const min = axis === AxisType.X ? feature.minX : feature.minY;
+        const max = axis === AxisType.X ? feature.maxX : feature.maxY;
 
-        if (min >= k1 && max < k2) { // trivial accept
+        if (min >= start && max < end) { // trivial accept
             clipped.push(feature);
             continue;
         }
 
-        if (max < k1 || min >= k2) { // trivial reject
+        if (max < start || min >= end) { // trivial reject
             continue;
         }
 
         switch (feature.type) {
             case 'Point':
             case 'MultiPoint': {
-                clipPointFeature(feature, clipped, k1, k2, axis);
+                clipPointFeature(feature, clipped, start, end, axis);
                 continue;
             }
 
             case 'LineString': {
-                clipLineStringFeature(feature, clipped, k1, k2, axis, options);
+                clipLineStringFeature(feature, clipped, start, end, axis, options);
                 continue;
             }
 
             case 'MultiLineString': {
-                clipMultiLineStringFeature(feature, clipped, k1, k2, axis);
+                clipMultiLineStringFeature(feature, clipped, start, end, axis);
                 continue;
             }
 
             case 'Polygon': {
-                clipPolygonFeature(feature, clipped, k1, k2, axis);
+                clipPolygonFeature(feature, clipped, start, end, axis);
                 continue;
             }
 
             case 'MultiPolygon': {
-                clipMultiPolygonFeature(feature, clipped, k1, k2, axis);
+                clipMultiPolygonFeature(feature, clipped, start, end, axis);
                 continue;
             }
         }
@@ -73,20 +83,20 @@ export function clip(features: GeoJSONVTInternalFeature[], scale: number, k1: nu
     return clipped;
 }
 
-function clipPointFeature(feature: GeoJSONVTInternalPointFeature | GeoJSONVTInternalMultiPointFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+function clipPointFeature(feature: GeoJSONVTInternalPointFeature | GeoJSONVTInternalMultiPointFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType) {
     const geom: number[] = [];
 
-    clipPoints(feature.geometry, geom, k1, k2, axis);
+    clipPoints(feature.geometry, geom, start, end, axis);
     if (!geom.length) return;
 
     const type = geom.length === 3 ? 'Point' : 'MultiPoint';
     clipped.push(createFeature(feature.id, type, geom, feature.tags));
 }
 
-function clipLineStringFeature(feature: GeoJSONVTInternalLineStringFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number, options: GeoJSONVTOptions) {
+function clipLineStringFeature(feature: GeoJSONVTInternalLineStringFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType, options: GeoJSONVTOptions) {
     const geom: StartEndSizeArray[] = [];
 
-    clipLine(feature.geometry, geom, k1, k2, axis, false, options.lineMetrics);
+    clipLine(feature.geometry, geom, start, end, axis, false, options.lineMetrics);
     if (!geom.length) return;
 
     if (options.lineMetrics) {
@@ -104,10 +114,10 @@ function clipLineStringFeature(feature: GeoJSONVTInternalLineStringFeature, clip
     clipped.push(createFeature(feature.id, 'LineString', geom[0], feature.tags));
 }
 
-function clipMultiLineStringFeature(feature: GeoJSONVTInternalMultiLineStringFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+function clipMultiLineStringFeature(feature: GeoJSONVTInternalMultiLineStringFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType) {
     const geom: StartEndSizeArray[] = [];
 
-    clipLines(feature.geometry, geom, k1, k2, axis, false);
+    clipLines(feature.geometry, geom, start, end, axis, false);
     if (!geom.length) return;
 
     if (geom.length === 1) {
@@ -118,22 +128,22 @@ function clipMultiLineStringFeature(feature: GeoJSONVTInternalMultiLineStringFea
     clipped.push(createFeature(feature.id,'MultiLineString', geom, feature.tags));
 }
 
-function clipPolygonFeature(feature: GeoJSONVTInternalPolygonFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+function clipPolygonFeature(feature: GeoJSONVTInternalPolygonFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType) {
     const geom: StartEndSizeArray[] = [];
 
-    clipLines(feature.geometry, geom, k1, k2, axis, true);
+    clipLines(feature.geometry, geom, start, end, axis, true);
     if (!geom.length) return;
 
     clipped.push(createFeature(feature.id, 'Polygon', geom, feature.tags));
 }
 
-function clipMultiPolygonFeature(feature: GeoJSONVTInternalMultiPolygonFeature, clipped: GeoJSONVTInternalFeature[], k1: number, k2: number, axis: number) {
+function clipMultiPolygonFeature(feature: GeoJSONVTInternalMultiPolygonFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType) {
     const geom: StartEndSizeArray[][] = [];
 
     for (const polygon of feature.geometry) {
         const newPolygon: StartEndSizeArray[] = [];
 
-        clipLines(polygon, newPolygon, k1, k2, axis, true);
+        clipLines(polygon, newPolygon, start, end, axis, true);
         if (!newPolygon.length) continue;
 
         geom.push(newPolygon);
@@ -143,20 +153,20 @@ function clipMultiPolygonFeature(feature: GeoJSONVTInternalMultiPolygonFeature, 
     clipped.push(createFeature(feature.id, 'MultiPolygon', geom, feature.tags));
 }
 
-function clipPoints(geom: number[], newGeom: number[], k1: number, k2: number, axis: number) {
+function clipPoints(geom: number[], newGeom: number[], start: number, end: number, axis: AxisType) {
     for (let i = 0; i < geom.length; i += 3) {
         const a = geom[i + axis];
 
-        if (a >= k1 && a <= k2) {
+        if (a >= start && a <= end) {
             addPoint(newGeom, geom[i], geom[i + 1], geom[i + 2]);
         }
     }
 }
 
-function clipLine(geom: StartEndSizeArray, newGeom: StartEndSizeArray[], k1: number, k2: number, axis: number, isPolygon: boolean, trackMetrics: boolean) {
+function clipLine(geom: StartEndSizeArray, newGeom: StartEndSizeArray[], start: number, end: number, axis: AxisType, isPolygon: boolean, trackMetrics: boolean) {
 
     let slice = newSlice(geom);
-    const intersect = axis === 0 ? intersectX : intersectY;
+    const intersect = axis === AxisType.X ? intersectX : intersectY;
     let len = geom.start;
     let segLen, t;
 
@@ -166,37 +176,37 @@ function clipLine(geom: StartEndSizeArray, newGeom: StartEndSizeArray[], k1: num
         const az = geom[i + 2];
         const bx = geom[i + 3];
         const by = geom[i + 4];
-        const a = axis === 0 ? ax : ay;
-        const b = axis === 0 ? bx : by;
+        const a = axis === AxisType.X ? ax : ay;
+        const b = axis === AxisType.X ? bx : by;
         let exited = false;
 
         if (trackMetrics) segLen = Math.sqrt(Math.pow(ax - bx, 2) + Math.pow(ay - by, 2));
 
-        if (a < k1) {
+        if (a < start) {
             // ---|-->  | (line enters the clip region from the left)
-            if (b > k1) {
-                t = intersect(slice, ax, ay, bx, by, k1);
+            if (b > start) {
+                t = intersect(slice, ax, ay, bx, by, start);
                 if (trackMetrics) slice.start = len + segLen * t;
             }
-        } else if (a > k2) {
+        } else if (a > end) {
             // |  <--|--- (line enters the clip region from the right)
-            if (b < k2) {
-                t = intersect(slice, ax, ay, bx, by, k2);
+            if (b < end) {
+                t = intersect(slice, ax, ay, bx, by, end);
                 if (trackMetrics) slice.start = len + segLen * t;
             }
         } else {
             addPoint(slice, ax, ay, az);
         }
 
-        if (b < k1 && a >= k1) {
+        if (b < start && a >= start) {
             // <--|---  | or <--|-----|--- (line exits the clip region on the left)
-            t = intersect(slice, ax, ay, bx, by, k1);
+            t = intersect(slice, ax, ay, bx, by, start);
             exited = true;
         }
 
-        if (b > k2 && a <= k2) {
+        if (b > end && a <= end) {
             // |  ---|--> or ---|-----|--> (line exits the clip region on the right)
-            t = intersect(slice, ax, ay, bx, by, k2);
+            t = intersect(slice, ax, ay, bx, by, end);
             exited = true;
         }
 
@@ -214,8 +224,8 @@ function clipLine(geom: StartEndSizeArray, newGeom: StartEndSizeArray[], k1: num
     const ax = geom[last];
     const ay = geom[last + 1];
     const az = geom[last + 2];
-    const a = axis === 0 ? ax : ay;
-    if (a >= k1 && a <= k2) addPoint(slice, ax, ay, az);
+    const a = axis === AxisType.X ? ax : ay;
+    if (a >= start && a <= end) addPoint(slice, ax, ay, az);
 
     // close the polygon if its endpoints are not the same after clipping
     last = slice.length - 3;
@@ -237,9 +247,9 @@ function newSlice(line: StartEndSizeArray): StartEndSizeArray {
     return slice;
 }
 
-function clipLines(geom: StartEndSizeArray[], newGeom: StartEndSizeArray[], k1: number, k2: number, axis: number, isPolygon: boolean) {
+function clipLines(geom: StartEndSizeArray[], newGeom: StartEndSizeArray[], start: number, end: number, axis: AxisType, isPolygon: boolean) {
     for (const line of geom) {
-        clipLine(line, newGeom, k1, k2, axis, isPolygon, false);
+        clipLine(line, newGeom, start, end, axis, isPolygon, false);
     }
 }
 

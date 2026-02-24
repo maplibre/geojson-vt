@@ -1,4 +1,4 @@
-import { clip } from "./clip";
+import { AxisType, clip } from "./clip";
 import { createTile } from "./tile";
 import { transformTile } from "./transform";
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, ClusterOrPointFeature, GeoJSONVTTileIndex, GeoJSONVTInternalTile, GeoJSONVTTile } from "./definitions";
@@ -205,17 +205,17 @@ export class TileIndex implements GeoJSONVTTileIndex {
             let tr = null;
             let br = null;
 
-            const left  = clip(features, z2, x - k1, x + k3, 0, tile.minX, tile.maxX, options);
-            const right = clip(features, z2, x + k2, x + k4, 0, tile.minX, tile.maxX, options);
+            const left  = clip(features, z2, x - k1, x + k3, AxisType.X, tile.minX, tile.maxX, options);
+            const right = clip(features, z2, x + k2, x + k4, AxisType.X, tile.minX, tile.maxX, options);
 
             if (left) {
-                tl = clip(left, z2, y - k1, y + k3, 1, tile.minY, tile.maxY, options);
-                bl = clip(left, z2, y + k2, y + k4, 1, tile.minY, tile.maxY, options);
+                tl = clip(left, z2, y - k1, y + k3, AxisType.Y, tile.minY, tile.maxY, options);
+                bl = clip(left, z2, y + k2, y + k4, AxisType.Y, tile.minY, tile.maxY, options);
             }
 
             if (right) {
-                tr = clip(right, z2, y - k1, y + k3, 1, tile.minY, tile.maxY, options);
-                br = clip(right, z2, y + k2, y + k4, 1, tile.minY, tile.maxY, options);
+                tr = clip(right, z2, y - k1, y + k3, AxisType.Y, tile.minY, tile.maxY, options);
+                br = clip(right, z2, y + k2, y + k4, AxisType.Y, tile.minY, tile.maxY, options);
             }
 
             if (debug > 1) console.timeEnd('clipping');
