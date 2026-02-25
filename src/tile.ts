@@ -1,6 +1,7 @@
 import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTOptions, StartEndSizeArray } from "./definitions";
 
-
+export const GEOJSONVT_CLIP_START = 'geojsonvt_clip_start';
+export const GEOJSONVT_CLIP_END = 'geojsonvt_clip_end';
 
 /**
  * Creates a tile object from the given features
@@ -88,8 +89,8 @@ function addLineTileFeautre(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInter
     if (options.lineMetrics) {
         tags = {};
         for (const key in feature.tags) tags[key] = feature.tags[key];
-        tags['geojsonvt_clip_start'] = feature.geometry.start / feature.geometry.size;
-        tags['geojsonvt_clip_end'] = feature.geometry.end / feature.geometry.size;
+        tags[GEOJSONVT_CLIP_START] = feature.geometry.start / feature.geometry.size;
+        tags[GEOJSONVT_CLIP_END] = feature.geometry.end / feature.geometry.size;
     }
     const tileFeature: GeoJSONVTInternalTileFeature = {
         type: 2,
