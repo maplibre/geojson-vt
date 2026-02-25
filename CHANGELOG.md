@@ -5,6 +5,12 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
+- Export geojsonvt clip start and end values ([#61](https://github.com/maplibre/geojson-vt/pull/61)) (by [HarelM](https://github.com/HarelM))
+## 6.0.1
+### ✨ Features and improvements
+
+### 🐞 Bug fixes
+
 ## 6.0.0
 
 ### ✨ Features and improvements
