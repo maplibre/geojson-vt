@@ -63,7 +63,7 @@ var tileIndex = new GeoJSONVT(data, {
 	lineMetrics: false, // whether to enable line metrics tracking for LineString/MultiLineString features
 	promoteId: null,    // name of a feature property to promote to feature.id. Cannot be used with `generateId`
 	generateId: false,  // whether to generate feature ids. Cannot be used with `promoteId`
-	updateable: false,  // whether the tile index can be updated (with the caveat of a stored simplified copy)
+	updateable: true,   // whether the tile index can be updated (with the caveat of a stored simplified copy)
 	indexMaxZoom: 5,       // max zoom in the initial tile index
 	indexMaxPoints: 100000 // max number of points per tile in the index
 });
