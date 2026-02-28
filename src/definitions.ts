@@ -45,7 +45,7 @@ export type GeoJSONVTOptions = {
     generateId?: boolean;
     /**
      * Whether geojson can be updated (with caveat of a stored simplified copy)
-     * @default false
+     * @default true
      */
     updateable?: boolean;
     /**
