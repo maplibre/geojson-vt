@@ -16,7 +16,7 @@ export const defaultOptions: GeoJSONVTOptions = {
     lineMetrics: false,
     promoteId: null,
     generateId: false,
-    updateable: false,
+    updateable: true,
     cluster: false,
     clusterOptions: defaultClusterOptions,
     debug: 0

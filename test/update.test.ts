@@ -1,11 +1,11 @@
 import {test, expect} from 'vitest';
 import {GeoJSONVT, type ClusterProperties } from '../src';
 
-test('updateData: requires updateable option', () => {
+test('updateData: requires updateable option set to true', () => {
     const index = new GeoJSONVT({
         type: 'FeatureCollection' as const,
         features: []
-    });
+    }, {updateable: false});
 
     expect(() => {
         index.updateData({add: [], remove: []});
