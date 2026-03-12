@@ -5,6 +5,12 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
+## 6.0.2
+
+### 🐞 Bug fixes
+
+- Fix for getTile when cluster index was not initialized ([#70](https://github.com/maplibre/geojson-vt/pull/70)) (by [@HarelM](https://github.com/HarelM))
+
 ## 6.0.1
 
 ### ✨ Features and improvements
