@@ -247,6 +247,9 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
      */
     getTile(z: number, x: number, y: number): GeoJSONVTTile | null {
         const tree = this.trees[this.limitZoom(z)];
+        if (!tree) {
+            return null;
+        }
         const z2 = Math.pow(2, z);
         const {extent, radius} = this.options;
         const p = radius / extent;

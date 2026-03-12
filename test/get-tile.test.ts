@@ -11,6 +11,24 @@ const square = [{
     id: '42'
 }];
 
+test('getTile: empty cluster should return null', () => {
+    const index = new GeoJSONVT({
+        type: 'FeatureCollection',
+        features: []
+    }, { cluster: true });
+
+    expect(index.getTile(0, 0, 0)).toBeNull();
+});
+
+test('getTile: empty index should return null', () => {
+    const index = new GeoJSONVT({
+        type: 'FeatureCollection',
+        features: []
+    });
+
+    expect(index.getTile(0, 0, 0)).toBeNull();
+});
+
 test('getTile: us-states.json', () => {
     const log = console.log;
 
