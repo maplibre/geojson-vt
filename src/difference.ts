@@ -115,62 +115,77 @@ export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: Ge
 
     if (diff.update.size) {
         for (const [id, update] of diff.update) {
-
-            const changeGeometry = !!update.newGeometry;
-            const changeProps =
-                update.removeAllProperties ||
-                update.removeProperties?.length > 0 ||
-                update.addOrUpdateProperties?.length > 0;
-
-            if (!changeGeometry && !changeProps) {
-                continue;
-            }
-            const featureIndexes: number[] = [];
-            source.reduce((acc, feature, index) => {
-                if (feature.id === id) {
-                    acc.push(index);
-                }
-                return acc;
-            }, featureIndexes);
-            if (featureIndexes.length == 0) {
-                continue;
-            }
-
-            const feature = source[featureIndexes[0]];
-
-            const updatedFeatures = getUpdatedFeatures(feature, update, options, changeGeometry, changeProps);
-            // Track both features for invalidation
-            affected.push(feature, ...updatedFeatures);
-
-            if (featureIndexes.length == updatedFeatures.length) {
-                for (let i = 0; i < featureIndexes.length; i++) {
-                    source[featureIndexes[i]] = updatedFeatures[i];
-                }
-                continue;
-            }
-
-            if (featureIndexes.length > updatedFeatures.length) {
-                let i = 0;
-                for (; i < updatedFeatures.length; i++) {
-                    source[featureIndexes[i]] = updatedFeatures[i];
-                }
-                for (; i < featureIndexes.length; i++) {
-                    source.splice(featureIndexes[i], 1);
-                }
-                continue;
-            }
-            // more updated features than old features
-            let i = 0;
-            for (; i < featureIndexes.length; i++) {
-                source[featureIndexes[i]] = updatedFeatures[i];
-            }
-            for (; i < updatedFeatures.length; i++) {
-                source.push(updatedFeatures[i]);
-            }
+            updateSourceAccordingToUpdatedFeatures(source, affected, update, id, options);
         }
     }
 
     return {affected, source};
+}
+
+/**
+ * This method handles updating the source data based on a single feature update object.
+ * It finds the feature(s) in the source with the same id as the update, applies geometry and/or properties updates,
+ * and tracks both the original and updated features in the affected collection to be used for tile invalidation.
+ * @param source - the source data to update
+ * @param affected - the collection to track affected features to add to
+ * @param update - the update object with new geometry and/or properties
+ * @param id - the id of the feature being updated
+ * @param options - the options to use for the wrap method if geometry is updated
+ */
+function updateSourceAccordingToUpdatedFeatures(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], update: GeoJSONVTFeatureDiff, id: string | number, options: GeoJSONVTOptions) {
+    const changeGeometry = !!update.newGeometry;
+    const changeProps =
+        update.removeAllProperties ||
+        update.removeProperties?.length > 0 ||
+        update.addOrUpdateProperties?.length > 0;
+
+    if (!changeGeometry && !changeProps) {
+        return;
+    }
+    const featureIndexes: number[] = [];
+    source.reduce((acc, feature, index) => {
+        if (feature.id === id) {
+            acc.push(index);
+        }
+        return acc;
+    }, featureIndexes);
+    if (featureIndexes.length == 0) {
+        return;
+    }
+
+    const feature = source[featureIndexes[0]];
+
+    const updatedFeatures = getUpdatedFeatures(feature, update, options, changeGeometry, changeProps);
+    // Track both features for invalidation
+    affected.push(feature, ...updatedFeatures);
+
+    if (featureIndexes.length == updatedFeatures.length) {
+        // same number of features - can do 1:1 update
+        for (let i = 0; i < featureIndexes.length; i++) {
+            source[featureIndexes[i]] = updatedFeatures[i];
+        }
+        return;
+    }
+
+    if (featureIndexes.length > updatedFeatures.length) {
+        // more old features than updated features - update 1:1 until we run out of updated features, then remove the rest of the old features
+        let i = 0;
+        for (; i < updatedFeatures.length; i++) {
+            source[featureIndexes[i]] = updatedFeatures[i];
+        }
+        for (; i < featureIndexes.length; i++) {
+            source.splice(featureIndexes[i], 1);
+        }
+        return;
+    }
+    // more updated features than old features - update 1:1 until we run out of old features, then add the rest of the updated features
+    let i = 0;
+    for (; i < featureIndexes.length; i++) {
+        source[featureIndexes[i]] = updatedFeatures[i];
+    }
+    for (; i < updatedFeatures.length; i++) {
+        source.push(updatedFeatures[i]);
+    }
 }
 
 /**
