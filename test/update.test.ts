@@ -40,6 +40,23 @@ test('updateData: adds new features', () => {
     expect(tile.features.length).toBe(2);
 });
 
+test('updateData: add features with large buffer does not contain duplicates', () => {
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: []}, {updateable: true, buffer: 2048});
+
+    const initialDiff = {
+        add: [{
+            type: 'Feature' as const,
+            id: 1,
+            geometry: {type: 'Point' as const, coordinates: [0, 0]},
+            properties: {name: 'Feature 1'}
+        }]
+    };
+    index.updateData(initialDiff);
+
+    const tile = index.getTile(0, 0, 0);
+    expect(tile.features.length).toBe(1);
+});
+
 test('updateData: removes features by id', () => {
     const initialData = {
         type: 'FeatureCollection' as const,
