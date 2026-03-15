@@ -253,7 +253,7 @@ test('updateData: does nothing in case of wrong feature ID', () => {
         extent: 8192
     });
 
-    let updatedFeature = {
+    const updatedFeature = {
         type: 'Feature' as const,
         id: 1,
         newGeometry: {
