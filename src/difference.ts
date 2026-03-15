@@ -62,60 +62,65 @@ type HashedGeoJSONVTSourceDiff = {
  * @returns 
  */
 export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: GeoJSONVTSourceDiff, options: GeoJSONVTOptions) {
-
     // convert diff to sets/maps for o(1) lookups
     const diff = diffToHashed(dataDiff);
 
-    // collection for features that will be affected by this update
+    // collection for features that will be affected by this update and used to invalidate tiles
     let affected: GeoJSONVTInternalFeature[] = [];
 
-    // full removal - clear everything before applying diff
     if (diff.removeAll) {
         affected = source;
         source = [];
     }
 
-    // remove/add features and collect affected ones
     if (diff.remove.size || diff.add.size) {
         const removeFeatures = [];
 
-        // collect source features to be removed
         for (const feature of source) {
-            const {id} = feature;
-
-            // explicit feature removal
-            if (diff.remove.has(id)) {
+            if (diff.remove.has(feature.id)) {
                 removeFeatures.push(feature);
+                continue;
+            }
             // feature with duplicate id being added
-            } else if (diff.add.has(id)) {
+            if (diff.add.has(feature.id)) {
                 removeFeatures.push(feature);
             }
         }
 
-        // collect affected and remove from source
         if (removeFeatures.length) {
             affected.push(...removeFeatures);
-
             const removeIds = new Set(removeFeatures.map(f => f.id));
             source = source.filter(f => !removeIds.has(f.id));
         }
 
-        // convert and add new features
         if (diff.add.size) {
-            // projects and adds simplification info
             let addFeatures = convertToInternal({type: 'FeatureCollection', features: Array.from(diff.add.values())}, options);
-
-            // wraps features (ie extreme west and extreme east)
             addFeatures = wrap(addFeatures, options);
-
             affected.push(...addFeatures);
             source.push(...addFeatures);
         }
     }
 
     if (diff.update.size) {
+        // Features can be duplicated across the antimeridian (wrap) in a single tile, so must update all instances with the same id
         for (const [id, update] of diff.update) {
-            updateSourceAccordingToUpdatedFeatures(source, affected, update, id, options);
+            const oldFeatures = [];
+            const keepFeatures = [];
+
+            for (const feature of source) {
+                if (feature.id === id) {
+                    oldFeatures.push(feature);
+                } else {
+                    keepFeatures.push(feature);
+                }
+            }
+            if (!oldFeatures.length) continue;
+
+            const updatedFeatures = getUpdatedFeatures(oldFeatures, update, options);
+            if (!updatedFeatures.length) continue;
+
+            affected.push(...oldFeatures, ...updatedFeatures);
+            source = [...keepFeatures, ...updatedFeatures];
         }
     }
 
@@ -123,81 +128,22 @@ export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: Ge
 }
 
 /**
- * This method handles updating the source data based on a single feature update object.
- * It finds the feature(s) in the source with the same id as the update, applies geometry and/or properties updates,
- * and tracks both the original and updated features in the affected collection to be used for tile invalidation.
- * @param source - the source data to update
- * @param affected - the collection to track affected features to add to
- * @param update - the update object with new geometry and/or properties
- * @param id - the id of the feature being updated
- * @param options - the options to use for the wrap method if geometry is updated
+ * Gets updated simplified feature(s) based on a diff update object.
+ * @param vtFeatures - the original features
+ * @param update - the update object to apply
+ * @param options - the options to use for the wrap method
+ * @returns Updated features. If geometry is updated, returns new feature(s) converted from geojson and wrapped. If only properties are updated, returns feature(s) with tags updated.
  */
-function updateSourceAccordingToUpdatedFeatures(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], update: GeoJSONVTFeatureDiff, id: string | number, options: GeoJSONVTOptions) {
+function getUpdatedFeatures(vtFeatures: GeoJSONVTInternalFeature[], update: GeoJSONVTFeatureDiff, options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
     const changeGeometry = !!update.newGeometry;
     const changeProps =
         update.removeAllProperties ||
         update.removeProperties?.length > 0 ||
         update.addOrUpdateProperties?.length > 0;
 
-    if (!changeGeometry && !changeProps) {
-        return;
-    }
-    const featureIndexes: number[] = [];
-    source.reduce((acc, feature, index) => {
-        if (feature.id === id) {
-            acc.push(index);
-        }
-        return acc;
-    }, featureIndexes);
-    if (featureIndexes.length == 0) {
-        return;
-    }
-
-    const feature = source[featureIndexes[0]];
-
-    const updatedFeatures = getUpdatedFeatures(feature, update, options, changeGeometry, changeProps);
-    // Track both features for invalidation
-    affected.push(feature, ...updatedFeatures);
-
-    if (featureIndexes.length == updatedFeatures.length) {
-        // same number of features - can do 1:1 update
-        for (let i = 0; i < featureIndexes.length; i++) {
-            source[featureIndexes[i]] = updatedFeatures[i];
-        }
-        return;
-    }
-
-    if (featureIndexes.length > updatedFeatures.length) {
-        // more old features than updated features - update 1:1 until we run out of updated features, then remove the rest of the old features
-        let i = 0;
-        for (; i < updatedFeatures.length; i++) {
-            source[featureIndexes[i]] = updatedFeatures[i];
-        }
-        for (; i < featureIndexes.length; i++) {
-            source.splice(featureIndexes[i], 1);
-        }
-        return;
-    }
-    // more updated features than old features - update 1:1 until we run out of old features, then add the rest of the updated features
-    let i = 0;
-    for (; i < featureIndexes.length; i++) {
-        source[featureIndexes[i]] = updatedFeatures[i];
-    }
-    for (; i < updatedFeatures.length; i++) {
-        source.push(updatedFeatures[i]);
-    }
-}
-
-/**
- * Gets updated simplified feature(s) based on a diff update object.
- * @param vtFeature - the original feature
- * @param update - the update object to apply
- * @param options - the options to use for the wrap method
- * @returns Updated features. If geometry is updated, returns a new feature converted from geojson and wrapped (maybe more than one). If only properties are updated, returns a single updated feature with tags updated.
- */
-function getUpdatedFeatures(vtFeature: GeoJSONVTInternalFeature, update: GeoJSONVTFeatureDiff, options: GeoJSONVTOptions, changeGeometry: boolean, changeProps: boolean): GeoJSONVTInternalFeature[] {
-    // if geometry changed, need to create new geojson feature and convert to simplified format
+    // if geometry changed, need to create a new geojson feature and convert to internal format
     if (changeGeometry) {
+        const vtFeature = vtFeatures[0];
         const geojsonFeature = {
             type: 'Feature' as const,
             id: vtFeature.id,
@@ -205,19 +151,22 @@ function getUpdatedFeatures(vtFeature: GeoJSONVTInternalFeature, update: GeoJSON
             properties: changeProps ? applyPropertyUpdates(vtFeature.tags, update) : vtFeature.tags
         };
 
-        // projects and adds simplification info
         let features = convertToInternal({type: 'FeatureCollection', features: [geojsonFeature]}, options);
-
-        // wraps features (ie extreme west and extreme east)
         features = wrap(features, options);
-
         return features;
     }
 
-    // only properties changed - update tags directly
-    const feature = {...vtFeature};
-    feature.tags = applyPropertyUpdates(feature.tags, update);
-    return [feature];
+    if (changeProps) {
+        const updated = [];
+        for (const vtFeature of vtFeatures) {
+            const feature = {...vtFeature};
+            feature.tags = applyPropertyUpdates(feature.tags, update);
+            updated.push(feature);
+        }
+        return updated;
+    }
+
+    return [];
 }
 
 /**
