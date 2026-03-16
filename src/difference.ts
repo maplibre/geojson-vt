@@ -47,6 +47,17 @@ export type GeoJSONVTFeatureDiff = {
     }[];
 };
 
+export type ApplySourceDiffResult = {
+    /**
+     * The features affected by this update, which should be used to invalidate tiles
+     */
+    affected: GeoJSONVTInternalFeature[];
+    /**
+     * The updated source data, which should replace the existing source data in the index
+     */
+    source: GeoJSONVTInternalFeature[];
+};
+
 type HashedGeoJSONVTSourceDiff = {
     removeAll?: boolean | undefined;
     remove: Set<string | number>;
@@ -61,7 +72,7 @@ type HashedGeoJSONVTSourceDiff = {
  * @param options 
  * @returns 
  */
-export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: GeoJSONVTSourceDiff, options: GeoJSONVTOptions) {
+export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: GeoJSONVTSourceDiff, options: GeoJSONVTOptions): ApplySourceDiffResult {
     // convert diff to sets/maps for o(1) lookups
     const diff = diffToHashed(dataDiff);
 
