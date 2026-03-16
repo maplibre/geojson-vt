@@ -97,6 +97,179 @@ test('updateData: replaces features with duplicate ids', () => {
     expect(tile.features[0].tags.name).toBe('Updated');
 });
 
+test('updateData: updates a feature coordinates cross the antimeridian', () => {
+    const initialData = {
+        type: 'FeatureCollection' as const,
+        features: [
+            {
+                type: 'Feature' as const,
+                id: 0,
+                geometry: {
+                    type: 'Point' as const, 
+                    coordinates: [0, 0]
+                },
+                properties: {
+                    name: 'Original'
+                }
+            }
+        ]
+    };
+
+    const index = new GeoJSONVT(initialData, {
+        updateable: true,
+        buffer: 2048,
+        extent: 8192
+    });
+
+    const updatedFeature = {
+        type: 'Feature' as const,
+        id: 0,
+        newGeometry: {
+            type: 'Point' as const, 
+            coordinates: [181, 0]
+        },
+        properties: {name: 'Updated'}
+    };
+
+    index.updateData({update: [updatedFeature]});
+
+    const tile = index.getTile(1, 0, 1);
+    expect(tile.features.length).toBe(1);
+});
+
+test('updateData: updates a feature coordinates cross the antimeridian back', () => {
+    const initialData = {
+        type: 'FeatureCollection' as const,
+        features: [
+            {
+                type: 'Feature' as const,
+                id: 0,
+                geometry: {
+                    type: 'Point' as const, 
+                    coordinates: [181, 0]
+                },
+                properties: {
+                    name: 'Original'
+                }
+            }
+        ]
+    };
+
+    const index = new GeoJSONVT(initialData, {
+        updateable: true,
+        buffer: 2048,
+        extent: 8192
+    });
+
+    const updatedFeature = {
+        type: 'Feature' as const,
+        id: 0,
+        newGeometry: {
+            type: 'Point' as const, 
+            coordinates: [0, 0]
+        },
+        properties: {name: 'Updated'}
+    };
+
+    index.updateData({update: [updatedFeature]});
+
+    const tile = index.getTile(1, 0, 1);
+    expect(tile.features.length).toBe(1);
+});
+
+test('updateData: updates a feature multiple do not create duplications in returned tile', () => {
+    const initialData = {
+        type: 'FeatureCollection' as const,
+        features: [
+            {
+                type: 'Feature' as const,
+                id: 0,
+                geometry: {
+                    type: 'Point' as const, 
+                    coordinates: [0, 0]
+                },
+                properties: {
+                    name: 'Original'
+                }
+            }
+        ]
+    };
+
+    const index = new GeoJSONVT(initialData, {
+        updateable: true,
+        buffer: 2048,
+        extent: 8192
+    });
+
+    let updatedFeature = {
+        type: 'Feature' as const,
+        id: 0,
+        newGeometry: {
+            type: 'Point' as const, 
+            coordinates: [181, 0]
+        },
+        properties: {name: 'Updated'}
+    };
+
+    index.updateData({update: [updatedFeature]});
+
+    updatedFeature = {
+        type: 'Feature' as const,
+        id: 0,
+        newGeometry: {
+            type: 'Point' as const, 
+            coordinates: [182, 0]
+        },
+        properties: {name: 'Updated'}
+    };
+
+    index.updateData({update: [updatedFeature]});
+
+    const tile = index.getTile(1, 0, 1);
+    expect(tile.features.length).toBe(1);
+});
+
+test('updateData: does nothing in case of wrong feature ID', () => {
+    const initialData = {
+        type: 'FeatureCollection' as const,
+        features: [
+            {
+                type: 'Feature' as const,
+                id: 0,
+                geometry: {
+                    type: 'Point' as const, 
+                    coordinates: [0, 0]
+                },
+                properties: {
+                    name: 'Original'
+                }
+            }
+        ]
+    };
+
+    const index = new GeoJSONVT(initialData, {
+        updateable: true,
+        buffer: 2048,
+        extent: 8192
+    });
+
+    const updatedFeature = {
+        type: 'Feature' as const,
+        id: 1,
+        newGeometry: {
+            type: 'Point' as const, 
+            coordinates: [181, 0]
+        },
+        properties: {name: 'Updated'}
+    };
+
+    index.updateData({update: [updatedFeature]});
+
+    const tile = index.getTile(1, 0, 1);
+    expect(tile.features.length).toBe(1);
+    expect(tile.features[0].tags.name).toBe('Original');
+});
+
 test('updateData: handles both add and remove in same call', () => {
     const initialData = {
         type: 'FeatureCollection' as const,
