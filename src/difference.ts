@@ -116,7 +116,8 @@ export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: Ge
             if (!updatedFeatures.length) continue;
 
             affected.push(...oldFeatures, ...updatedFeatures);
-            source = [...keepFeatures, ...updatedFeatures];
+            keepFeatures.push(...updatedFeatures);
+            source = keepFeatures;
         }
     }
 
