@@ -76,13 +76,9 @@ export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: Ge
     if (diff.remove.size || diff.add.size) {
         const removeFeatures = [];
 
+        // Collect features to remove (explicit removals + replacements via add)
         for (const feature of source) {
-            if (diff.remove.has(feature.id)) {
-                removeFeatures.push(feature);
-                continue;
-            }
-            // feature with duplicate id being added
-            if (diff.add.has(feature.id)) {
+            if (diff.remove.has(feature.id) || diff.add.has(feature.id)) {
                 removeFeatures.push(feature);
             }
         }
