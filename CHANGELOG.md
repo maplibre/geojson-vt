@@ -5,6 +5,12 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
+- fix: lower TypeScript target to ES2020 for bundler compatibility ([#79](https://github.com/maplibre/geojson-vt/pull/79)) (by [@claudiobgit](https://github.com/claudiobgit))
+## 6.0.4
+### ✨ Features and improvements
+
+### 🐞 Bug fixes
+
 ## 6.0.3
 
 ### 🐞 Bug fixes
