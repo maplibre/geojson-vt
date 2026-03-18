@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "es2022",
-    "target": "esnext",
+    "target": "es2020",
     "moduleResolution": "Bundler",
     "noEmit": true,
     "types": ["geojson", "node"],
