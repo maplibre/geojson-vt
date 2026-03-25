@@ -1,7 +1,7 @@
 
 import {AxisType, clip} from './clip';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
-import {createFeature} from './feature';
+import {createFeature, optimize_lineMemory} from './feature';
 
 export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
     const buffer = options.buffer / options.extent;
@@ -26,9 +26,15 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
     for (const feature of features) {
         switch (feature.type) {
             case 'Point':
-            case 'MultiPoint':
+            case 'MultiPoint': {
+                const newGeometry = shiftPointCoords(feature.geometry, offset);
+
+                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
+                continue;
+            }
+
             case 'LineString': {
-                const newGeometry = shiftCoords(feature.geometry, offset);
+                const newGeometry = shiftLineCoords(feature.geometry, offset);
 
                 newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
                 continue;
@@ -36,9 +42,9 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
 
             case 'MultiLineString':
             case 'Polygon': {
-                const newGeometry = [];
+                const newGeometry: StartEndSizeArray[] = [];
                 for (const line of feature.geometry) {
-                    newGeometry.push(shiftCoords(line, offset));
+                    newGeometry.push(shiftLineCoords(line, offset));
                 }
 
                 newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
@@ -46,11 +52,11 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
             }
 
             case 'MultiPolygon': {
-                const newGeometry = [];
+                const newGeometry: StartEndSizeArray[][] = [];
                 for (const polygon of feature.geometry) {
-                    const newPolygon = [];
+                    const newPolygon: StartEndSizeArray[] = [];
                     for (const line of polygon) {
-                        newPolygon.push(shiftCoords(line, offset));
+                        newPolygon.push(shiftLineCoords(line, offset));
                     }
                     newGeometry.push(newPolygon);
                 }
@@ -64,18 +70,32 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
     return newFeatures;
 }
 
-function shiftCoords(points: StartEndSizeArray, offset: number): number[] | StartEndSizeArray {
-    const newPoints: StartEndSizeArray = [];
-    newPoints.size = points.size;
+function shiftPointCoords(coords: number[], offset: number): number[] {
+    const newCoords: number[] = [];
 
-    if (points.start !== undefined) {
-        newPoints.start = points.start;
-        newPoints.end = points.end;
+    for (let i = 0; i < coords.length; i += 3) {
+        newCoords.push(coords[i] + offset, coords[i + 1], coords[i + 2]);
     }
 
-    for (let i = 0; i < points.length; i += 3) {
-        newPoints.push(points[i] + offset, points[i + 1], points[i + 2]);
+    return newCoords;
+}
+
+function shiftLineCoords(line: StartEndSizeArray, offset: number): StartEndSizeArray {
+    const newLine: StartEndSizeArray = {
+        points: [],
+        size: line.size
+    };
+
+    if (line.start !== undefined) {
+        newLine.start = line.start;
+        newLine.end = line.end;
     }
 
-    return newPoints;
+    for (let i = 0; i < line.points.length; i += 3) {
+        newLine.points.push(line.points[i] + offset, line.points[i + 1], line.points[i + 2]);
+    }
+
+    optimize_lineMemory(newLine);
+
+    return newLine;
 }

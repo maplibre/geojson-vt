@@ -1,5 +1,5 @@
 
-import {createFeature} from './feature';
+import {createFeature, optimize_lineMemory} from './feature';
 import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 
 export const enum AxisType {
@@ -170,12 +170,12 @@ function clipLine(geom: StartEndSizeArray, newGeom: StartEndSizeArray[], start: 
     let len = geom.start;
     let segLen, t;
 
-    for (let i = 0; i < geom.length - 3; i += 3) {
-        const ax = geom[i];
-        const ay = geom[i + 1];
-        const az = geom[i + 2];
-        const bx = geom[i + 3];
-        const by = geom[i + 4];
+    for (let i = 0; i < geom.points.length - 3; i += 3) {
+        const ax = geom.points[i];
+        const ay = geom.points[i + 1];
+        const az = geom.points[i + 2];
+        const bx = geom.points[i + 3];
+        const by = geom.points[i + 4];
         const a = axis === AxisType.X ? ax : ay;
         const b = axis === AxisType.X ? bx : by;
         let exited = false;
@@ -195,7 +195,7 @@ function clipLine(geom: StartEndSizeArray, newGeom: StartEndSizeArray[], start: 
                 if (trackMetrics) slice.start = len + segLen * t;
             }
         } else {
-            addPoint(slice, ax, ay, az);
+            addPoint(slice.points, ax, ay, az);
         }
 
         if (b < start && a >= start) {
@@ -220,31 +220,33 @@ function clipLine(geom: StartEndSizeArray, newGeom: StartEndSizeArray[], start: 
     }
 
     // add the last point
-    let last = geom.length - 3;
-    const ax = geom[last];
-    const ay = geom[last + 1];
-    const az = geom[last + 2];
+    let last = geom.points.length - 3;
+    const ax = geom.points[last];
+    const ay = geom.points[last + 1];
+    const az = geom.points[last + 2];
     const a = axis === AxisType.X ? ax : ay;
-    if (a >= start && a <= end) addPoint(slice, ax, ay, az);
+    if (a >= start && a <= end) addPoint(slice.points, ax, ay, az);
 
     // close the polygon if its endpoints are not the same after clipping
-    last = slice.length - 3;
-    if (isPolygon && last >= 3 && (slice[last] !== slice[0] || slice[last + 1] !== slice[1])) {
-        addPoint(slice, slice[0], slice[1], slice[2]);
+    last = slice.points.length - 3;
+    if (isPolygon && last >= 3 && (slice.points[last] !== slice.points[0] || slice.points[last + 1] !== slice.points[1])) {
+        addPoint(slice.points, slice.points[0], slice.points[1], slice.points[2]);
     }
 
     // add the final slice
-    if (slice.length) {
+    if (slice.points.length) {
+        optimize_lineMemory(slice);
         newGeom.push(slice);
     }
 }
 
 function newSlice(line: StartEndSizeArray): StartEndSizeArray {
-    const slice: StartEndSizeArray = [];
-    slice.size = line.size;
-    slice.start = line.start;
-    slice.end = line.end;
-    return slice;
+    return {
+        points: [],
+        size: line.size,
+        start: line.start,
+        end: line.end
+    };
 }
 
 function clipLines(geom: StartEndSizeArray[], newGeom: StartEndSizeArray[], start: number, end: number, axis: AxisType, isPolygon: boolean) {
@@ -259,12 +261,12 @@ function addPoint(out: number[], x: number, y: number, z: number) {
 
 function intersectX(out: StartEndSizeArray, ax: number, ay: number, bx: number, by: number, x: number) {
     const t = (x - ax) / (bx - ax);
-    addPoint(out, x, ay + (by - ay) * t, 1);
+    addPoint(out.points, x, ay + (by - ay) * t, 1);
     return t;
 }
 
 function intersectY(out: StartEndSizeArray, ax: number, ay: number, bx: number, by: number, y: number) {
     const t = (y - ay) / (by - ay);
-    addPoint(out, ax + (bx - ax) * t, y, 1);
+    addPoint(out.points, ax + (bx - ax) * t, y, 1);
     return t;
 }

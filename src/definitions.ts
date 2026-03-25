@@ -78,7 +78,7 @@ export type GeoJSONToTileOptions = GeoJSONVTOptions & {
     clip?: boolean;
 };
 
-export type StartEndSizeArray = number[] & { start?: number; end?: number; size?: number };
+export type StartEndSizeArray = { points: number[]; start?: number; end?: number; size?: number };
 
 export type PartialGeoJSONVTFeature = {
     id?: number | string | undefined;

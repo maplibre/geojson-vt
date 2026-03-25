@@ -1,4 +1,4 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, StartEndSizeArray } from "./definitions";
 
 type FeatureTypeMap = {
     Point: GeoJSONVTInternalPointFeature["geometry"];
@@ -35,30 +35,39 @@ export function createFeature<T extends GeoJSONVTInternalFeature["type"]>(id: nu
     switch (data.type) {
         case 'Point':
         case 'MultiPoint':
-        case 'LineString':
             calcLineBBox(feature, data.geom);
+            break;
+
+        case 'LineString':
+            calcLineBBox(feature, data.geom.points);
             break;
 
         case 'Polygon':
             // the outer ring (ie [0]) contains all inner rings
-            calcLineBBox(feature, data.geom[0]);
+            calcLineBBox(feature, data.geom[0].points);
             break;
 
         case 'MultiLineString':
             for (const line of data.geom) {
-                calcLineBBox(feature, line);
+                calcLineBBox(feature, line.points);
             }
             break;
 
         case 'MultiPolygon':
             for (const polygon of data.geom) {
                 // the outer ring (ie [0]) contains all inner rings
-                calcLineBBox(feature, polygon[0]);
+                calcLineBBox(feature, polygon[0].points);
             }
             break;
     }
 
     return feature;
+}
+
+export function optimize_lineMemory(line: StartEndSizeArray) {
+    if (line.points.length > 1024) {
+        (line as any).points = new Float64Array(line.points);
+    }
 }
 
 function calcLineBBox(feature: GeoJSONVTInternalFeature, geom: number[]) {

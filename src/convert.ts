@@ -1,6 +1,6 @@
 
 import {simplify} from './simplify';
-import {createFeature} from './feature';
+import {createFeature, optimize_lineMemory} from './feature';
 import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 
 /**
@@ -108,7 +108,7 @@ function convertMultiPointFeature(features: GeoJSONVTInternalFeature[], id: numb
 }
 
 function convertLineStringFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, geom: GeoJSON.LineString, tolerance: number, properties: GeoJSON.GeoJsonProperties) {
-    const out: StartEndSizeArray = [];
+    const out: StartEndSizeArray = {points: []};
     convertLine(geom.coordinates, out, tolerance, false);
     features.push(createFeature(id, 'LineString', out, properties));
 }
@@ -117,7 +117,7 @@ function convertMultiLineStringFeature(features: GeoJSONVTInternalFeature[], id:
     if (options.lineMetrics) {
         // explode into linestrings to be able to track metrics
         for (const line of geom.coordinates) {
-            const out: StartEndSizeArray = [];
+            const out: StartEndSizeArray = {points: []};
             convertLine(line, out, tolerance, false);
             features.push(createFeature(id, 'LineString', out, properties));
         }
@@ -152,7 +152,7 @@ function convertLine(ring: GeoJSON.Position[], out: StartEndSizeArray, tolerance
         const x = projectX(ring[j][0]);
         const y = projectY(ring[j][1]);
 
-        out.push(x, y, 0);
+        out.points.push(x, y, 0);
 
         if (j > 0) {
             if (isPolygon) {
@@ -165,11 +165,12 @@ function convertLine(ring: GeoJSON.Position[], out: StartEndSizeArray, tolerance
         y0 = y;
     }
 
-    const last = out.length - 3;
-    out[2] = 1;
-    if (tolerance > 0) simplify(out, 0, last, tolerance);
-    out[last + 2] = 1;
+    const last = out.points.length - 3;
+    out.points[2] = 1;
+    if (tolerance > 0) simplify(out.points, 0, last, tolerance);
+    out.points[last + 2] = 1;
 
+    optimize_lineMemory(out);
     out.size = Math.abs(size);
     out.start = 0;
     out.end = out.size;
@@ -177,7 +178,7 @@ function convertLine(ring: GeoJSON.Position[], out: StartEndSizeArray, tolerance
 
 function convertLines(rings: GeoJSON.Position[][], out: StartEndSizeArray[], tolerance: number, isPolygon: boolean) {
     for (let i = 0; i < rings.length; i++) {
-        const geom: StartEndSizeArray = [];
+        const geom: StartEndSizeArray = {points: []};
         convertLine(rings[i], geom, tolerance, isPolygon);
         out.push(geom);
     }

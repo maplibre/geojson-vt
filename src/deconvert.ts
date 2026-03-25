@@ -41,22 +41,26 @@ function geometryToGeoJSON(feature: GeoJSONVTInternalFeature): GeoJSON.Geometry 
                 coordinates: unprojectPoint(geometry[0], geometry[1])
             };
         case 'MultiPoint':
-        case 'LineString':
             return {
                 type: type,
                 coordinates: unprojectPoints(geometry)
+            };
+        case 'LineString':
+            return {
+                type: type,
+                coordinates: unprojectPoints(geometry.points)
             };
         case 'MultiLineString':
         case 'Polygon':
             return {
                 type: type,
-                coordinates: geometry.map(ring => unprojectPoints(ring))
+                coordinates: geometry.map(ring => unprojectPoints(ring.points))
             };
         case 'MultiPolygon':
             return {
                 type: type,
                 coordinates: geometry.map(polygon =>
-                    polygon.map(ring => unprojectPoints(ring))
+                    polygon.map(ring => unprojectPoints(ring.points))
                 )
             };
     }
