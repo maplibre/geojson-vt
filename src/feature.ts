@@ -1,4 +1,4 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, StartEndSizeArray } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, StartEndSizeArray, StartEndSizeArrayImmutable } from "./definitions";
 
 type FeatureTypeMap = {
     Point: GeoJSONVTInternalPointFeature["geometry"];
@@ -64,13 +64,14 @@ export function createFeature<T extends GeoJSONVTInternalFeature["type"]>(id: nu
     return feature;
 }
 
-export function optimize_lineMemory(line: StartEndSizeArray) {
+export function optimizeLineMemory(line: StartEndSizeArray) {
+    const lineImmutable = line as StartEndSizeArrayImmutable;
     if (line.points.length > 64) {
-        line.points = new Float64Array(line.points);
+        lineImmutable.points = new Float64Array(line.points);
     }
 }
 
-function calcLineBBox(feature: GeoJSONVTInternalFeature, geom: number[]) {
+function calcLineBBox(feature: GeoJSONVTInternalFeature, geom: number[] | Float64Array) {
     for (let i = 0; i < geom.length; i += 3) {
         feature.minX = Math.min(feature.minX, geom[i]);
         feature.minY = Math.min(feature.minY, geom[i + 1]);

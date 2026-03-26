@@ -1,6 +1,6 @@
 
 import {simplify} from './simplify';
-import {createFeature, optimize_lineMemory} from './feature';
+import {createFeature, optimizeLineMemory} from './feature';
 import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray} from './definitions';
 
 /**
@@ -170,7 +170,7 @@ function convertLine(ring: GeoJSON.Position[], out: StartEndSizeArray, tolerance
     if (tolerance > 0) simplify(out.points, 0, last, tolerance);
     out.points[last + 2] = 1;
 
-    optimize_lineMemory(out);
+    optimizeLineMemory(out);
     out.size = Math.abs(size);
     out.start = 0;
     out.end = out.size;

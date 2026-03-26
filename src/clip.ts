@@ -1,6 +1,6 @@
 
-import {createFeature, optimize_lineMemory} from './feature';
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
+import {createFeature, optimizeLineMemory} from './feature';
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, StartEndSizeArray, StartEndSizeArrayImmutable } from './definitions';
 
 export const enum AxisType {
     X = 0,
@@ -163,7 +163,7 @@ function clipPoints(geom: number[], newGeom: number[], start: number, end: numbe
     }
 }
 
-function clipLine(geom: StartEndSizeArray, newGeom: StartEndSizeArray[], start: number, end: number, axis: AxisType, isPolygon: boolean, trackMetrics: boolean) {
+function clipLine(geom: StartEndSizeArrayImmutable, newGeom: StartEndSizeArray[], start: number, end: number, axis: AxisType, isPolygon: boolean, trackMetrics: boolean) {
 
     let slice = newSlice(geom);
     const intersect = axis === AxisType.X ? intersectX : intersectY;
@@ -235,12 +235,12 @@ function clipLine(geom: StartEndSizeArray, newGeom: StartEndSizeArray[], start: 
 
     // add the final slice
     if (slice.points.length) {
-        optimize_lineMemory(slice);
+        optimizeLineMemory(slice);
         newGeom.push(slice);
     }
 }
 
-function newSlice(line: StartEndSizeArray): StartEndSizeArray {
+function newSlice(line: StartEndSizeArrayImmutable): StartEndSizeArray {
     return {
         points: [],
         size: line.size,
@@ -249,7 +249,7 @@ function newSlice(line: StartEndSizeArray): StartEndSizeArray {
     };
 }
 
-function clipLines(geom: StartEndSizeArray[], newGeom: StartEndSizeArray[], start: number, end: number, axis: AxisType, isPolygon: boolean) {
+function clipLines(geom: StartEndSizeArrayImmutable[], newGeom: StartEndSizeArray[], start: number, end: number, axis: AxisType, isPolygon: boolean) {
     for (const line of geom) {
         clipLine(line, newGeom, start, end, axis, isPolygon, false);
     }

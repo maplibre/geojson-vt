@@ -50,7 +50,7 @@
     "build": "rollup -c && tsc -p tsconfig.declaration.json",
     "watch": "rollup -cw",
     "start": "npm run watch",
-    "bench": "tsx bench/benchmark.ts",
+    "bench": "tsx bench/benchmark.ts && tsx --expose-gc bench/memory-bench.ts",
     "docs": "typedoc && mkdir -p docs/debug && cp -r debug/* docs/debug && find docs/debug -name '*.html' -exec sed -i 's|../dist/geojson-vt-dev.js|https://unpkg.com/@maplibre/geojson-vt@latest/dist/geojson-vt.js|g' {} +",
     "prepublishOnly": "npm run test && npm run build"
   },

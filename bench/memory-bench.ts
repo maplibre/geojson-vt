@@ -1,5 +1,4 @@
 /*
- * Run with: tsx --expose-gc bench/clipLineMemory-bench.ts
  * Simulates the behavior of Maplibre using Geojson-vt to load a geojson layer
  * And measure the memory
  */
@@ -8,10 +7,11 @@ import {readFileSync} from 'fs';
 import v8 from 'v8';
 import {GeoJSONVT} from '../src';
 
+console.log('\nMemory benchmark:');
 
 // USA GeoJson from https://eric.clst.org/tech/usgeojson/
 const geojsonData: GeoJSON.FeatureCollection = JSON.parse(readFileSync(new URL('assets/gz_2010_us_outline_500k.json', import.meta.url), 'utf8'));
-console.log(`Loaded ${geojsonData.features.length} features`);
+console.log(`  Loaded ${geojsonData.features.length} features`);
 
 // options:
 const geojsonVtOptions = {
@@ -34,4 +34,4 @@ for (let i=0; i<500; ++i){
 }
 global.gc();
 
-console.log(`memory used: ${Math.round((v8.getHeapStatistics().used_heap_size - size) / 1024)} KB`);
+console.log(`  Memory used: ${Math.round((v8.getHeapStatistics().used_heap_size - size) / 1024)} KB`);

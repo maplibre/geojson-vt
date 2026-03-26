@@ -1,7 +1,7 @@
 
 import {AxisType, clip} from './clip';
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
-import {createFeature, optimize_lineMemory} from './feature';
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray, StartEndSizeArrayImmutable } from './definitions';
+import {createFeature, optimizeLineMemory} from './feature';
 
 export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
     const buffer = options.buffer / options.extent;
@@ -42,7 +42,7 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
 
             case 'MultiLineString':
             case 'Polygon': {
-                const newGeometry: StartEndSizeArray[] = [];
+                const newGeometry: StartEndSizeArrayImmutable[] = [];
                 for (const line of feature.geometry) {
                     newGeometry.push(shiftLineCoords(line, offset));
                 }
@@ -52,9 +52,9 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
             }
 
             case 'MultiPolygon': {
-                const newGeometry: StartEndSizeArray[][] = [];
+                const newGeometry: StartEndSizeArrayImmutable[][] = [];
                 for (const polygon of feature.geometry) {
-                    const newPolygon: StartEndSizeArray[] = [];
+                    const newPolygon: StartEndSizeArrayImmutable[] = [];
                     for (const line of polygon) {
                         newPolygon.push(shiftLineCoords(line, offset));
                     }
@@ -80,7 +80,7 @@ function shiftPointCoords(coords: number[], offset: number): number[] {
     return newCoords;
 }
 
-function shiftLineCoords(line: StartEndSizeArray, offset: number): StartEndSizeArray {
+function shiftLineCoords(line: StartEndSizeArray | StartEndSizeArrayImmutable, offset: number): StartEndSizeArrayImmutable {
     const newLine: StartEndSizeArray = {
         points: [],
         size: line.size
@@ -95,7 +95,7 @@ function shiftLineCoords(line: StartEndSizeArray, offset: number): StartEndSizeA
         newLine.points.push(line.points[i] + offset, line.points[i + 1], line.points[i + 2]);
     }
 
-    optimize_lineMemory(newLine);
+    optimizeLineMemory(newLine);
 
     return newLine;
 }

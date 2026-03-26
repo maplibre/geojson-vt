@@ -1,4 +1,4 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTOptions, StartEndSizeArray } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTOptions, StartEndSizeArrayImmutable } from "./definitions";
 
 export const GEOJSONVT_CLIP_START = 'geojsonvt_clip_start';
 export const GEOJSONVT_CLIP_END = 'geojsonvt_clip_end';
@@ -140,7 +140,7 @@ function addMultiPolygonTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSO
     tile.features.push(tileFeature);
 }
 
-function addLine(result: number[][], geom: StartEndSizeArray, tile: GeoJSONVTInternalTile, tolerance: number, isPolygon: boolean, isOuter: boolean) {
+function addLine(result: number[][], geom: StartEndSizeArrayImmutable, tile: GeoJSONVTInternalTile, tolerance: number, isPolygon: boolean, isOuter: boolean) {
     const sqTolerance = tolerance * tolerance;
 
     if (tolerance > 0 && (geom.size < (isPolygon ? sqTolerance : tolerance))) {

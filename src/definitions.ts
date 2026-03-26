@@ -78,7 +78,9 @@ export type GeoJSONToTileOptions = GeoJSONVTOptions & {
     clip?: boolean;
 };
 
-export type StartEndSizeArray = { points: number[] | Float64Array; start?: number; end?: number; size?: number };
+export type StartEndSizeArray = { points: number[]; start?: number; end?: number; size?: number };
+
+export type StartEndSizeArrayImmutable = { points: number[] | Float64Array; start?: number; end?: number; size?: number };
 
 export type PartialGeoJSONVTFeature = {
     id?: number | string | undefined;
@@ -101,22 +103,22 @@ export type GeoJSONVTInternalMultiPointFeature = PartialGeoJSONVTFeature & {
 
 export type GeoJSONVTInternalLineStringFeature = PartialGeoJSONVTFeature & {
     type: 'LineString';
-    geometry: StartEndSizeArray;
+    geometry: StartEndSizeArrayImmutable;
 };
 
 export type GeoJSONVTInternalMultiLineStringFeature = PartialGeoJSONVTFeature & {
     type: 'MultiLineString';
-    geometry: StartEndSizeArray[];
+    geometry: StartEndSizeArrayImmutable[];
 };
 
 export type GeoJSONVTInternalPolygonFeature = PartialGeoJSONVTFeature & {
     type: 'Polygon';
-    geometry: StartEndSizeArray[];
+    geometry: StartEndSizeArrayImmutable[];
 };
 
 export type GeoJSONVTInternalMultiPolygonFeature = PartialGeoJSONVTFeature & {
     type: 'MultiPolygon';
-    geometry: StartEndSizeArray[][];
+    geometry: StartEndSizeArrayImmutable[][];
 };
 
 export type GeoJSONVTInternalFeature =
