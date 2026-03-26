@@ -66,7 +66,7 @@ function geometryToGeoJSON(feature: GeoJSONVTInternalFeature): GeoJSON.Geometry 
     }
 }
 
-export function unprojectPoints(coords: number[]): GeoJSON.Position[] {
+export function unprojectPoints(coords: number[] | Float64Array): GeoJSON.Position[] {
     const result: GeoJSON.Position[] = [];
 
     for (let i = 0; i < coords.length; i += 3) {
