@@ -65,7 +65,7 @@ export function createFeature<T extends GeoJSONVTInternalFeature["type"]>(id: nu
 }
 
 export function optimize_lineMemory(line: StartEndSizeArray) {
-    if (line.points.length > 1024) {
+    if (line.points.length > 64) {
         (line as any).points = new Float64Array(line.points);
     }
 }

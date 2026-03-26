@@ -1,40 +1,37 @@
+/*
+ * Run with: tsx --expose-gc bench/clipLineMemory-bench.ts
+ * Simulates the behavior of Maplibre using Geojson-vt to load a geojson layer
+ * And measure the memory
+ */
 
+import {readFileSync} from 'fs';
 import v8 from 'v8';
-import {Supercluster} from '../src';
+import {GeoJSONVT} from '../src';
+
 
 // USA GeoJson from https://eric.clst.org/tech/usgeojson/
+const geojsonData: GeoJSON.FeatureCollection = JSON.parse(readFileSync(new URL('assets/gz_2010_us_outline_500k.json', import.meta.url), 'utf8'));
+console.log(`Loaded ${geojsonData.features.length} features`);
 
-const points: GeoJSON.Feature<GeoJSON.Point, {index: number}>[] = [];
-for (let i = 0; i < 1000000; i++) {
-    points.push({
-        type: 'Feature',
-        properties: {
-            index: i
-        },
-        geometry: {
-            type: 'Point',
-            coordinates: [
-                -180 + 360 * Math.random(),
-                -80 + 160 * Math.random()
-            ]
-        }
-    });
-}
+// options:
+const geojsonVtOptions = {
+    buffer: 2048,
+    extent: 8192,
+    generateId: false,
+    lineMetrics: false,
+    maxZoom: 18,
+    tolerance: 6
+};
+
 
 declare const global: typeof globalThis & { gc: () => void };
 
 global.gc();
+const indices = [];
 const size = v8.getHeapStatistics().used_heap_size;
-
-const index = new Supercluster({
-    log: true,
-    maxZoom: 6,
-    // map: props => ({sum: props.index}),
-    // reduce: (accumulated, props) => { accumulated.sum += props.sum; }
-})
-index.load(points);
-
+for (let i=0; i<500; ++i){
+    indices.push(new GeoJSONVT(geojsonData, geojsonVtOptions));
+}
 global.gc();
-console.log(`memory used: ${Math.round((v8.getHeapStatistics().used_heap_size - size) / 1024)} KB`);
 
-index.getClusters([-180, -90, 180, 90], 0).map(f => JSON.stringify(f.properties));
+console.log(`memory used: ${Math.round((v8.getHeapStatistics().used_heap_size - size) / 1024)} KB`);
