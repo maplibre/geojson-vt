@@ -1,4 +1,4 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, StartEndSizeArray, StartEndSizeArrayImmutable } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, SliceArray, SliceFixedArray } from "./definitions";
 
 type FeatureTypeMap = {
     Point: GeoJSONVTInternalPointFeature["geometry"];
@@ -64,8 +64,8 @@ export function createFeature<T extends GeoJSONVTInternalFeature["type"]>(id: nu
     return feature;
 }
 
-export function optimizeLineMemory(line: StartEndSizeArray) {
-    const lineImmutable = line as StartEndSizeArrayImmutable;
+export function optimizeLineMemory(line: SliceArray) {
+    const lineImmutable = line as SliceFixedArray;
     if (line.points.length > 64) {
         lineImmutable.points = new Float64Array(line.points);
     }

@@ -1,6 +1,6 @@
 
 import {AxisType, clip} from './clip';
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray, StartEndSizeArrayImmutable } from './definitions';
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, SliceArray, SliceFixedArray } from './definitions';
 import {createFeature, optimizeLineMemory} from './feature';
 
 export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
@@ -42,7 +42,7 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
 
             case 'MultiLineString':
             case 'Polygon': {
-                const newGeometry: StartEndSizeArrayImmutable[] = [];
+                const newGeometry: SliceFixedArray[] = [];
                 for (const line of feature.geometry) {
                     newGeometry.push(shiftLineCoords(line, offset));
                 }
@@ -52,9 +52,9 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
             }
 
             case 'MultiPolygon': {
-                const newGeometry: StartEndSizeArrayImmutable[][] = [];
+                const newGeometry: SliceFixedArray[][] = [];
                 for (const polygon of feature.geometry) {
-                    const newPolygon: StartEndSizeArrayImmutable[] = [];
+                    const newPolygon: SliceFixedArray[] = [];
                     for (const line of polygon) {
                         newPolygon.push(shiftLineCoords(line, offset));
                     }
@@ -80,8 +80,8 @@ function shiftPointCoords(coords: number[], offset: number): number[] {
     return newCoords;
 }
 
-function shiftLineCoords(line: StartEndSizeArray | StartEndSizeArrayImmutable, offset: number): StartEndSizeArrayImmutable {
-    const newLine: StartEndSizeArray = {
+function shiftLineCoords(line: SliceArray | SliceFixedArray, offset: number): SliceFixedArray {
+    const newLine: SliceArray = {
         points: [],
         size: line.size
     };

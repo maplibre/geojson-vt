@@ -78,9 +78,9 @@ export type GeoJSONToTileOptions = GeoJSONVTOptions & {
     clip?: boolean;
 };
 
-export type StartEndSizeArray = { points: number[]; start?: number; end?: number; size?: number };
+export type SliceArray = { points: number[]; start?: number; end?: number; size?: number };
 
-export type StartEndSizeArrayImmutable = { points: number[] | Float64Array; start?: number; end?: number; size?: number };
+export type SliceFixedArray = { points: number[] | Float64Array; start?: number; end?: number; size?: number };
 
 export type PartialGeoJSONVTFeature = {
     id?: number | string | undefined;
@@ -103,22 +103,22 @@ export type GeoJSONVTInternalMultiPointFeature = PartialGeoJSONVTFeature & {
 
 export type GeoJSONVTInternalLineStringFeature = PartialGeoJSONVTFeature & {
     type: 'LineString';
-    geometry: StartEndSizeArrayImmutable;
+    geometry: SliceFixedArray;
 };
 
 export type GeoJSONVTInternalMultiLineStringFeature = PartialGeoJSONVTFeature & {
     type: 'MultiLineString';
-    geometry: StartEndSizeArrayImmutable[];
+    geometry: SliceFixedArray[];
 };
 
 export type GeoJSONVTInternalPolygonFeature = PartialGeoJSONVTFeature & {
     type: 'Polygon';
-    geometry: StartEndSizeArrayImmutable[];
+    geometry: SliceFixedArray[];
 };
 
 export type GeoJSONVTInternalMultiPolygonFeature = PartialGeoJSONVTFeature & {
     type: 'MultiPolygon';
-    geometry: StartEndSizeArrayImmutable[][];
+    geometry: SliceFixedArray[][];
 };
 
 export type GeoJSONVTInternalFeature =
