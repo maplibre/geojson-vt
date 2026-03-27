@@ -1,4 +1,4 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, SliceArray, SliceFixedArray } from "./definitions";
 
 type FeatureTypeMap = {
     Point: GeoJSONVTInternalPointFeature["geometry"];
@@ -35,25 +35,28 @@ export function createFeature<T extends GeoJSONVTInternalFeature["type"]>(id: nu
     switch (data.type) {
         case 'Point':
         case 'MultiPoint':
-        case 'LineString':
             calcLineBBox(feature, data.geom);
+            break;
+
+        case 'LineString':
+            calcLineBBox(feature, data.geom.points);
             break;
 
         case 'Polygon':
             // the outer ring (ie [0]) contains all inner rings
-            calcLineBBox(feature, data.geom[0]);
+            calcLineBBox(feature, data.geom[0].points);
             break;
 
         case 'MultiLineString':
             for (const line of data.geom) {
-                calcLineBBox(feature, line);
+                calcLineBBox(feature, line.points);
             }
             break;
 
         case 'MultiPolygon':
             for (const polygon of data.geom) {
                 // the outer ring (ie [0]) contains all inner rings
-                calcLineBBox(feature, polygon[0]);
+                calcLineBBox(feature, polygon[0].points);
             }
             break;
     }
@@ -61,7 +64,14 @@ export function createFeature<T extends GeoJSONVTInternalFeature["type"]>(id: nu
     return feature;
 }
 
-function calcLineBBox(feature: GeoJSONVTInternalFeature, geom: number[]) {
+export function optimizeLineMemory(line: SliceArray) {
+    const lineImmutable = line as SliceFixedArray;
+    if (line.points.length > 64) {
+        lineImmutable.points = new Float64Array(line.points);
+    }
+}
+
+function calcLineBBox(feature: GeoJSONVTInternalFeature, geom: number[] | Float64Array) {
     for (let i = 0; i < geom.length; i += 3) {
         feature.minX = Math.min(feature.minX, geom[i]);
         feature.minY = Math.min(feature.minY, geom[i + 1]);

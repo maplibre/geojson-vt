@@ -61,7 +61,7 @@ test('featureToGeoJSON: converts LineString geometry', () => {
     const feature: GeoJSONVTInternalFeature = {
         type: 'LineString',
         id: 'line1',
-        geometry: [0.5, 0.5, 0, 0.525, 0.5, 0, 0.525, 0.525, 0],
+        geometry: {points: [0.5, 0.5, 0, 0.525, 0.5, 0, 0.525, 0.525, 0]},
         tags: {highway: 'primary'},
         minX: 0.5, minY: 0.5, maxX: 0.525, maxY: 0.525
     };
@@ -77,8 +77,8 @@ test('featureToGeoJSON: converts MultiLineString geometry', () => {
         type: 'MultiLineString',
         id: 'multiline1',
         geometry: [
-            [0.5, 0.5, 0, 0.525, 0.5, 0],
-            [0.55, 0.55, 0, 0.575, 0.55, 0]
+            {points: [0.5, 0.5, 0, 0.525, 0.5, 0]},
+            {points: [0.55, 0.55, 0, 0.575, 0.55, 0]}
         ],
         tags: {},
         minX: 0.5, minY: 0.5, maxX: 0.575, maxY: 0.55
@@ -95,8 +95,8 @@ test('featureToGeoJSON: converts Polygon geometry', () => {
         type: 'Polygon',
         id: 'polygon1',
         geometry: [
-            [0.5, 0.5, 0, 0.6, 0.5, 0, 0.6, 0.6, 0, 0.5, 0.6, 0, 0.5, 0.5, 0],
-            [0.52, 0.52, 0, 0.58, 0.52, 0, 0.58, 0.58, 0, 0.52, 0.58, 0, 0.52, 0.52, 0]
+            {points: [0.5, 0.5, 0, 0.6, 0.5, 0, 0.6, 0.6, 0, 0.5, 0.6, 0, 0.5, 0.5, 0]},
+            {points: [0.52, 0.52, 0, 0.58, 0.52, 0, 0.58, 0.58, 0, 0.52, 0.58, 0, 0.52, 0.52, 0]}
         ],
         tags: {landuse: 'residential'},
         minX: 0.5, minY: 0.5, maxX: 0.6, maxY: 0.6
@@ -113,8 +113,8 @@ test('featureToGeoJSON: converts MultiPolygon geometry', () => {
         type: 'MultiPolygon',
         id: 'multipolygon1',
         geometry: [
-            [[0.5, 0.5, 0, 0.52, 0.5, 0, 0.52, 0.52, 0, 0.5, 0.52, 0, 0.5, 0.5, 0]],
-            [[0.55, 0.55, 0, 0.57, 0.55, 0, 0.57, 0.57, 0, 0.55, 0.57, 0, 0.55, 0.55, 0]]
+            [{points: [0.5, 0.5, 0, 0.52, 0.5, 0, 0.52, 0.52, 0, 0.5, 0.52, 0, 0.5, 0.5, 0]}],
+            [{points: [0.55, 0.55, 0, 0.57, 0.55, 0, 0.57, 0.57, 0, 0.55, 0.57, 0, 0.55, 0.55, 0]}]
         ],
         tags: {},
         minX: 0.5, minY: 0.5, maxX: 0.57, maxY: 0.57

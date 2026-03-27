@@ -137,8 +137,8 @@ test('applySourceDiff: updates a feature geometry', () => {
 
     expect(source.length).toBe(1);
     expect(source[0].id).toBe('point');
-    expect(source[0].geometry[0]).toBe(0.5027777777777778);
-    expect(source[0].geometry[1]).toBe(0.5);
+    expect((source[0].geometry as number[])[0]).toBe(0.5027777777777778);
+    expect((source[0].geometry as number[])[1]).toBe(0.5);
 });
 
 test('applySourceDiff: adds properties', () => {
