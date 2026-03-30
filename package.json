@@ -34,7 +34,7 @@
     "@vitest/coverage-v8": "^4.1.1",
     "benchmark": "^2.1.4",
     "eslint": "^10.1.0",
-    "rollup": "^4.60.0",
+    "rollup": "^4.60.1",
     "tslib": "^2.8.1",
     "tsx": "^4.21.0",
     "typedoc": "^0.28.18",
