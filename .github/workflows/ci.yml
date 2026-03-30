@@ -33,7 +33,7 @@ jobs:
         run: npm run docs
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           files: ${{ github.workspace }}/coverage/coverage-final.json
           verbose: true
