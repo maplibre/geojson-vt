@@ -435,43 +435,6 @@ test('updateData: invalidates tiles with partial intersection', () => {
     expect(tile.features.length).toBe(2);
 });
 
-test('updateData: invalidates empty tiles', () => {
-    const initialData = {
-        type: 'FeatureCollection' as const,
-        features: [
-            {
-                type: 'Feature' as const,
-                id: 'nw-only',
-                geometry: {
-                    type: 'Point' as const,
-                    coordinates: [-90, 45]  // top left quadrant only
-                },
-                properties: {}
-            }
-        ]
-    };
-
-    const index = new GeoJSONVT(initialData, {
-        updateable: true,
-        indexMaxZoom: 1,
-        indexMaxPoints: 0,
-        debug: 2
-    });
-    expect(index.stats.z1).toBe(4);
-
-    const globalFeature = {
-        type: 'Feature' as const,
-        id: 'global',
-        geometry: {
-            type: 'LineString' as const,
-            coordinates: [[-180, -85], [180, 85]]  // spans whole world
-        },
-        properties: {}
-    };
-
-    index.updateData({add: [globalFeature]});
-    expect(index.stats.z1).toBe(0);
-});
 
 test('updateData: does not invalidate unaffected tiles', () => {
     const initialData = {

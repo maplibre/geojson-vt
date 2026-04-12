@@ -35,22 +35,6 @@ export class GeoJSONVT {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (this.tileIndex as any)?.tiles ?? {};
     }
-    /** 
-     * @internal
-     * This is for the tests
-     */
-    public get stats() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (this.tileIndex as any).stats;
-    }
-     /** 
-     * @internal
-     * This is for the tests
-     */
-    public get total() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (this.tileIndex as any).total;
-    }
 
     private options: GeoJSONVTOptions;
     
