@@ -5,6 +5,17 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
+## 6.0.5
+
+### ✨ Features and improvements
+
+- Optimization: Dividing memory usage by almost 3 ([#88](https://github.com/maplibre/geojson-vt/pull/88)) (by [@xavierjs](https://github.com/xavierjs))
+
+### 🐞 Bug fixes
+
+- Fix issue with updates related to add with `promoteId` ([#97](https://github.com/maplibre/geojson-vt/pull/97)) (by [@HarelM](https://github.com/HarelM))
+
+
 ## 6.0.4
 
 ### 🐞 Bug fixes
