@@ -12,6 +12,30 @@ test('updateData: requires updateable option', () => {
     }).toThrow();
 });
 
+test('updateData: adds features with unique promote ids to empty index', () => {
+    const featureCollection: GeoJSON.FeatureCollection = {
+        type: "FeatureCollection",
+        features: [
+            {
+                type: "Feature",
+                geometry: { type: "Point", coordinates: [0, 0] },
+                properties: { myId: 1 },
+            },
+            {
+                type: "Feature",
+                geometry: { type: "Point", coordinates: [1, 1] },
+                properties: { myId: 2 },
+            },
+        ],
+    };
+
+    const index = new GeoJSONVT({ type: 'FeatureCollection', features: []}, {updateable: true, promoteId: 'myId'});
+    
+    index.updateData({add: featureCollection.features});
+    const tile = index.getTile(0, 0, 0);
+    expect(tile.features.length).toBe(2);
+});
+
 test('updateData: adds new features', () => {
     const initialData = {
         type: 'FeatureCollection' as const,

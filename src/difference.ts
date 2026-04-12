@@ -74,7 +74,7 @@ type HashedGeoJSONVTSourceDiff = {
  */
 export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: GeoJSONVTSourceDiff, options: GeoJSONVTOptions): ApplySourceDiffResult {
     // convert diff to sets/maps for o(1) lookups
-    const diff = diffToHashed(dataDiff);
+    const diff = diffToHashed(dataDiff, options);
 
     // collection for features that will be affected by this update and used to invalidate tiles
     let affected: GeoJSONVTInternalFeature[] = [];
@@ -205,7 +205,7 @@ function applyPropertyUpdates(tags: GeoJSON.GeoJsonProperties, update: GeoJSONVT
 /**
  * Convert a GeoJSON Source Diff to an idempotent hashed representation using Sets and Maps
  */
-export function diffToHashed(diff: GeoJSONVTSourceDiff): HashedGeoJSONVTSourceDiff {
+export function diffToHashed(diff: GeoJSONVTSourceDiff, options: GeoJSONVTOptions): HashedGeoJSONVTSourceDiff {
     if (!diff) return {
         remove: new Set(),
         add: new Map(),
@@ -215,7 +215,7 @@ export function diffToHashed(diff: GeoJSONVTSourceDiff): HashedGeoJSONVTSourceDi
     const hashed: HashedGeoJSONVTSourceDiff = {
         removeAll: diff.removeAll,
         remove: new Set(diff.remove || []),
-        add: new Map(diff.add?.map(feature => [feature.id, feature])),
+        add: new Map(diff.add?.map(feature => [options.promoteId ? feature.properties[options.promoteId] : feature.id, feature])),
         update: new Map(diff.update?.map(update => [update.id, update]))
     };
 
