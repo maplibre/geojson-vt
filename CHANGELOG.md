@@ -5,6 +5,13 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
+- Improve update perfromance on large arrays ([#99](https://github.com/maplibre/geojson-vt/pull/99)) (by [@HarelM](https://github.com/HarelM))
+- Remove internal exported from geojsonvt API ([#100](https://github.com/maplibre/geojson-vt/pull/100)) (by [@HarelM](https://github.com/HarelM))
+## 6.1.0
+### ✨ Features and improvements
+
+### 🐞 Bug fixes
+
 ## 6.0.5
 
 ### ✨ Features and improvements
