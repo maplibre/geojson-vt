@@ -3,10 +3,7 @@ import {AxisType, clip} from './clip';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 import {createFeature} from './feature';
 
-export function wrap(
-  features: GeoJSONVTInternalFeature[],
-  options: GeoJSONVTOptions,
-): GeoJSONVTInternalFeature[] {
+export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
   if (options.worldCopies) {
     const buffer = options.buffer / options.extent;
     let merged = features;
@@ -47,61 +44,61 @@ export function wrap(
 }
 
 function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number): GeoJSONVTInternalFeature[] {
-  const newFeatures = [];
+    const newFeatures = [];
 
-  for (const feature of features) {
-    switch (feature.type) {
+    for (const feature of features) {
+        switch (feature.type) {
             case 'Point':
             case 'MultiPoint':
             case 'LineString': {
-        const newGeometry = shiftCoords(feature.geometry, offset);
+                const newGeometry = shiftCoords(feature.geometry, offset);
 
                 newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-        continue;
-      }
+                continue;
+            }
 
             case 'MultiLineString':
             case 'Polygon': {
-        const newGeometry = [];
-        for (const line of feature.geometry) {
-          newGeometry.push(shiftCoords(line, offset));
-        }
+                const newGeometry = [];
+                for (const line of feature.geometry) {
+                    newGeometry.push(shiftCoords(line, offset));
+                }
 
                 newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-        continue;
-      }
+                continue;
+            }
 
             case 'MultiPolygon': {
-        const newGeometry = [];
-        for (const polygon of feature.geometry) {
-          const newPolygon = [];
-          for (const line of polygon) {
-            newPolygon.push(shiftCoords(line, offset));
-          }
-          newGeometry.push(newPolygon);
-        }
+                const newGeometry = [];
+                for (const polygon of feature.geometry) {
+                    const newPolygon = [];
+                    for (const line of polygon) {
+                        newPolygon.push(shiftCoords(line, offset));
+                    }
+                    newGeometry.push(newPolygon);
+                }
 
                 newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-        continue;
-      }
+                continue;
+            }
+        }
     }
-  }
 
-  return newFeatures;
+    return newFeatures;
 }
 
 function shiftCoords(points: StartEndSizeArray, offset: number): number[] | StartEndSizeArray {
-  const newPoints: StartEndSizeArray = [];
-  newPoints.size = points.size;
+    const newPoints: StartEndSizeArray = [];
+    newPoints.size = points.size;
 
-  if (points.start !== undefined) {
-    newPoints.start = points.start;
-    newPoints.end = points.end;
-  }
+    if (points.start !== undefined) {
+        newPoints.start = points.start;
+        newPoints.end = points.end;
+    }
 
-  for (let i = 0; i < points.length; i += 3) {
-    newPoints.push(points[i] + offset, points[i + 1], points[i + 2]);
-  }
+    for (let i = 0; i < points.length; i += 3) {
+        newPoints.push(points[i] + offset, points[i + 1], points[i + 2]);
+    }
 
-  return newPoints;
+    return newPoints;
 }
