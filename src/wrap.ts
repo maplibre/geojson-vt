@@ -20,26 +20,20 @@ export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOpt
 
     return merged;
   } else {
-    const result: GeoJSONVTInternalFeature[] = [];
-
-    const center = clip(features, 1, 0, 1, AxisType.X, -1, 2, options);
-    if (center) result.push(...center);
-
     // Prevent duplicates at the antimeridian, because clip()'s bounds are inclusive, 
     // so features with maxX === 1 must be routed to the right pass only.
+    const leftCandidates  = features.filter(f => f.minX < 0);
     const rightCandidates = features.filter(f => f.maxX > 1 || f.minX >= 1);
-    const right = rightCandidates.length
-      ? clip(rightCandidates, 1, 1, 3, AxisType.X, -1, 2, options)
-      : null;
-    if (right) result.push(...shiftFeatureCoords(right, -1));
 
-    const leftCandidates = features.filter(f => f.minX < 0);
-    const left = leftCandidates.length
-      ? clip(leftCandidates, 1, -2, 0, AxisType.X, -1, 2, options)
-      : null;
-    if (left) result.push(...shiftFeatureCoords(left, 1));
+    const left  = leftCandidates.length  ? clip(leftCandidates,  1, -2, 0, AxisType.X, -1, 2, options) : null; // left world copy
+    const right = rightCandidates.length ? clip(rightCandidates, 1,  1, 3, AxisType.X, -1, 2, options) : null; // right world copy
 
-    return result;
+    let merged = clip(features, 1, 0, 1, AxisType.X, -1, 2, options) || []; // center world copy
+
+    if (left) merged = shiftFeatureCoords(left, 1).concat(merged); // merge left into center
+    if (right) merged = merged.concat(shiftFeatureCoords(right, -1)); // merge right into center
+
+    return merged;
   }
 }
 
