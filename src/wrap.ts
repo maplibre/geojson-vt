@@ -28,6 +28,8 @@ export function wrap(
     const center = clip(features, 1, 0, 1, AxisType.X, -1, 2, options);
     if (center) result.push(...center);
 
+    // Filters prevent duplicates at the antimeridian: clip()'s bounds are inclusive, 
+    // so features with maxX === 1 must be routed to the right pass only.
     const rightCandidates = features.filter(f => f.maxX > 1 || f.minX >= 1);
     const right = rightCandidates.length
       ? clip(rightCandidates, 1, 1, 3, AxisType.X, -1, 2, options)

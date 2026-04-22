@@ -54,7 +54,7 @@ export type GeoJSONVTOptions = {
      */
     debug?: number;
     /**
-     * Whether wrapped features should overlap at the antimeridian.
+     * Whether to duplicate features near the antimeridian into adjacent world copies for seamless wrapping.
      * @default true
      */
     worldCopies?: boolean;
