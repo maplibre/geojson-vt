@@ -4,6 +4,7 @@ import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, SliceArray, SliceFixed
 import {createFeature, optimizeLineMemory} from './feature';
 
 export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
+  if (options.worldCopies) {
     const buffer = options.buffer / options.extent;
     let merged = features;
 
@@ -18,6 +19,22 @@ export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOpt
     if (right) merged = merged.concat(shiftFeatureCoords(right, -1)); // merge right into center
 
     return merged;
+  } else {
+    // Prevent duplicates at the antimeridian, because clip()'s bounds are inclusive, 
+    // so features with maxX === 1 must be routed to the right pass only.
+    const leftCandidates  = features.filter(f => f.minX < 0);
+    const rightCandidates = features.filter(f => f.maxX > 1 || f.minX >= 1);
+
+    const left  = leftCandidates.length  ? clip(leftCandidates,  1, -2, 0, AxisType.X, -1, 2, options) : null; // left world copy
+    const right = rightCandidates.length ? clip(rightCandidates, 1,  1, 3, AxisType.X, -1, 2, options) : null; // right world copy
+
+    let merged = clip(features, 1, 0, 1, AxisType.X, -1, 2, options) || []; // center world copy
+
+    if (left) merged = shiftFeatureCoords(left, 1).concat(merged); // merge left into center
+    if (right) merged = merged.concat(shiftFeatureCoords(right, -1)); // merge right into center
+
+    return merged;
+  }
 }
 
 function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number): GeoJSONVTInternalFeature[] {

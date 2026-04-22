@@ -54,6 +54,11 @@ export type GeoJSONVTOptions = {
      */
     debug?: number;
     /**
+     * Whether to duplicate features near the antimeridian into adjacent world copies for seamless wrapping.
+     * @default true
+     */
+    worldCopies?: boolean;
+    /**
      * Enable Supercluster for point features.
      * @default false
      */

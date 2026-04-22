@@ -19,6 +19,7 @@ export const defaultOptions: GeoJSONVTOptions = {
     updateable: false,
     cluster: false,
     clusterOptions: defaultClusterOptions,
+    worldCopies: true,
     debug: 0
 };
 
