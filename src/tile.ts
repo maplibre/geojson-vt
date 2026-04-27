@@ -2,6 +2,7 @@ import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJ
 
 export const GEOJSONVT_CLIP_START = 'geojsonvt_clip_start';
 export const GEOJSONVT_CLIP_END = 'geojsonvt_clip_end';
+export const GEOJSONVT_ANTIMERIDIAN_CLIP = 'geojsonvt_antimeridian_clip';
 
 /**
  * Creates a tile object from the given features

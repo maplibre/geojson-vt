@@ -1,5 +1,5 @@
 import {describe, test, expect} from 'vitest';
-import {GeoJSONVT} from '../src';
+import {GeoJSONVT, GEOJSONVT_ANTIMERIDIAN_CLIP} from '../src';
 import {defaultOptions} from '../src/geojsonvt';
 
 const EXTENT = defaultOptions.extent;
@@ -45,6 +45,16 @@ describe('worldCopies: true', () => {
         const west = ranges.find(([min]) => min < 0);
         expect(east).toBeDefined();
         expect(west).toBeDefined();
+    });
+
+    test('antimeridian-crossing polygon is not tagged with GEOJSONVT_ANTIMERIDIAN_CLIP', () => {
+        const vt = new GeoJSONVT(polygon([[
+            [170, 10], [190, 10], [190, -10], [170, -10], [170, 10]
+        ]]));
+        const tile = vt.getTile(0, 0, 0);
+        for (const feature of tile.features) {
+            expect(feature.tags?.[GEOJSONVT_ANTIMERIDIAN_CLIP]).toBeUndefined();
+        }
     });
 });
 
@@ -151,5 +161,45 @@ describe('worldCopies: false', () => {
         const leftEdgeTile = vt.getTile(2, 0, 1);
         expect(leftEdgeTile).not.toBeNull();
         expect(leftEdgeTile.features.length).toBeGreaterThan(0);
+    });
+
+    test('antimeridian-crossing polygon is tagged with GEOJSONVT_ANTIMERIDIAN_CLIP on both edge tiles', () => {
+        const vt = new GeoJSONVT(polygon([[
+            [170, 10], [190, 10], [190, -10], [170, -10], [170, 10]
+        ]]), {worldCopies: false});
+        const tile = vt.getTile(0, 0, 0);
+        expect(tile.features.length).toBe(2);
+        for (const feature of tile.features) {
+            expect(feature.tags?.[GEOJSONVT_ANTIMERIDIAN_CLIP]).toBe(true);
+        }
+    });
+
+    test('non-crossing polygon is NOT tagged', () => {
+        const vt = new GeoJSONVT(polygon([[
+            [10, 10], [30, 10], [30, -10], [10, -10], [10, 10]
+        ]]), {worldCopies: false});
+        const tile = vt.getTile(0, 0, 0);
+        expect(tile.features.length).toBe(1);
+        expect(tile.features[0].tags?.[GEOJSONVT_ANTIMERIDIAN_CLIP]).toBeUndefined();
+    });
+
+    test('antimeridian-crossing polygon tag propagates to interior tiles at higher zoom', () => {
+        // Polygon spans longitudes 170 to 190 — at z=2 it covers tiles x=0 (left edge),
+        // x=3 (right edge), and (after wrap) potentially adjacent interior tiles.
+        // We assert the tag is present on every tile that contains a piece of it.
+        const vt = new GeoJSONVT(polygon([[
+            [170, 10], [190, 10], [190, -10], [170, -10], [170, 10]
+        ]]), {
+            worldCopies: false,
+            maxZoom: 2,
+            indexMaxZoom: 2,
+        });
+        for (const x of [0, 3]) {
+            const tile = vt.getTile(2, x, 1);
+            expect(tile).not.toBeNull();
+            for (const feature of tile.features) {
+                expect(feature.tags?.[GEOJSONVT_ANTIMERIDIAN_CLIP]).toBe(true);
+            }
+        }
     });
 });

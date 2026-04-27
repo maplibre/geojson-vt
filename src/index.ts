@@ -5,14 +5,15 @@ import type {KDBushWithData} from './cluster-tile-index';
 import {GeoJSONVT} from './geojsonvt';
 import {ClusterTileIndex} from './cluster-tile-index';
 import {geoJSONToTile} from './geojson-to-tile';
-import {GEOJSONVT_CLIP_START, GEOJSONVT_CLIP_END} from './tile';
+import {GEOJSONVT_CLIP_START, GEOJSONVT_CLIP_END, GEOJSONVT_ANTIMERIDIAN_CLIP} from './tile';
 
 export {
     GeoJSONVT,
     ClusterTileIndex as Supercluster,
     geoJSONToTile,
     GEOJSONVT_CLIP_START,
-    GEOJSONVT_CLIP_END
+    GEOJSONVT_CLIP_END,
+    GEOJSONVT_ANTIMERIDIAN_CLIP
 }
 
 export type {

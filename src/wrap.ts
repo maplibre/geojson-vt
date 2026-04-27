@@ -2,6 +2,7 @@
 import {AxisType, clip} from './clip';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, StartEndSizeArray } from './definitions';
 import {createFeature} from './feature';
+import {GEOJSONVT_ANTIMERIDIAN_CLIP} from './tile';
 
 export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
   if (options.worldCopies) {
@@ -20,7 +21,16 @@ export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOpt
 
     return merged;
   } else {
-    // Prevent duplicates at the antimeridian, because clip()'s bounds are inclusive, 
+    // Tag crossing features so consumers can recognize the synthetic edges
+    // along x=0 / x=1 introduced by the clips below.
+    for (const feature of features) {
+      if (feature.minX < 0 || feature.maxX > 1) {
+        feature.tags = feature.tags || {};
+        feature.tags[GEOJSONVT_ANTIMERIDIAN_CLIP] = true;
+      }
+    }
+
+    // Prevent duplicates at the antimeridian, because clip()'s bounds are inclusive,
     // so features with maxX === 1 must be routed to the right pass only.
     const leftCandidates  = features.filter(f => f.minX < 0);
     const rightCandidates = features.filter(f => f.maxX > 1 || f.minX >= 1);
