@@ -165,7 +165,7 @@ function getUpdatedFeatures(vtFeatures: GeoJSONVTInternalFeature[], update: GeoJ
     if (changeProps) {
         const updated = [];
         for (const vtFeature of vtFeatures) {
-            const feature = {...vtFeature};
+            const feature = Object.assign({}, vtFeature);
             feature.tags = applyPropertyUpdates(feature.tags, update);
             updated.push(feature);
         }
@@ -183,7 +183,7 @@ function applyPropertyUpdates(tags: GeoJSON.GeoJsonProperties, update: GeoJSONVT
         return {};
     }
 
-    const properties = {...tags || {}};
+    const properties = Object.assign({}, tags || {});
 
     if (update.removeProperties) {
         for (const key of update.removeProperties) {
