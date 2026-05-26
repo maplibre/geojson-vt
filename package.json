@@ -63,6 +63,6 @@
     "url": "https://github.com/maplibre/geojson-vt"
   },
   "dependencies": {
-    "kdbush": "^4.0.2"
+    "kdbush": "^4.1.0"
   }
 }
