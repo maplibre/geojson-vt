@@ -6,13 +6,13 @@ import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, ClusterOrPointFeature,
 export class TileIndex implements GeoJSONVTTileIndex {
 
     private tileCoords: {z: number, x: number, y: number, id: number}[];
+    private total: number = 0;
 
     /** @internal */
     public tiles: {[key: string]: GeoJSONVTInternalTile};
     /** @internal */
     public stats: {[key: string]: number} = {};
-    /** @internal */
-    public total: number = 0;
+    
 
     constructor(private options: GeoJSONVTOptions) {
         this.tiles = {};
@@ -54,7 +54,7 @@ export class TileIndex implements GeoJSONVTTileIndex {
         this.tileCoords.push({z, x, y, id});
 
         if (options.debug) {
-            const key = `z${  z}`;
+            const key = `z${z}`;
             this.stats[key] = (this.stats[key] || 0) + 1;
             this.total++;
         }
@@ -164,7 +164,7 @@ export class TileIndex implements GeoJSONVTTileIndex {
                             z, x, y, tile.numFeatures, tile.numPoints, tile.numSimplified);
                         console.timeEnd('creation');
                     }
-                    const key = `z${  z}`;
+                    const key = `z${z}`;
                     this.stats[key] = (this.stats[key] || 0) + 1;
                     this.total++;
                 }
@@ -289,7 +289,7 @@ export class TileIndex implements GeoJSONVTTileIndex {
                     console.log('invalidate tile z%d-%d-%d (features: %d, points: %d, simplified: %d)',
                         tile.z, tile.x, tile.y, tile.numFeatures, tile.numPoints, tile.numSimplified);
                 }
-                const key = `z${  tile.z}`;
+                const key = `z${tile.z}`;
                 this.stats[key] = (this.stats[key] || 0) - 1;
                 this.total--;
             }

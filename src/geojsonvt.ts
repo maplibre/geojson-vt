@@ -26,32 +26,6 @@ export const defaultOptions: GeoJSONVTOptions = {
  * Main class for creating and managing a vector tile index from GeoJSON data.
  */
 export class GeoJSONVT {
-
-    /** 
-     * @internal
-     * This is for the tests
-     */
-    public get tiles() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (this.tileIndex as any)?.tiles ?? {};
-    }
-    /** 
-     * @internal
-     * This is for the tests
-     */
-    public get stats() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (this.tileIndex as any).stats;
-    }
-     /** 
-     * @internal
-     * This is for the tests
-     */
-    public get total() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (this.tileIndex as any).total;
-    }
-
     private options: GeoJSONVTOptions;
     
     private source?: GeoJSONVTInternalFeature[];

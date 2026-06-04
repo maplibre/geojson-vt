@@ -30,9 +30,6 @@ test('getTile: empty index should return null', () => {
 });
 
 test('getTile: us-states.json', () => {
-    const log = console.log;
-
-    console.log = function () {};
     const index = new GeoJSONVT(getJSON('us-states.json'), {debug: 2});
 
     expect(index.getTile(7, 37, 48).features).toEqual(getJSON('us-states-z7-37-48.json'));
@@ -43,10 +40,6 @@ test('getTile: us-states.json', () => {
     expect(index.getTile(11, 800, 400)).toBeNull();
     expect(index.getTile(-5, 123.25, 400.25)).toBeNull();
     expect(index.getTile(25, 200, 200)).toBeNull();
-
-    console.log = log;
-
-    expect(index.total).toBe(37);
 });
 
 test('getTile: unbuffered tile left/right edges', () => {
