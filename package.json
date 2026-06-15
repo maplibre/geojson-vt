@@ -28,7 +28,7 @@
     "@types/benchmark": "^2.1.5",
     "@types/geojson": "^7946.0.16",
     "@types/node": "^25.9.2",
-    "@vitest/coverage-v8": "^4.1.8",
+    "@vitest/coverage-v8": "^4.1.9",
     "benchmark": "^2.1.4",
     "eslint": "^10.4.1",
     "rolldown": "^1.1.0",
