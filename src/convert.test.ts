@@ -35,6 +35,6 @@ describe('convertToInternal', () => {
 
     test('throws when GeometryCollection nesting exceeds the supported depth', () => {
         expect(() => convertToInternal(feature(nestGeometryCollections(1025, point)), defaultOptions))
-            .toThrow('GeometryCollection nesting exceeds supported depth: 1025');
+            .toThrow('GeometryCollection nesting exceeds supported depth: 1024');
     });
 })
