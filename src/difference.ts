@@ -95,7 +95,7 @@ export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: Ge
         }
 
         if (removeFeatures.length) {
-            affected.push(...removeFeatures);
+            affected = affected.concat(removeFeatures);
             const removeIds = new Set(removeFeatures.map(f => f.id));
             source = source.filter(f => !removeIds.has(f.id));
         }
@@ -103,15 +103,15 @@ export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: Ge
         if (diff.add.size) {
             let addFeatures = convertToInternal({type: 'FeatureCollection', features: Array.from(diff.add.values())}, options);
             addFeatures = wrap(addFeatures, options);
-            affected.push(...addFeatures);
-            source.push(...addFeatures);
+            affected = affected.concat(addFeatures);
+            source = source.concat(addFeatures);
         }
     }
 
     if (diff.update.size) {
         // Features can be duplicated across the antimeridian (wrap) in a single tile, so must update all instances with the same id
         const oldFeaturesMap = new Map<string | number, GeoJSONVTInternalFeature[]>();
-        const keepFeatures = [];
+        let keepFeatures: GeoJSONVTInternalFeature[] = [];
         for (const feature of source) {
             if (diff.update.has(feature.id)) {
                 oldFeaturesMap.set(feature.id, [...(oldFeaturesMap.get(feature.id) || []), feature]);
@@ -124,8 +124,8 @@ export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: Ge
             if (!oldFeatures || oldFeatures.length === 0) continue;
             const updatedFeatures = getUpdatedFeatures(oldFeatures, update, options);
 
-            affected.push(...oldFeatures, ...updatedFeatures);
-            keepFeatures.push(...updatedFeatures);
+            affected = affected.concat(oldFeatures, updatedFeatures);
+            keepFeatures = keepFeatures.concat(updatedFeatures);
         }
         source = keepFeatures;
     }

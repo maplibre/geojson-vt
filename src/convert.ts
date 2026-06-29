@@ -3,6 +3,8 @@ import {simplify} from './simplify';
 import {createFeature, optimizeLineMemory} from './feature';
 import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, SliceArray} from './definitions';
 
+const MAX_GEOMETRY_COLLECTION_DEPTH = 1024;
+
 /**
  * converts GeoJSON to internal source features (an intermediate projected JSON vector format with simplification data)
  * @param data
@@ -28,11 +30,15 @@ export function convertToInternal(data: GeoJSON.GeoJSON, options: GeoJSONVTOptio
     return features;
 }
 
-function featureToInternal(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, options: GeoJSONVTOptions, index?: number) {
+function featureToInternal(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, options: GeoJSONVTOptions, index?: number, depth = 0) {
     if (!geojson.geometry) return;
 
+    if (depth >= MAX_GEOMETRY_COLLECTION_DEPTH) {
+        throw new Error('GeometryCollection nesting exceeds supported depth: ' + MAX_GEOMETRY_COLLECTION_DEPTH);
+    }
+
     if (geojson.geometry.type === 'GeometryCollection') {
-        convertGeometryCollection(features, geojson, geojson.geometry, options, index);
+        convertGeometryCollection(features, geojson, geojson.geometry, options, index, depth + 1);
         return;
     }
 
@@ -82,14 +88,14 @@ function getFeatureId(geojson: GeoJSON.Feature, options: GeoJSONVTOptions, index
     return geojson.id;
 }
 
-function convertGeometryCollection(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, geometry: GeoJSON.GeometryCollection, options: GeoJSONVTOptions, index?: number) {
+function convertGeometryCollection(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, geometry: GeoJSON.GeometryCollection, options: GeoJSONVTOptions, index?: number, depth = 0) {
     for (const geom of geometry.geometries) {
         featureToInternal(features, {
             id: geojson.id,
             type: 'Feature',
             geometry: geom,
             properties: geojson.properties
-        }, options, index);
+        }, options, index, depth);
     }
 }
 
