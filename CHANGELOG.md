@@ -5,6 +5,11 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
+## 6.1.1
+
+### 🐞 Bug fixes
+
+- Limit recursion depth ([#156](https://github.com/maplibre/geojson-vt/pull/156)) (by [@HarelM](https://github.com/HarelM))
 
 ## 6.1.0
 
