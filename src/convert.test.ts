@@ -27,7 +27,7 @@ describe('convertToInternal', () => {
     });
 
     test('allows nesting up to the supported depth', () => {
-        const features = convertToInternal(feature(nestGeometryCollections(1023, point)), defaultOptions);
+        const features = convertToInternal(feature(nestGeometryCollections(1024, point)), defaultOptions);
 
         expect(features).toHaveLength(1);
         expect(features[0].type).toBe('Point');
