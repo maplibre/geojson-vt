@@ -33,7 +33,7 @@ export function convertToInternal(data: GeoJSON.GeoJSON, options: GeoJSONVTOptio
 function featureToInternal(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, options: GeoJSONVTOptions, index?: number, depth = 0) {
     if (!geojson.geometry) return;
 
-    if (depth >= MAX_GEOMETRY_COLLECTION_DEPTH) {
+    if (depth > MAX_GEOMETRY_COLLECTION_DEPTH) {
         throw new Error('GeometryCollection nesting exceeds supported depth: ' + MAX_GEOMETRY_COLLECTION_DEPTH);
     }
 
