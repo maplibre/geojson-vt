@@ -33,7 +33,7 @@
     "eslint": "^10.6.0",
     "rolldown": "^1.1.4",
     "tsx": "^4.22.4",
-    "typedoc": "^0.28.19",
+    "typedoc": "^0.28.20",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.62.1",
     "vitest": "^4.1.9"
