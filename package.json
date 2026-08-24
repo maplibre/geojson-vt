@@ -30,7 +30,7 @@
     "@types/node": "^26.2.0",
     "@vitest/coverage-v8": "^4.1.10",
     "benchmark": "^2.1.4",
-    "eslint": "^10.8.1",
+    "eslint": "^10.9.0",
     "rolldown": "^1.2.4",
     "tsx": "^4.23.12",
     "typedoc": "^0.28.20",
