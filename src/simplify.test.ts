@@ -71,3 +71,17 @@ test('does not throw max call stack error on bad long input', () => {
         simplify(coords, 0, coords.length, 2e-15);
     }).not.toThrow();
 });
+
+test('does not throw max call stack error when splitting off one vertex at a time due to zig-zag', () => {
+    const coords: number[] = [];
+    for (let i = 0; i < 10000; i++) {
+        coords.push(i / 10000, 0.5 + (i % 2 ? 1 : -1) * (1 + i * 1e-4) * 1e-3, 0);
+    }
+
+    expect(() => {
+        simplify(coords, 0, coords.length - 3, 1e-12);
+    }).not.toThrow();
+    for (let i = 5; i < coords.length - 3; i += 3) {
+        expect(coords[i]).toBeGreaterThan(0);
+    }
+});

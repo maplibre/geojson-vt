@@ -6,6 +6,16 @@
  * @param sqTolerance - square tolerance value
  */
 export function simplify(coords: number[], first: number, last: number, sqTolerance: number) {
+    const stack = [first, last];
+
+    while (stack.length) {
+        last = stack.pop();
+        first = stack.pop();
+        simplifySegment(coords, first, last, sqTolerance, stack);
+    }
+}
+
+function simplifySegment(coords: number[], first: number, last: number, sqTolerance: number, stack: number[]) {
     let maxSqDist = sqTolerance;
     const mid = first + ((last - first) >> 1);
     let minPosToMid = last - first;
@@ -38,9 +48,9 @@ export function simplify(coords: number[], first: number, last: number, sqTolera
     }
 
     if (maxSqDist > sqTolerance) {
-        if (index - first > 3) simplify(coords, first, index, sqTolerance);
         coords[index + 2] = maxSqDist;
-        if (last - index > 3) simplify(coords, index, last, sqTolerance);
+        if (index - first > 3) stack.push(first, index);
+        if (last - index > 3) stack.push(index, last);
     }
 }
 
