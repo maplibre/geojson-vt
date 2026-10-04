@@ -73,15 +73,19 @@ test('does not throw max call stack error on bad long input', () => {
 });
 
 test('does not throw max call stack error when splitting off one vertex at a time due to zig-zag', () => {
+    // the old recursive implementation overflows at ~5000 vertices; the work is quadratic, so keep it small
+    const n = 6000;
     const coords: number[] = [];
-    for (let i = 0; i < 10000; i++) {
-        coords.push(i / 10000, 0.5 + (i % 2 ? 1 : -1) * (1 + i * 1e-4) * 1e-3, 0);
+    for (let i = 0; i < n; i++) {
+        coords.push(i / n, 0.5 + (i % 2 ? 1 : -1) * (1 + i * 1e-4) * 1e-3, 0);
     }
 
     expect(() => {
         simplify(coords, 0, coords.length - 3, 1e-12);
     }).not.toThrow();
+    let kept = 0;
     for (let i = 5; i < coords.length - 3; i += 3) {
-        expect(coords[i]).toBeGreaterThan(0);
+        if (coords[i] > 0) kept++;
     }
+    expect(kept).toBe(n - 2);
 });
