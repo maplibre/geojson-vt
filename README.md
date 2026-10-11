@@ -64,6 +64,7 @@ var tileIndex = new GeoJSONVT(data, {
 	promoteId: null,    // name of a feature property to promote to feature.id. Cannot be used with `generateId`
 	generateId: false,  // whether to generate feature ids. Cannot be used with `promoteId`
 	updateable: false,  // whether the tile index can be updated (with the caveat of a stored simplified copy)
+	wrapWorld: true,    // whether the world wraps around at the antimeridian and is clamped at the poles
 	indexMaxZoom: 5,       // max zoom in the initial tile index
 	indexMaxPoints: 100000 // max number of points per tile in the index
 });
@@ -72,6 +73,8 @@ var tileIndex = new GeoJSONVT(data, {
 By default, tiles at zoom levels above `indexMaxZoom` are generated on the fly, but you can pre-generate all possible tiles for `data` by setting `indexMaxZoom` and `maxZoom` to the same value, setting `indexMaxPoints` to `0`, and then accessing the resulting tile coordinates from the `tileCoords` property of `tileIndex`.
 
 The `promoteId` and `generateId` options ignore existing `id` values on the feature objects.
+
+With `wrapWorld: false`, the world is a square that ends at its edges, for data in a world of its own such as a map projection's: features outside it are left out of the tiles and the clusters, and `getTile` returns `null` for tiles outside it.
 
 GeoJSON-VT only operates on zoom levels up to 24.
 
