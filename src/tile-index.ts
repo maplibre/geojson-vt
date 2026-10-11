@@ -23,7 +23,7 @@ export class TileIndex implements GeoJSONVTTileIndex {
 
     initialize(features: GeoJSONVTInternalFeature[]): void {
         // start slicing from the top tile down
-        this.splitTile(features, 0, 0, 0);
+        this.splitTile(this.clipToWorld(features), 0, 0, 0);
 
         if (this.options.debug) {
             if (features.length) console.log('features: %d, points: %d', this.tiles[0].numFeatures, this.tiles[0].numPoints);
@@ -45,8 +45,9 @@ export class TileIndex implements GeoJSONVTTileIndex {
 
         // re-generate root tile with updated feature set
         const [z, x, y] = [0, 0, 0];
-        const rootTile = createTile(source, z, x, y, options);
-        rootTile.source = source;
+        const rootSource = this.clipToWorld(source);
+        const rootTile = createTile(rootSource, z, x, y, options);
+        rootTile.source = rootSource;
 
         // update tile index with new root tile - ready for getTile calls
         const id = toID(z, x, y);
@@ -135,6 +136,18 @@ export class TileIndex implements GeoJSONVTTileIndex {
      * @param cx - target tile x coordinate
      * @param cy - target tile y coordinate
      */
+    /**
+     * The features the top tile starts from: all of them in a wrapping world, where wrapping already put them inside,
+     * and only what lies inside the world square and its buffer when `wrapWorld` is false. The index keeps the rest,
+     * so an update can still move a feature in from outside.
+     */
+    private clipToWorld(features: GeoJSONVTInternalFeature[]): GeoJSONVTInternalFeature[] {
+        if (this.options.wrapWorld !== false) return features;
+        const buffer = this.options.buffer / this.options.extent;
+        const inX = clip(features, 1, -buffer, 1 + buffer, AxisType.X, -Infinity, Infinity, this.options) || [];
+        return clip(inX, 1, -buffer, 1 + buffer, AxisType.Y, -Infinity, Infinity, this.options) || [];
+    }
+
     private splitTile(features: GeoJSONVTInternalFeature[], z: number, x: number, y: number, cz?: number, cx?: number, cy?: number) {
 
         const stack = [features, z, x, y];

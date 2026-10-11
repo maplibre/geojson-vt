@@ -54,6 +54,14 @@ export type GeoJSONVTOptions = {
      */
     debug?: number;
     /**
+     * Whether the world wraps around at the antimeridian and is clamped at the poles, as web mercator's is.
+     * With `false` the world is a square that ends at its edges, for data in a world of its own such as a map
+     * projection's: features outside the square are left out of the tiles instead of being wrapped around to the
+     * opposite side or clamped onto the top or bottom edge.
+     * @default true
+     */
+    wrapWorld?: boolean;
+    /**
      * Enable Supercluster for point features.
      * @default false
      */
