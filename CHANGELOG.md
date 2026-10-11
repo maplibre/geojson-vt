@@ -1,7 +1,7 @@
 ## main
 ### ✨ Features and improvements
 - Reduce memory usage of clustering ([#223](https://github.com/maplibre/geojson-vt/pull/223)) (by [@birkskyum](https://github.com/birkskyum))
-- Add a `wrapWorld` option: with `false` the world neither wraps around at the antimeridian nor clamps at the poles, for data in a world square of its own (by [@johncarmack1984](https://github.com/johncarmack1984))
+- Add a `wrapWorld` option: with `false` the world neither wraps around at the antimeridian nor clamps at the poles, for data in a world square of its own ([#224](https://github.com/maplibre/geojson-vt/pull/224)) (by [@johncarmack1984](https://github.com/johncarmack1984))
 - _...Add new stuff here..._
 
 ### 🐞 Bug fixes
