@@ -52,9 +52,15 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
     stride: number;
     clusterProps: Record<string, unknown>[];
     points: GeoJSONVTInternalPointFeature[];
+    /**
+     * Whether the world wraps around at the antimeridian, see `wrapWorld` in {@link GeoJSONVTOptions}. When it doesn't,
+     * points outside the world are left out of the clusters, and tiles at an edge get no points from the opposite one.
+     */
+    wrapWorld: boolean;
 
-    constructor(options?: SuperclusterOptions) {
+    constructor(options?: SuperclusterOptions, wrapWorld = true) {
         this.options = Object.assign(Object.create(defaultClusterOptions), options) as Required<SuperclusterOptions>;
+        this.wrapWorld = wrapWorld;
         this.trees = new Array(this.options.maxZoom + 1);
         this.stride = this.options.reduce ? 5 : 4;
         this.clusterProps = [];
@@ -100,6 +106,7 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
 
         for (const feature of features) {
             if (feature.type !== 'Point') continue;
+            if (!this.wrapWorld && !isInWorld(feature.geometry)) continue;
             points.push(feature);
         }
 
@@ -289,12 +296,12 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
             tree.range((x - p) / z2, top, (x + 1 + p) / z2, bottom),
             tree, x, y, z2, tile);
 
-        if (x === 0) {
+        if (this.wrapWorld && x === 0) {
             this.addTileFeatures(
                 tree.range(1 - p / z2, top, 1, bottom),
                 tree, z2, y, z2, tile);
         }
-        if (x === z2 - 1) {
+        if (this.wrapWorld && x === z2 - 1) {
             this.addTileFeatures(
                 tree.range(0, top, p / z2, bottom),
                 tree, -1, y, z2, tile);
@@ -572,4 +579,8 @@ function getClusterProperties(data: Int32Array, i: number, clusterProps: Record<
         point_count: count,
         point_count_abbreviated: abbrev
     });
+}
+
+function isInWorld(geometry: number[]): boolean {
+    return geometry[0] >= 0 && geometry[0] <= 1 && geometry[1] >= 0 && geometry[1] <= 1;
 }

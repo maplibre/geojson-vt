@@ -81,3 +81,33 @@ test('wrapWorld: false keeps a feature outside the world, so an update can move 
 
     expect(index.getTile(0, 0, 0).features[0].tags).toEqual({name: 'p'});
 });
+
+test('wrapWorld: false leaves points outside the world out of the clusters', () => {
+    const data = {
+        type: 'FeatureCollection' as const,
+        features: [
+            {type: 'Feature' as const, id: 'inside', geometry: {type: 'Point' as const, coordinates: [176.4, 0]}, properties: {}},
+            {type: 'Feature' as const, id: 'outside', geometry: {type: 'Point' as const, coordinates: [190.8, 0]}, properties: {}}
+        ]
+    };
+
+    const index = new GeoJSONVT(data, {wrapWorld: false, cluster: true});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.geometry)).toEqual([[[507, 256]]]);
+});
+
+test('wrapWorld: false keeps a point at one edge out of the clustered tile at the other edge', () => {
+    const nearEastEdge = {type: 'Point' as const, coordinates: [179.64, 0]};
+
+    const index = new GeoJSONVT(nearEastEdge, {wrapWorld: false, cluster: true});
+
+    expect(index.getTile(0, 0, 0).features).toHaveLength(1);
+});
+
+test('wrapWorld: false returns no tile for a column outside the world', () => {
+    const inTopLeftTile = {type: 'Point' as const, coordinates: [-90, 45]};
+
+    const index = new GeoJSONVT(inTopLeftTile, {wrapWorld: false});
+
+    expect(index.getTile(1, 2, 0)).toBeNull();
+});

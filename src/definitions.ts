@@ -56,8 +56,8 @@ export type GeoJSONVTOptions = {
     /**
      * Whether the world wraps around at the antimeridian and is clamped at the poles, as web mercator's is.
      * With `false` the world is a square that ends at its edges, for data in a world of its own such as a map
-     * projection's: features outside the square are left out of the tiles instead of being wrapped around to the
-     * opposite side or clamped onto the top or bottom edge.
+     * projection's: features outside the square are left out of the tiles and the clusters instead of being wrapped
+     * around to the opposite side or clamped onto the top or bottom edge, and `getTile` returns `null` outside it.
      * @default true
      */
     wrapWorld?: boolean;
@@ -75,7 +75,7 @@ export type GeoJSONVTOptions = {
 
 export type GeoJSONToTileOptions = GeoJSONVTOptions & {
     /**
-     * Whether to wrap features around the antimeridian
+     * Whether to wrap features around the antimeridian. Has no effect with `wrapWorld: false`.
      * @default false
      */
     wrap?: boolean;

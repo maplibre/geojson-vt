@@ -63,7 +63,7 @@ export class GeoJSONVT {
     }
 
     private initializeIndex(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions) {
-        this.tileIndex = options.cluster ? new ClusterTileIndex(options.clusterOptions) : new TileIndex(options);
+        this.tileIndex = options.cluster ? new ClusterTileIndex(options.clusterOptions, options.wrapWorld !== false) : new TileIndex(options);
         if (!features.length) return;
         this.tileIndex.initialize(features);
     }
@@ -81,6 +81,9 @@ export class GeoJSONVT {
         y = +y;
 
         if (z < 0 || z > 24) return null;
+
+        const z2 = 1 << z;
+        if (this.options.wrapWorld === false && (x < 0 || x >= z2 || y < 0 || y >= z2)) return null;
 
         return this.tileIndex.getTile(z, x, y);
     }
