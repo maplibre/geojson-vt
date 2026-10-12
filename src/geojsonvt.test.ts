@@ -57,10 +57,27 @@ test('worldCoordinates cuts the top tile at the world again on update, so a feat
 });
 
 test('worldCoordinates returns the data in world coordinates', () => {
-    const point = {type: 'Feature' as const, id: 'p', geometry: {type: 'Point' as const, coordinates: [0.25, 0.75]}, properties: {}};
-    const index = new GeoJSONVT({type: 'FeatureCollection', features: [point]}, {worldCoordinates: true, updateable: true});
+    const features: GeoJSON.Feature[] = [
+        {type: 'Feature', id: 'point', geometry: {type: 'Point', coordinates: [0.25, 0.75]}, properties: {}},
+        {type: 'Feature', id: 'multi point', geometry: {type: 'MultiPoint', coordinates: [[0.25, 0.75], [0.5, 0.5]]}, properties: {}},
+        {type: 'Feature', id: 'line', geometry: {type: 'LineString', coordinates: [[0.25, 0.75], [0.5, 0.5]]}, properties: {}},
+        {type: 'Feature', id: 'multi line', geometry: {type: 'MultiLineString', coordinates: [[[0.25, 0.75], [0.5, 0.5]], [[0.5, 0.25], [0.75, 0.25]]]}, properties: {}},
+        {type: 'Feature', id: 'polygon', geometry: {type: 'Polygon', coordinates: [[[0.25, 0.25], [0.75, 0.25], [0.75, 0.75], [0.25, 0.25]]]}, properties: {}},
+        {type: 'Feature', id: 'multi polygon', geometry: {type: 'MultiPolygon', coordinates: [[[[0.25, 0.25], [0.75, 0.25], [0.75, 0.75], [0.25, 0.25]]]]}, properties: {}}
+    ];
+    const index = new GeoJSONVT({type: 'FeatureCollection', features}, {worldCoordinates: true, updateable: true});
 
-    expect(index.getData()).toEqual({type: 'FeatureCollection', features: [point]});
+    expect(index.getData()).toEqual({type: 'FeatureCollection', features});
+});
+
+test('worldCoordinates keeps a MultiLineString it splits for lineMetrics in world coordinates', () => {
+    const multiLine = {type: 'MultiLineString' as const, coordinates: [[[0.25, 0.75], [0.5, 0.5]], [[0.5, 0.25], [0.75, 0.25]]]};
+    const index = new GeoJSONVT(multiLine, {worldCoordinates: true, lineMetrics: true, updateable: true});
+
+    expect(index.getData()).toEqual({type: 'FeatureCollection', features: [
+        {type: 'Feature', geometry: {type: 'LineString', coordinates: [[0.25, 0.75], [0.5, 0.5]]}},
+        {type: 'Feature', geometry: {type: 'LineString', coordinates: [[0.5, 0.25], [0.75, 0.25]]}}
+    ]});
 });
 
 test('worldCoordinates hands the update filter features in world coordinates', () => {
