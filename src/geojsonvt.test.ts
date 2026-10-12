@@ -37,57 +37,23 @@ test('publicly exposed cluster methods: return undefined when clustering is disa
     expect(index.getClusterChildren(123)).toBeNull();
     expect(index.getClusterLeaves(123, 10, 0)).toBeNull();
 });
-test('worldCoordinates leaves out features east of the world instead of wrapping them around to the west', () => {
-    const data = {
-        type: 'FeatureCollection' as const,
-        features: [
-            {type: 'Feature' as const, id: 'inside', geometry: {type: 'Point' as const, coordinates: [0.5, 0.5]}, properties: {}},
-            {type: 'Feature' as const, id: 'east', geometry: {type: 'Point' as const, coordinates: [1.25, 0.5]}, properties: {}}
-        ]
-    };
 
-    const index = new GeoJSONVT(data, {worldCoordinates: true});
+test('worldCoordinates cuts a line at the buffer around the world instead of wrapping or clamping it', () => {
+    const fromThreeWorldsNorthToEast = {type: 'LineString' as const, coordinates: [[0.25, -3], [0.75, 0.5], [1.25, 0.5]]};
 
-    expect(index.getTile(0, 0, 0).features.map(feature => feature.id)).toEqual(['inside']);
+    const index = new GeoJSONVT(fromThreeWorldsNorthToEast, {worldCoordinates: true});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.geometry)).toEqual([[[[2770, -64], [3072, 2048], [4160, 2048]]]]);
 });
 
-test('worldCoordinates leaves out features north of the world instead of clamping them onto its top edge', () => {
-    const data = {
-        type: 'FeatureCollection' as const,
-        features: [
-            {type: 'Feature' as const, id: 'inside', geometry: {type: 'Point' as const, coordinates: [0.5, 0.5]}, properties: {}},
-            {type: 'Feature' as const, id: 'north', geometry: {type: 'Point' as const, coordinates: [0.5, -0.25]}, properties: {}}
-        ]
-    };
+test('worldCoordinates cuts the top tile at the world again on update, so a feature can move in from outside', () => {
+    const movingIn = {type: 'Feature' as const, id: 'moving in', geometry: {type: 'Point' as const, coordinates: [1.25, 0.5]}, properties: {}};
+    const stayingOut = {type: 'Feature' as const, id: 'staying out', geometry: {type: 'Point' as const, coordinates: [1.5, 0.5]}, properties: {}};
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: [movingIn, stayingOut]}, {worldCoordinates: true, updateable: true});
 
-    const index = new GeoJSONVT(data, {worldCoordinates: true});
+    index.updateData({update: [{id: 'moving in', newGeometry: {type: 'Point', coordinates: [0.5, 0.5]}}]});
 
-    expect(index.getTile(0, 0, 0).features.map(feature => feature.id)).toEqual(['inside']);
-});
-
-test('worldCoordinates cuts a line that leaves the world at its edge', () => {
-    const line = {type: 'LineString' as const, coordinates: [[0.75, 0.5], [1.25, 0.5]]};
-
-    const index = new GeoJSONVT(line, {worldCoordinates: true, buffer: 0});
-
-    expect(index.getTile(0, 0, 0).features.map(feature => feature.geometry)).toEqual([[[[3072, 2048], [4096, 2048]]]]);
-});
-
-test('worldCoordinates cuts a line from three worlds north where it crosses the top of the buffer', () => {
-    const line = {type: 'LineString' as const, coordinates: [[0.25, -3], [0.75, 0.5]]};
-
-    const index = new GeoJSONVT(line, {worldCoordinates: true});
-
-    expect(index.getTile(0, 0, 0).features.map(feature => feature.geometry)).toEqual([[[[2770, -64], [3072, 2048]]]]);
-});
-
-test('worldCoordinates keeps a feature outside the world, so an update can move it in', () => {
-    const outside = {type: 'Feature' as const, id: 'p', geometry: {type: 'Point' as const, coordinates: [1.25, 0.5]}, properties: {name: 'p'}};
-    const index = new GeoJSONVT({type: 'FeatureCollection', features: [outside]}, {worldCoordinates: true, updateable: true});
-
-    index.updateData({update: [{id: 'p', newGeometry: {type: 'Point', coordinates: [0.5, 0.5]}}]});
-
-    expect(index.getTile(0, 0, 0).features[0].tags).toEqual({name: 'p'});
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.id)).toEqual(['moving in']);
 });
 
 test('worldCoordinates returns the data in world coordinates', () => {
@@ -115,7 +81,8 @@ test('worldCoordinates leaves points outside the world out of the clusters', () 
         type: 'FeatureCollection' as const,
         features: [
             {type: 'Feature' as const, id: 'inside', geometry: {type: 'Point' as const, coordinates: [0.99, 0.5]}, properties: {}},
-            {type: 'Feature' as const, id: 'outside', geometry: {type: 'Point' as const, coordinates: [1.03, 0.5]}, properties: {}}
+            {type: 'Feature' as const, id: 'east', geometry: {type: 'Point' as const, coordinates: [1.03, 0.5]}, properties: {}},
+            {type: 'Feature' as const, id: 'north', geometry: {type: 'Point' as const, coordinates: [0.5, -0.03]}, properties: {}}
         ]
     };
 
@@ -124,12 +91,18 @@ test('worldCoordinates leaves points outside the world out of the clusters', () 
     expect(index.getTile(0, 0, 0).features.map(feature => feature.geometry)).toEqual([[[507, 256]]]);
 });
 
-test('worldCoordinates keeps a point at one edge out of the clustered tile at the other edge', () => {
-    const nearEastEdge = {type: 'Point' as const, coordinates: [0.999, 0.5]};
+test('worldCoordinates keeps points at either edge out of the clustered tile at the other edge', () => {
+    const data = {
+        type: 'FeatureCollection' as const,
+        features: [
+            {type: 'Feature' as const, id: 'west', geometry: {type: 'Point' as const, coordinates: [0.001, 0.5]}, properties: {}},
+            {type: 'Feature' as const, id: 'east', geometry: {type: 'Point' as const, coordinates: [0.999, 0.5]}, properties: {}}
+        ]
+    };
 
-    const index = new GeoJSONVT(nearEastEdge, {worldCoordinates: true, cluster: true});
+    const index = new GeoJSONVT(data, {worldCoordinates: true, cluster: true});
 
-    expect(index.getTile(0, 0, 0).features).toHaveLength(1);
+    expect(index.getTile(0, 0, 0).features).toHaveLength(2);
 });
 
 test('worldCoordinates returns cluster children and leaves in world coordinates', () => {
