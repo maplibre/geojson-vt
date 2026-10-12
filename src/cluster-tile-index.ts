@@ -59,8 +59,8 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
     points: GeoJSONVTInternalPointFeature[];
     /**
      * Whether points are in world coordinates, see `worldCoordinates` in {@link GeoJSONVTOptions}. Points outside the
-     * world are then left out of the clusters, tiles at an edge get no points from the opposite one, and clusters come
-     * back in world coordinates.
+     * world are then left out of the clusters, tiles at an edge get no points from the opposite one, `getTile` returns
+     * `null` outside the world, and clusters come back in world coordinates.
      */
     worldCoordinates: boolean;
 
@@ -297,6 +297,7 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
             return null;
         }
         const z2 = Math.pow(2, z);
+        if (this.worldCoordinates && (x < 0 || x >= z2 || y < 0 || y >= z2)) return null;
         const {extent, radius} = this.options;
         const p = radius / extent;
         const top = (y - p) / z2;

@@ -238,6 +238,18 @@ test('leaves points outside the world out of load with worldCoordinates', () => 
     expect(index.getTile(0, 0, 0).features.map(feature => feature.geometry)).toEqual([[[507, 256]]]);
 });
 
+test('returns no tile outside the world with worldCoordinates', () => {
+    const index = new ClusterTileIndex({}, true);
+    index.load([
+        {type: 'Feature', properties: {name: 'west'}, geometry: {type: 'Point', coordinates: [0.01, 0.5]}},
+        {type: 'Feature', properties: {name: 'east'}, geometry: {type: 'Point', coordinates: [0.99, 0.5]}},
+        {type: 'Feature', properties: {name: 'north'}, geometry: {type: 'Point', coordinates: [0.5, 0.01]}},
+        {type: 'Feature', properties: {name: 'south'}, geometry: {type: 'Point', coordinates: [0.5, 0.99]}}
+    ]);
+
+    expect([index.getTile(0, -1, 0), index.getTile(0, 1, 0), index.getTile(0, 0, -1), index.getTile(0, 0, 1)]).toEqual([null, null, null, null]);
+});
+
 test('limits minZoom and maxZoom to 30, the highest zoom level a cluster id can hold', () => {
     const index = new ClusterTileIndex({minZoom: 40, maxZoom: 40});
     const point: GeoJSON.Feature<GeoJSON.Point> = {type: 'Feature', properties: null, geometry: {type: 'Point', coordinates: [10, 10]}};
