@@ -227,3 +227,13 @@ test('takes points and the getClusters bounding box in world coordinates with wo
 
     expect(index.getClusters([0, 0, 0.5, 0.5], 0).map(f => f.geometry.coordinates)).toEqual([[0.25, 0.25]]);
 });
+
+test('leaves points outside the world out of load with worldCoordinates', () => {
+    const index = new ClusterTileIndex({}, true);
+    index.load([
+        {type: 'Feature', properties: {name: 'inside'}, geometry: {type: 'Point', coordinates: [0.99, 0.5]}},
+        {type: 'Feature', properties: {name: 'outside'}, geometry: {type: 'Point', coordinates: [1.03, 0.5]}}
+    ]);
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.geometry)).toEqual([[[507, 256]]]);
+});

@@ -83,6 +83,7 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
 
             const [lng, lat] = point.geometry.coordinates;
             const [x, y] = [projectX(lng, this.worldCoordinates), projectY(lat, this.worldCoordinates)];
+            if (this.worldCoordinates && !isInWorld([x, y])) continue;
             
             const feature: GeoJSONVTInternalPointFeature = {
                 id: point.id,
