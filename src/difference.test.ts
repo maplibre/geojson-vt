@@ -159,6 +159,59 @@ test('applySourceDiff: updates a feature geometry', () => {
     expect((source[0].geometry as number[])[1]).toBe(0.5);
 });
 
+test('applySourceDiff: keeps a generated id when updating a feature geometry', () => {
+    const point = {
+        type: 'Point' as const,
+        id: 1,
+        geometry: [0, 0],
+        tags: {},
+        minX: 0,
+        minY: 0,
+        maxX: 0,
+        maxY: 0
+    };
+
+    const {source} = applySourceDiff([point], {
+        update: [{
+            id: 1,
+            newGeometry: {
+                type: 'Point',
+                coordinates: [1, 0]
+            }
+        }]
+    }, {...options, generateId: true});
+
+    expect(source.length).toBe(1);
+    expect(source[0].id).toBe(1);
+});
+
+test('applySourceDiff: keeps a promoted id when updating a feature geometry and the promoted property', () => {
+    const point = {
+        type: 'Point' as const,
+        id: 'point',
+        geometry: [0, 0],
+        tags: {name: 'point'},
+        minX: 0,
+        minY: 0,
+        maxX: 0,
+        maxY: 0
+    };
+
+    const {source} = applySourceDiff([point], {
+        update: [{
+            id: 'point',
+            newGeometry: {
+                type: 'Point',
+                coordinates: [1, 0]
+            },
+            addOrUpdateProperties: [{key: 'name', value: 'renamed'}]
+        }]
+    }, {...options, promoteId: 'name'});
+
+    expect(source.length).toBe(1);
+    expect(source[0].id).toBe('point');
+});
+
 test('applySourceDiff: adds properties', () => {
     const point = {
         type: 'Point' as const,

@@ -5,6 +5,9 @@
 - _...Add new stuff here..._
 
 ### 🐞 Bug fixes
+- Fix `updateData` changing the id of a feature when it updates its geometry, with `generateId` or when the promoted property changes too ([#233](https://github.com/maplibre/geojson-vt/pull/233)) (by [@birkskyum](https://github.com/birkskyum))
+- Fix a polygon or line losing parts in a tile when one of its vertices lies exactly on a tile edge ([#226](https://github.com/maplibre/geojson-vt/pull/226)) (by [@birkskyum](https://github.com/birkskyum))
+- Fix a `MultiPolygon` with an empty polygon throwing when the index is built ([#227](https://github.com/maplibre/geojson-vt/pull/227)) (by [@birkskyum](https://github.com/birkskyum))
 - Fix `updateData` throwing when it adds a feature without properties while `promoteId` is set ([#228](https://github.com/maplibre/geojson-vt/pull/228)) (by [@birkskyum](https://github.com/birkskyum))
 - Stop the cluster index from keeping the cluster properties of earlier builds, and fix `updateClusterOptions` throwing when it adds or removes a `reduce` function ([#225](https://github.com/maplibre/geojson-vt/pull/225)) (by [@birkskyum](https://github.com/birkskyum))
 - Limit the cluster `minZoom` and `maxZoom` to 30, the highest zoom level a cluster id can hold ([#229](https://github.com/maplibre/geojson-vt/pull/229)) (by [@birkskyum](https://github.com/birkskyum))

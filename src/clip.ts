@@ -184,13 +184,13 @@ function clipLine(geom: SliceFixedArray, newGeom: SliceArray[], start: number, e
 
         if (a < start) {
             // ---|-->  | (line enters the clip region from the left)
-            if (b > start) {
+            if (b >= start) {
                 t = intersect(slice, ax, ay, bx, by, start);
                 if (trackMetrics) slice.start = len + segLen * t;
             }
         } else if (a > end) {
             // |  <--|--- (line enters the clip region from the right)
-            if (b < end) {
+            if (b <= end) {
                 t = intersect(slice, ax, ay, bx, by, end);
                 if (trackMetrics) slice.start = len + segLen * t;
             }

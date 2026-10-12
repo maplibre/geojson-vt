@@ -146,8 +146,12 @@ function convertMultiPolygonFeature(features: GeoJSONVTInternalFeature[], id: nu
     for (const polygon of geom.coordinates) {
         const polygonOut: SliceArray[] = [];
         convertLines(polygon, polygonOut, tolerance, true, worldCoordinates);
+        if (!polygonOut.length) continue;
+
         out.push(polygonOut);
     }
+    if (!out.length) return;
+
     features.push(createFeature(id, 'MultiPolygon', out, properties));
 }
 
