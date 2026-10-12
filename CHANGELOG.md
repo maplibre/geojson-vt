@@ -5,7 +5,9 @@
 - _...Add new stuff here..._
 
 ### 🐞 Bug fixes
+- Fix `updateData` throwing when it adds a feature without properties while `promoteId` is set ([#228](https://github.com/maplibre/geojson-vt/pull/228)) (by [@birkskyum](https://github.com/birkskyum))
 - Stop the cluster index from keeping the cluster properties of earlier builds, and fix `updateClusterOptions` throwing when it adds or removes a `reduce` function ([#225](https://github.com/maplibre/geojson-vt/pull/225)) (by [@birkskyum](https://github.com/birkskyum))
+- Limit the cluster `minZoom` and `maxZoom` to 30, the highest zoom level a cluster id can hold ([#229](https://github.com/maplibre/geojson-vt/pull/229)) (by [@birkskyum](https://github.com/birkskyum))
 - _...Add new stuff here..._
 
 ## 6.1.2

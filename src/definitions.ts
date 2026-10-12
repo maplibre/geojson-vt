@@ -223,12 +223,12 @@ export interface GeoJSONVTTileIndex {
 
 export type SuperclusterOptions = {
     /**
-     * Min zoom to generate clusters on
+     * Min zoom to generate clusters on. A value above 30 is limited to 30.
      * @default 0
      */
     minZoom?: number;
     /**
-     * Max zoom level to cluster the points on
+     * Max zoom level to cluster the points on. A value above 30 is limited to 30.
      * @default 16
      */
     maxZoom?: number;

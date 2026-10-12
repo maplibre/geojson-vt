@@ -213,7 +213,7 @@ export function diffToHashed(diff: GeoJSONVTSourceDiff, options: GeoJSONVTOption
     const hashed: HashedGeoJSONVTSourceDiff = {
         removeAll: diff.removeAll,
         remove: new Set(diff.remove || []),
-        add: new Map(diff.add?.map(feature => [options.promoteId ? feature.properties[options.promoteId] : feature.id, feature])),
+        add: new Map(diff.add?.map(feature => [options.promoteId ? feature.properties?.[options.promoteId] : feature.id, feature])),
         update: new Map(diff.update?.map(update => [update.id, update]))
     };
 

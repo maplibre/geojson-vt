@@ -50,6 +50,24 @@ test('applySourceDiff: adds a feature using the promoteId', () => {
     expect(source[0].id).toBe('point2');
 });
 
+test('applySourceDiff: adds a feature without properties when promoteId is set', () => {
+    const point = {
+        type: 'Feature' as const,
+        geometry: {
+            type: 'Point' as const,
+            coordinates: [0, 0],
+        },
+        properties: null as GeoJSON.GeoJsonProperties,
+    };
+
+    const {source} = applySourceDiff([], {
+        add: [point]
+    }, {promoteId: 'promoteId'});
+
+    expect(source.length).toBe(1);
+    expect(source[0].geometry).toEqual([0.5, 0.5, 0]);
+});
+
 test('applySourceDiff: removes a feature by its id', () => {
     const point = {
         type: 'Point' as const,

@@ -34,6 +34,11 @@ export const defaultClusterOptions: Required<SuperclusterOptions> = {
     map: (props) => props as Record<string, unknown>
 };
 
+/**
+ * The highest zoom level to cluster on. A cluster id keeps its zoom level in five bits.
+ */
+const MAX_ZOOM = 30;
+
 const OFFSET_ZOOM = 0;
 const OFFSET_ID = 1;
 const OFFSET_PARENT = 2;
@@ -60,7 +65,7 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
     worldCoordinates: boolean;
 
     constructor(options?: SuperclusterOptions, worldCoordinates = false) {
-        this.options = Object.assign(Object.create(defaultClusterOptions), options) as Required<SuperclusterOptions>;
+        this.options = createOptions(options);
         this.worldCoordinates = worldCoordinates;
         this.trees = new Array(this.options.maxZoom + 1);
         this.stride = this.options.reduce ? 5 : 4;
@@ -121,7 +126,7 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
      * @param features 
      */
     updateIndex(features: GeoJSONVTInternalFeature[], _affected: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions) {
-        this.options = Object.assign(Object.create(defaultClusterOptions), options.clusterOptions) as Required<SuperclusterOptions>;
+        this.options = createOptions(options.clusterOptions);
         this.initialize(features);
     }
 
@@ -556,6 +561,13 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
         const result = this.options.map(original);
         return clone && result === original ? Object.assign({}, result) : result;
     }
+}
+
+function createOptions(options?: SuperclusterOptions): Required<SuperclusterOptions> {
+    const result = Object.assign(Object.create(defaultClusterOptions), options) as Required<SuperclusterOptions>;
+    result.minZoom = Math.min(result.minZoom, MAX_ZOOM);
+    result.maxZoom = Math.min(result.maxZoom, MAX_ZOOM);
+    return result;
 }
 
 function getClusterFeature(coords: Float64Array, index: number, data: Int32Array, i: number, clusterProps: Record<string, unknown>[]): ClusterFeatureInternal {
