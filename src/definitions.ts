@@ -57,8 +57,8 @@ export type GeoJSONVTOptions = {
      * Whether positions are world coordinates instead of lng/lat: x and y from 0 to 1 across the world square, y growing
      * downward, where web mercator would put a lng/lat. The world is then a square that ends at its edges, for data in a
      * world of its own such as a map projection's: positions are neither projected nor wrapped around or clamped,
-     * features outside the square are left out of the tiles and the clusters, `getTile` returns `null` outside it, and
-     * `getData` and the cluster methods return world coordinates too.
+     * features are cut at the tile buffer around the square, points outside it are left out of the clusters, `getTile`
+     * returns `null` outside it, and `getData` and the cluster methods return world coordinates too.
      * @default false
      */
     worldCoordinates?: boolean;

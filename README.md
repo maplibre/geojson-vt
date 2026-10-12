@@ -74,7 +74,7 @@ By default, tiles at zoom levels above `indexMaxZoom` are generated on the fly, 
 
 The `promoteId` and `generateId` options ignore existing `id` values on the feature objects.
 
-With `worldCoordinates: true`, positions are x and y from 0 to 1 across the world square, y growing downward, instead of lng/lat, for data in a world of its own such as a map projection's. The square ends at its edges: positions are neither projected nor wrapped around or clamped, features outside it are left out of the tiles and the clusters, `getTile` returns `null` for tiles outside it, and `getData` and the cluster methods return world coordinates.
+With `worldCoordinates: true`, positions are x and y from 0 to 1 across the world square, y growing downward, instead of lng/lat, for data in a world of its own such as a map projection's. The square ends at its edges: positions are neither projected nor wrapped around or clamped, features are cut at the tile buffer around it, points outside it are left out of the clusters, `getTile` returns `null` for tiles outside it, and `getData` and the cluster methods return world coordinates.
 
 GeoJSON-VT only operates on zoom levels up to 24.
 
