@@ -111,3 +111,41 @@ test('wrapWorld: false returns no tile for a column outside the world', () => {
 
     expect(index.getTile(1, 2, 0)).toBeNull();
 });
+
+const weightedPoints = {
+    type: 'FeatureCollection' as const,
+    features: [[0, 1], [0.01, 2], [100, 10], [100.01, 20]].map(([lng, weight]) => ({
+        type: 'Feature' as const,
+        geometry: {type: 'Point' as const, coordinates: [lng, 0]},
+        properties: {weight}
+    }))
+};
+
+const sumWeights = {
+    map: (props: GeoJSON.GeoJsonProperties) => ({sum: (props as {weight: number}).weight}),
+    reduce: (a: Record<string, unknown>, b: Record<string, unknown>) => { (a as {sum: number}).sum += (b as {sum: number}).sum; }
+};
+
+test('updateClusterOptions aggregates cluster properties when it adds a reduce function', () => {
+    const index = new GeoJSONVT(weightedPoints, {
+        updateable: true,
+        cluster: true,
+        clusterOptions: {maxZoom: 2}
+    });
+
+    index.updateClusterOptions(true, {maxZoom: 2, ...sumWeights});
+
+    expect(index.getTile(0, 0, 0).features.map(f => (f.tags as {sum?: number}).sum)).toEqual([3, 30]);
+});
+
+test('updateClusterOptions stops aggregating cluster properties when it removes the reduce function', () => {
+    const index = new GeoJSONVT(weightedPoints, {
+        updateable: true,
+        cluster: true,
+        clusterOptions: {maxZoom: 2, ...sumWeights}
+    });
+
+    index.updateClusterOptions(true, {maxZoom: 2});
+
+    expect(index.getTile(0, 0, 0).features.map(f => (f.tags as {sum?: number}).sum)).toEqual([undefined, undefined]);
+});

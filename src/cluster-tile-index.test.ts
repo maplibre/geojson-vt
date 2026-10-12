@@ -203,3 +203,17 @@ test('does not throw on zero items', () => {
         expect(index.getClusters([-180, -85, 180, 85], 0)).toEqual([]);
     }).not.toThrow();
 });
+
+test('does not keep the cluster properties of an earlier load', () => {
+    const index = new ClusterTileIndex({
+        map: (props) => ({sum: (props as {scalerank: number})?.scalerank}),
+        reduce: (a, b) => { (a as {sum: number}).sum += (b as {sum: number}).sum; },
+        radius: 100
+    });
+    index.load(places.features);
+    const count = index.clusterProps.length;
+
+    index.load(places.features);
+
+    expect(index.clusterProps.length).toBe(count);
+});

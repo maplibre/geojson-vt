@@ -126,6 +126,11 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
     private createIndex(points: GeoJSONVTInternalPointFeature[]): void {
         const {log, minZoom, maxZoom} = this.options;
 
+        // start over, since the options can have changed since the last build
+        this.trees = new Array(maxZoom + 1);
+        this.stride = this.options.reduce ? 5 : 4;
+        this.clusterProps = [];
+
         if (log) console.time('total time');
 
         const timerId = `prepare ${points.length} points`;
