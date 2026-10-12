@@ -142,12 +142,12 @@ test('worldCoordinates returns cluster children and leaves in world coordinates'
     expect(leafPositions).toEqual(expect.arrayContaining(points.features.map(point => point.geometry.coordinates)));
 });
 
-test('worldCoordinates returns no tile for a column outside the world', () => {
-    const inTopLeftTile = {type: 'Point' as const, coordinates: [0.25, 0.25]};
+test('worldCoordinates returns no tile for a column on either side of the world', () => {
+    const inTheTwoTopTiles = {type: 'MultiPoint' as const, coordinates: [[0.25, 0.25], [0.75, 0.25]]};
 
-    const index = new GeoJSONVT(inTopLeftTile, {worldCoordinates: true});
+    const index = new GeoJSONVT(inTheTwoTopTiles, {worldCoordinates: true});
 
-    expect(index.getTile(1, 2, 0)).toBeNull();
+    expect([index.getTile(1, -1, 0), index.getTile(1, 2, 0)]).toEqual([null, null]);
 });
 
 const weightedPoints = {

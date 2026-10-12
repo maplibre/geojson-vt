@@ -82,9 +82,6 @@ export class GeoJSONVT {
 
         if (z < 0 || z > 24) return null;
 
-        const z2 = 1 << z;
-        if (this.options.worldCoordinates && (x < 0 || x >= z2 || y < 0 || y >= z2)) return null;
-
         return this.tileIndex.getTile(z, x, y);
     }
 

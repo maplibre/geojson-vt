@@ -84,6 +84,7 @@ export class TileIndex implements GeoJSONVTTileIndex {
         const {extent, debug} = this.options;
         
         const z2 = 1 << z;
+        if (this.options.worldCoordinates && (x < 0 || x >= z2)) return null; // a row outside the world has no tile either
         x = (x + z2) & (z2 - 1); // wrap tile x coordinate
 
         const id = toID(z, x, y);
