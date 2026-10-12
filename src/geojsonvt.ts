@@ -20,7 +20,7 @@ export const defaultOptions: GeoJSONVTOptions = {
     cluster: false,
     clusterOptions: defaultClusterOptions,
     debug: 0,
-    wrapWorld: true
+    worldCoordinates: false
 };
 
 /**
@@ -63,7 +63,7 @@ export class GeoJSONVT {
     }
 
     private initializeIndex(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions) {
-        this.tileIndex = options.cluster ? new ClusterTileIndex(options.clusterOptions, options.wrapWorld !== false) : new TileIndex(options);
+        this.tileIndex = options.cluster ? new ClusterTileIndex(options.clusterOptions, options.worldCoordinates) : new TileIndex(options);
         if (!features.length) return;
         this.tileIndex.initialize(features);
     }
@@ -83,7 +83,7 @@ export class GeoJSONVT {
         if (z < 0 || z > 24) return null;
 
         const z2 = 1 << z;
-        if (this.options.wrapWorld === false && (x < 0 || x >= z2 || y < 0 || y >= z2)) return null;
+        if (this.options.worldCoordinates && (x < 0 || x >= z2 || y < 0 || y >= z2)) return null;
 
         return this.tileIndex.getTile(z, x, y);
     }
@@ -121,7 +121,7 @@ export class GeoJSONVT {
 
         for (const feature of source) {
             if (feature.id == undefined) continue;
-            if (predicate(featureToGeoJSON(feature))) continue;
+            if (predicate(featureToGeoJSON(feature, this.options.worldCoordinates))) continue;
             affected.push(feature);
             removeIds.add(feature.id);
         }
@@ -135,7 +135,7 @@ export class GeoJSONVT {
      */
     getData(): GeoJSON.GeoJSON {
         if (!this.options.updateable) throw new Error('to retrieve data the `updateable` option must be set to true');
-        return convertToGeoJSON(this.source);
+        return convertToGeoJSON(this.source, this.options.worldCoordinates);
     }
     
     /**

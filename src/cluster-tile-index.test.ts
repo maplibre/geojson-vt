@@ -217,3 +217,13 @@ test('does not keep the cluster properties of an earlier load', () => {
 
     expect(index.clusterProps.length).toBe(count);
 });
+
+test('takes points and the getClusters bounding box in world coordinates with worldCoordinates', () => {
+    const index = new ClusterTileIndex({}, true);
+    index.load([
+        {type: 'Feature', properties: {name: 'a'}, geometry: {type: 'Point', coordinates: [0.25, 0.25]}},
+        {type: 'Feature', properties: {name: 'b'}, geometry: {type: 'Point', coordinates: [0.75, 0.75]}}
+    ]);
+
+    expect(index.getClusters([0, 0, 0.5, 0.5], 0).map(f => f.geometry.coordinates)).toEqual([[0.25, 0.25]]);
+});
