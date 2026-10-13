@@ -61,6 +61,7 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
      * Whether points are in world coordinates, see `worldCoordinates` in {@link GeoJSONVTOptions}. Points outside the
      * world are then left out of the clusters, tiles at an edge get no points from the opposite one, `getTile` returns
      * `null` outside the world, and clusters come back in world coordinates.
+     * @experimental
      */
     worldCoordinates: boolean;
 

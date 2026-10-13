@@ -59,6 +59,7 @@ export type GeoJSONVTOptions = {
      * world of its own such as a map projection's: positions are neither projected nor wrapped around or clamped,
      * features are cut at the tile buffer around the square, points outside it are left out of the clusters, `getTile`
      * returns `null` outside it, and `getData` and the cluster methods return world coordinates too.
+     * @experimental
      * @default false
      */
     worldCoordinates?: boolean;
