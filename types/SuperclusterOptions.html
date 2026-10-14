@@ -12,7 +12,7 @@
 <h1>Type Alias SuperclusterOptions</h1></div>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">SuperclusterOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#extent">extent</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#generateid">generateId</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#log">log</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#map">map</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GeoJSON.GeoJsonProperties</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxzoom">maxZoom</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#minpoints">minPoints</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#minzoom">minZoom</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#nodesize">nodeSize</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#radius">radius</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#reduce">reduce</a><span class="tsd-signature-symbol">?:</span><br/>        <span class="tsd-signature-symbol">|</span> (<br/>            <span class="tsd-signature-symbol">(</span><br/>                <span class="tsd-kind-parameter">accumulated</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>                <span class="tsd-kind-parameter">props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>            <span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><br/>        )<br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/78c440c3f0f49d4475e66bb5b9afec767397f00e/src/definitions.ts#L215">definitions.ts:215</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/2258955e4c318432dd25d29196c5bdd5bd6ca49a/src/definitions.ts#L226">definitions.ts:226</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -46,11 +46,12 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/78c440c3f0f49d4475e66bb5b9afec767397f00e/src/definitions.ts#L240">definitions.ts:240</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/2258955e4c318432dd25d29196c5bdd5bd6ca49a/src/definitions.ts#L251">definitions.ts:251</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="generateid"><code class="tsd-tag">Optional</code><span>generate<wbr/>Id</span><a href="#generateid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">generateId</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p>Whether to generate numeric ids for input features (in vector tiles)</p>
+<div class="tsd-comment tsd-typography"><p>Whether to generate numeric ids for input features (in vector tiles). Each position of a MultiPoint feature
+gets an id of its own.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-default">
@@ -59,7 +60,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/78c440c3f0f49d4475e66bb5b9afec767397f00e/src/definitions.ts#L255">definitions.ts:255</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/2258955e4c318432dd25d29196c5bdd5bd6ca49a/src/definitions.ts#L267">definitions.ts:267</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="log"><code class="tsd-tag">Optional</code><span>log</span><a href="#log" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">log</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -72,7 +73,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/78c440c3f0f49d4475e66bb5b9afec767397f00e/src/definitions.ts#L250">definitions.ts:250</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/2258955e4c318432dd25d29196c5bdd5bd6ca49a/src/definitions.ts#L261">definitions.ts:261</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="map"><code class="tsd-tag">Optional</code><span>map</span><a href="#map" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">map</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GeoJSON.GeoJsonProperties</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></div>
@@ -85,11 +86,11 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/78c440c3f0f49d4475e66bb5b9afec767397f00e/src/definitions.ts#L265">definitions.ts:265</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/2258955e4c318432dd25d29196c5bdd5bd6ca49a/src/definitions.ts#L277">definitions.ts:277</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="maxzoom"><code class="tsd-tag">Optional</code><span>max<wbr/>Zoom</span><a href="#maxzoom" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">maxZoom</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
-<div class="tsd-comment tsd-typography"><p>Max zoom level to cluster the points on</p>
+<div class="tsd-comment tsd-typography"><p>Max zoom level to cluster the points on. A value above 30 is limited to 30.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-default">
@@ -98,7 +99,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/78c440c3f0f49d4475e66bb5b9afec767397f00e/src/definitions.ts#L225">definitions.ts:225</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/2258955e4c318432dd25d29196c5bdd5bd6ca49a/src/definitions.ts#L236">definitions.ts:236</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="minpoints"><code class="tsd-tag">Optional</code><span>min<wbr/>Points</span><a href="#minpoints" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">minPoints</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -111,11 +112,11 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/78c440c3f0f49d4475e66bb5b9afec767397f00e/src/definitions.ts#L230">definitions.ts:230</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/2258955e4c318432dd25d29196c5bdd5bd6ca49a/src/definitions.ts#L241">definitions.ts:241</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="minzoom"><code class="tsd-tag">Optional</code><span>min<wbr/>Zoom</span><a href="#minzoom" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">minZoom</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
-<div class="tsd-comment tsd-typography"><p>Min zoom to generate clusters on</p>
+<div class="tsd-comment tsd-typography"><p>Min zoom to generate clusters on. A value above 30 is limited to 30.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-default">
@@ -124,7 +125,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/78c440c3f0f49d4475e66bb5b9afec767397f00e/src/definitions.ts#L220">definitions.ts:220</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/2258955e4c318432dd25d29196c5bdd5bd6ca49a/src/definitions.ts#L231">definitions.ts:231</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="nodesize"><code class="tsd-tag">Optional</code><span>node<wbr/>Size</span><a href="#nodesize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">nodeSize</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -137,7 +138,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/78c440c3f0f49d4475e66bb5b9afec767397f00e/src/definitions.ts#L245">definitions.ts:245</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/2258955e4c318432dd25d29196c5bdd5bd6ca49a/src/definitions.ts#L256">definitions.ts:256</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="radius"><code class="tsd-tag">Optional</code><span>radius</span><a href="#radius" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">radius</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -150,7 +151,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/78c440c3f0f49d4475e66bb5b9afec767397f00e/src/definitions.ts#L235">definitions.ts:235</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/2258955e4c318432dd25d29196c5bdd5bd6ca49a/src/definitions.ts#L246">definitions.ts:246</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="reduce"><code class="tsd-tag">Optional</code><span>reduce</span><a href="#reduce" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">reduce</span><span class="tsd-signature-symbol">?:</span><br/>    <span class="tsd-signature-symbol">|</span> (<br/>        <span class="tsd-signature-symbol">(</span><br/>            <span class="tsd-kind-parameter">accumulated</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>            <span class="tsd-kind-parameter">props</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><br/>    )<br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></div>
@@ -163,7 +164,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/78c440c3f0f49d4475e66bb5b9afec767397f00e/src/definitions.ts#L260">definitions.ts:260</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/maplibre/geojson-vt/blob/2258955e4c318432dd25d29196c5bdd5bd6ca49a/src/definitions.ts#L272">definitions.ts:272</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
