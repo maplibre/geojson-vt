@@ -3,6 +3,7 @@
 - _...Add new stuff here..._
 
 ### 🐞 Bug fixes
+- Fix `updateData` losing a feature with a null geometry or no coordinates, so that a later update could not give it any ([#240](https://github.com/maplibre/geojson-vt/pull/240)) (by [@johncarmack1984](https://github.com/johncarmack1984))
 - _...Add new stuff here..._
 
 ## 6.2.0
