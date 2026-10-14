@@ -210,6 +210,77 @@ test('leaves out a MultiPolygon that has only empty polygons', () => {
     expect(index.getData()).toEqual({type: 'FeatureCollection', features: []});
 });
 
+test('updateData draws a feature again when an update gives back the coordinates an earlier one took away', () => {
+    const line = {type: 'Feature' as const, id: 'line', properties: {name: 'line'}, geometry: {type: 'LineString' as const, coordinates: [[0, 0], [10, 10]]}};
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: [line]}, {updateable: true});
+
+    index.updateData({update: [{id: 'line', newGeometry: {type: 'LineString', coordinates: []}}]});
+    index.updateData({update: [{id: 'line', newGeometry: line.geometry}]});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.tags)).toEqual([{name: 'line'}]);
+});
+
+test('updateData draws a feature loaded without a geometry once an update gives it one', () => {
+    const later: GeoJSON.Feature = {type: 'Feature', id: 'later', properties: {name: 'later'}, geometry: null};
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: [later]}, {updateable: true});
+
+    index.updateData({update: [{id: 'later', newGeometry: {type: 'Point', coordinates: [10, 10]}}]});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.tags)).toEqual([{name: 'later'}]);
+});
+
+test('updateData draws a feature added without coordinates once an update gives it some', () => {
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: []}, {updateable: true});
+
+    index.updateData({add: [{type: 'Feature', id: 'added', properties: {name: 'added'}, geometry: {type: 'Polygon', coordinates: []}}]});
+    index.updateData({update: [{id: 'added', newGeometry: {type: 'Polygon', coordinates: [[[0, 0], [10, 0], [10, 10], [0, 0]]]}}]});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.tags)).toEqual([{name: 'added'}]);
+});
+
+test('updateData leaves a feature without a geometry removed when an update gives it one', () => {
+    const kept = {type: 'Feature' as const, id: 'kept', properties: {}, geometry: {type: 'Point' as const, coordinates: [0, 0]}};
+    const removed: GeoJSON.Feature = {type: 'Feature', id: 'removed', properties: {}, geometry: null};
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: [kept, removed]}, {updateable: true});
+
+    index.updateData({remove: ['removed']});
+    index.updateData({update: [{id: 'removed', newGeometry: {type: 'Point', coordinates: [10, 10]}}]});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.id)).toEqual(['kept']);
+});
+
+test('updateData leaves a feature without a geometry removed by removeAll when an update gives it one', () => {
+    const kept = {type: 'Feature' as const, id: 'kept', properties: {}, geometry: {type: 'Point' as const, coordinates: [0, 0]}};
+    const removed: GeoJSON.Feature = {type: 'Feature', id: 'removed', properties: {}, geometry: null};
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: [removed]}, {updateable: true});
+
+    index.updateData({removeAll: true, add: [kept]});
+    index.updateData({update: [{id: 'removed', newGeometry: {type: 'Point', coordinates: [10, 10]}}]});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.id)).toEqual(['kept']);
+});
+
+test('updateData keeps the property changes made to a feature while it has no geometry', () => {
+    const renamed: GeoJSON.Feature = {type: 'Feature', id: 'renamed', properties: {name: 'before'}, geometry: null};
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: [renamed]}, {updateable: true});
+
+    index.updateData({update: [{id: 'renamed', addOrUpdateProperties: [{key: 'name', value: 'after'}]}]});
+    index.updateData({update: [{id: 'renamed', newGeometry: {type: 'Point', coordinates: [10, 10]}}]});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.tags)).toEqual([{name: 'after'}]);
+});
+
+test('updateData does not bring back a feature the update filter took out after an update gave it a geometry', () => {
+    const kept = {type: 'Feature' as const, id: 'kept', properties: {}, geometry: {type: 'Point' as const, coordinates: [0, 0]}};
+    const hidden: GeoJSON.Feature = {type: 'Feature', id: 'hidden', properties: {hidden: true}, geometry: null};
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: [kept, hidden]}, {updateable: true});
+
+    index.updateData({update: [{id: 'hidden', newGeometry: {type: 'Point', coordinates: [10, 10]}}]}, feature => !feature.properties.hidden);
+    index.updateData({update: [{id: 'hidden', newGeometry: {type: 'Point', coordinates: [20, 20]}}]});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.id)).toEqual(['kept']);
+});
+
 test('keeps the corner of a polygon whose vertex lies on the left edge of a tile', () => {
     const polygon = {
         type: 'Polygon' as const,

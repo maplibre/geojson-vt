@@ -9,25 +9,40 @@ const MAX_GEOMETRY_COLLECTION_DEPTH = 1024;
  * converts GeoJSON to internal source features (an intermediate projected JSON vector format with simplification data)
  * @param data
  * @param options
+ * @param unlocated - the properties of the features without coordinates, by id: a feature with an id that converts to nothing is set in it, and one that converts to something is deleted from it
  * @returns
  */
-export function convertToInternal(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
+export function convertToInternal(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.GeoJsonProperties>): GeoJSONVTInternalFeature[] {
     const features: GeoJSONVTInternalFeature[] = [];
 
     switch (data.type) {
         case 'FeatureCollection':
             for (let i = 0; i < data.features.length; i++) {
-                featureToInternal(features, data.features[i], options, i);
+                convertFeature(features, data.features[i], options, unlocated, i);
             }
             break;
         case 'Feature':
-            featureToInternal(features, data, options);
+            convertFeature(features, data, options, unlocated);
             break;
         default:
             featureToInternal(features, {type: "Feature" as const, geometry: data, properties: undefined}, options);
     }
 
     return features;
+}
+
+function convertFeature(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.GeoJsonProperties>, index?: number) {
+    const count = features.length;
+    featureToInternal(features, geojson, options, index);
+    if (!unlocated) return;
+
+    const id = getFeatureId(geojson, options, index);
+    if (id == null) return;
+    if (features.length > count) {
+        unlocated.delete(id);
+    } else {
+        unlocated.set(id, geojson.properties);
+    }
 }
 
 function featureToInternal(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, options: GeoJSONVTOptions, index?: number, depth = 0) {
