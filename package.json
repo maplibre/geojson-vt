@@ -1,6 +1,6 @@
 {
   "name": "@maplibre/geojson-vt",
-  "version": "6.1.2",
+  "version": "6.2.0",
   "description": "Slice GeoJSON data into vector tiles efficiently",
   "type": "module",
   "exports": {

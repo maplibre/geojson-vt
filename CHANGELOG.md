@@ -1,9 +1,15 @@
 ## main
 ### ✨ Features and improvements
+- _...Add new stuff here..._
+
+### 🐞 Bug fixes
+- _...Add new stuff here..._
+
+## 6.2.0
+### ✨ Features and improvements
 - Reduce memory usage of clustering ([#223](https://github.com/maplibre/geojson-vt/pull/223)) (by [@birkskyum](https://github.com/birkskyum))
 - Add a `worldCoordinates` option for positions given as x and y from 0 to 1 in a world square of its own, which neither wraps around nor clamps ([#224](https://github.com/maplibre/geojson-vt/pull/224)) (by [@johncarmack1984](https://github.com/johncarmack1984))
 - Increase the accuracy of clustering from ~1 m to ~4 cm, and reduce its memory usage, by storing cluster coordinates as integers. On dense data the clusters come out differently ([#230](https://github.com/maplibre/geojson-vt/pull/230)) (by [@birkskyum](https://github.com/birkskyum))
-- _...Add new stuff here..._
 
 ### 🐞 Bug fixes
 - Fix `MultiPoint` features missing from a clustered index, by clustering each of their positions as a point of its own ([#231](https://github.com/maplibre/geojson-vt/pull/231)) (by [@birkskyum](https://github.com/birkskyum))
@@ -13,7 +19,6 @@
 - Fix `updateData` throwing when it adds a feature without properties while `promoteId` is set ([#228](https://github.com/maplibre/geojson-vt/pull/228)) (by [@birkskyum](https://github.com/birkskyum))
 - Stop the cluster index from keeping the cluster properties of earlier builds, and fix `updateClusterOptions` throwing when it adds or removes a `reduce` function ([#225](https://github.com/maplibre/geojson-vt/pull/225)) (by [@birkskyum](https://github.com/birkskyum))
 - Limit the cluster `minZoom` and `maxZoom` to 30, the highest zoom level a cluster id can hold ([#229](https://github.com/maplibre/geojson-vt/pull/229)) (by [@birkskyum](https://github.com/birkskyum))
-- _...Add new stuff here..._
 
 ## 6.1.2
 
