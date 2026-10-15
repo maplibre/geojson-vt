@@ -70,10 +70,10 @@ type HashedGeoJSONVTSourceDiff = {
  * @param source 
  * @param dataDiff 
  * @param options 
- * @param unlocated - the properties of the features without coordinates, by id, so that an update can give them some
+ * @param unlocated - the features without coordinates, by id, so that an update can give them some
  * @returns 
  */
-export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: GeoJSONVTSourceDiff, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.GeoJsonProperties>): ApplySourceDiffResult {
+export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: GeoJSONVTSourceDiff, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.Feature>): ApplySourceDiffResult {
     // convert diff to sets/maps for o(1) lookups
     const diff = diffToHashed(dataDiff, options);
 
@@ -148,10 +148,10 @@ export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: Ge
  * @param vtFeatures - the original features
  * @param update - the update object to apply
  * @param options - the options to use for the wrap method
- * @param unlocated - the properties of the features without coordinates, by id, which a new geometry without coordinates adds the feature to
+ * @param unlocated - the features without coordinates, by id, which a new geometry without coordinates adds the feature to
  * @returns Updated features. If geometry is updated, returns new feature(s) converted from geojson and wrapped, with the id the feature already has. If only properties are updated, returns feature(s) with tags updated.
  */
-function getUpdatedFeatures(vtFeatures: GeoJSONVTInternalFeature[], update: GeoJSONVTFeatureDiff, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.GeoJsonProperties>): GeoJSONVTInternalFeature[] {
+function getUpdatedFeatures(vtFeatures: GeoJSONVTInternalFeature[], update: GeoJSONVTFeatureDiff, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.Feature>): GeoJSONVTInternalFeature[] {
     const changeGeometry = !!update.newGeometry;
     const changeProps = hasPropertyChanges(update);
 
@@ -179,11 +179,11 @@ function getUpdatedFeatures(vtFeatures: GeoJSONVTInternalFeature[], update: GeoJ
  * Gets the features an update gives a feature without coordinates: none, unless its new geometry has some.
  * Its property changes apply either way.
  */
-function getUpdatedUnlocatedFeatures(id: string | number, update: GeoJSONVTFeatureDiff, options: GeoJSONVTOptions, unlocated: Map<string | number, GeoJSON.GeoJsonProperties>): GeoJSONVTInternalFeature[] {
-    const tags = unlocated.get(id);
-    const properties = hasPropertyChanges(update) ? applyPropertyUpdates(tags, update) : tags;
+function getUpdatedUnlocatedFeatures(id: string | number, update: GeoJSONVTFeatureDiff, options: GeoJSONVTOptions, unlocated: Map<string | number, GeoJSON.Feature>): GeoJSONVTInternalFeature[] {
+    const feature = unlocated.get(id);
+    const properties = hasPropertyChanges(update) ? applyPropertyUpdates(feature.properties, update) : feature.properties;
     if (!update.newGeometry) {
-        unlocated.set(id, properties);
+        unlocated.set(id, {...feature, properties});
         return [];
     }
     return convertNewGeometry(id, update.newGeometry, properties, options, unlocated);
@@ -192,7 +192,7 @@ function getUpdatedUnlocatedFeatures(id: string | number, update: GeoJSONVTFeatu
 /**
  * Converts the new geometry of a feature to internal format, keeping the id the feature already has
  */
-function convertNewGeometry(id: GeoJSONVTInternalFeature['id'], geometry: GeoJSON.Geometry, properties: GeoJSON.GeoJsonProperties, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.GeoJsonProperties>): GeoJSONVTInternalFeature[] {
+function convertNewGeometry(id: GeoJSONVTInternalFeature['id'], geometry: GeoJSON.Geometry, properties: GeoJSON.GeoJsonProperties, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.Feature>): GeoJSONVTInternalFeature[] {
     const geojsonFeature = {type: 'Feature' as const, id, geometry, properties};
     const features = convertToInternal({type: 'FeatureCollection', features: [geojsonFeature]}, {...options, promoteId: undefined, generateId: false}, unlocated);
     return wrap(features, options);

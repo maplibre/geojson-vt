@@ -281,6 +281,25 @@ test('updateData does not bring back a feature the update filter took out after 
     expect(index.getTile(0, 0, 0).features.map(feature => feature.id)).toEqual(['kept']);
 });
 
+test('updateData does not bring back a feature the update filter took out while it had no coordinates', () => {
+    const point = {type: 'Feature' as const, id: 'point', properties: {keep: true}, geometry: {type: 'Point' as const, coordinates: [0, 0]}};
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: [point]}, {updateable: true});
+    const keepIfMarked = (feature: GeoJSON.Feature) => feature.properties?.keep === true;
+
+    index.updateData({update: [{id: 'point', newGeometry: {type: 'Point', coordinates: []}, addOrUpdateProperties: [{key: 'keep', value: false}]}]}, keepIfMarked);
+    index.updateData({update: [{id: 'point', newGeometry: {type: 'Point', coordinates: [10, 10]}, addOrUpdateProperties: [{key: 'keep', value: true}]}]}, keepIfMarked);
+
+    expect(index.getData()).toEqual({type: 'FeatureCollection', features: []});
+});
+
+test('updateData draws a bare geometry loaded without coordinates once an update gives it some', () => {
+    const index = new GeoJSONVT({type: 'LineString', coordinates: []}, {updateable: true, generateId: true});
+
+    index.updateData({update: [{id: 0, newGeometry: {type: 'LineString', coordinates: [[0, 0], [10, 10]]}}]});
+
+    expect(index.getTile(0, 0, 0)?.features.map(feature => feature.id)).toEqual([0]);
+});
+
 test('keeps the corner of a polygon whose vertex lies on the left edge of a tile', () => {
     const polygon = {
         type: 'Polygon' as const,

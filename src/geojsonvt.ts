@@ -30,7 +30,7 @@ export class GeoJSONVT {
     private options: GeoJSONVTOptions;
     
     private source?: GeoJSONVTInternalFeature[];
-    private unlocated?: Map<string | number, GeoJSON.GeoJsonProperties>;
+    private unlocated?: Map<string | number, GeoJSON.Feature>;
     private tileIndex: GeoJSONVTTileIndex;
 
     constructor(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
@@ -115,7 +115,8 @@ export class GeoJSONVT {
     }
 
     /**
-     * Filter an update using a predicate function. Returns the affected and updated source features.
+     * Filter an update using a predicate function, the features without coordinates included, so that one the filter
+     * rejects can't come back with a later update. Returns the affected and updated source features.
      */
     private filterUpdate(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], predicate: (feature: GeoJSON.Feature) => boolean) {
         const removeIds = new Set();
@@ -127,6 +128,10 @@ export class GeoJSONVT {
             removeIds.add(feature.id);
         }
         source = source.filter(feature => !removeIds.has(feature.id));
+
+        for (const [id, feature] of this.unlocated ?? []) {
+            if (!predicate(feature)) this.unlocated.delete(id);
+        }
 
         return {affected, source};
     }

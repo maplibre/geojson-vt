@@ -9,10 +9,10 @@ const MAX_GEOMETRY_COLLECTION_DEPTH = 1024;
  * converts GeoJSON to internal source features (an intermediate projected JSON vector format with simplification data)
  * @param data
  * @param options
- * @param unlocated - the properties of the features without coordinates, by id: a feature with an id that converts to nothing is set in it, and one that converts to something is deleted from it
+ * @param unlocated - the features without coordinates, by id: a feature with an id that converts to nothing is set in it, and one that converts to something is deleted from it
  * @returns
  */
-export function convertToInternal(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.GeoJsonProperties>): GeoJSONVTInternalFeature[] {
+export function convertToInternal(data: GeoJSON.GeoJSON, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.Feature>): GeoJSONVTInternalFeature[] {
     const features: GeoJSONVTInternalFeature[] = [];
 
     switch (data.type) {
@@ -25,13 +25,13 @@ export function convertToInternal(data: GeoJSON.GeoJSON, options: GeoJSONVTOptio
             convertFeature(features, data, options, unlocated);
             break;
         default:
-            featureToInternal(features, {type: "Feature" as const, geometry: data, properties: undefined}, options);
+            convertFeature(features, {type: "Feature" as const, geometry: data, properties: undefined}, options, unlocated);
     }
 
     return features;
 }
 
-function convertFeature(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.GeoJsonProperties>, index?: number) {
+function convertFeature(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.Feature, options: GeoJSONVTOptions, unlocated?: Map<string | number, GeoJSON.Feature>, index?: number) {
     const count = features.length;
     featureToInternal(features, geojson, options, index);
     if (!unlocated) return;
@@ -41,7 +41,7 @@ function convertFeature(features: GeoJSONVTInternalFeature[], geojson: GeoJSON.F
     if (features.length > count) {
         unlocated.delete(id);
     } else {
-        unlocated.set(id, geojson.properties);
+        unlocated.set(id, geojson);
     }
 }
 
