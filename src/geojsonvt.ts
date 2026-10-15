@@ -115,8 +115,9 @@ export class GeoJSONVT {
     }
 
     /**
-     * Filter an update using a predicate function, the features without coordinates included, so that one the filter
-     * rejects can't come back with a later update. Returns the affected and updated source features.
+     * Filter an update using a predicate function, the features an update emptied included, so that one the filter
+     * rejects can't come back with a later update. A feature without a geometry at all isn't passed to the predicate.
+     * Returns the affected and updated source features.
      */
     private filterUpdate(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], predicate: (feature: GeoJSON.Feature) => boolean) {
         const removeIds = new Set();
@@ -130,7 +131,7 @@ export class GeoJSONVT {
         source = source.filter(feature => !removeIds.has(feature.id));
 
         for (const [id, feature] of this.unlocated ?? []) {
-            if (!predicate(feature)) this.unlocated.delete(id);
+            if (feature.geometry && !predicate(feature)) this.unlocated.delete(id);
         }
 
         return {affected, source};

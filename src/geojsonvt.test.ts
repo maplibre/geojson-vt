@@ -300,6 +300,18 @@ test('updateData draws a bare geometry loaded without coordinates once an update
     expect(index.getTile(0, 0, 0)?.features.map(feature => feature.id)).toEqual([0]);
 });
 
+test('updateData keeps a feature loaded without a geometry away from the update filter', () => {
+    const point = {type: 'Feature' as const, id: 'point', properties: {}, geometry: {type: 'Point' as const, coordinates: [0, 0]}};
+    const later: GeoJSON.Feature = {type: 'Feature', id: 'later', properties: {}, geometry: null};
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: [point, later]}, {updateable: true});
+    const pointsOnly = (feature: GeoJSON.Feature) => feature.geometry.type === 'Point';
+
+    index.updateData({update: [{id: 'point', addOrUpdateProperties: [{key: 'name', value: 'p'}]}]}, pointsOnly);
+    index.updateData({update: [{id: 'later', newGeometry: {type: 'Point', coordinates: [10, 10]}}]}, pointsOnly);
+
+    expect(index.getTile(0, 0, 0)?.features.map(feature => feature.id).sort()).toEqual(['later', 'point']);
+});
+
 test('keeps the corner of a polygon whose vertex lies on the left edge of a tile', () => {
     const polygon = {
         type: 'Polygon' as const,
