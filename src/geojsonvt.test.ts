@@ -291,15 +291,16 @@ test('updateData leaves a feature without a geometry removed by removeAll when a
     expect(index.getTile(0, 0, 0).features.map(feature => feature.id)).toEqual(['kept']);
 });
 
-test('updateData gives each feature added with generateId a new id that is not reused', () => {
+test('updateData gives each feature added with generateId a new id that is not reused and can be removed', () => {
     const point = (x: number): GeoJSON.Feature => ({type: 'Feature', properties: {x}, geometry: {type: 'Point', coordinates: [x, 0]}});
     const index = new GeoJSONVT({type: 'FeatureCollection', features: [point(0), point(1)]}, {updateable: true, generateId: true});
 
     index.updateData({add: [point(2), point(3)]});
     index.updateData({remove: [0]});
     index.updateData({add: [point(4)]});
+    index.updateData({remove: [2]});
 
-    expect((index.getData() as GeoJSON.FeatureCollection).features.map(feature => [feature.id, feature.properties.x])).toEqual([[1, 1], [2, 2], [3, 3], [4, 4]]);
+    expect((index.getData() as GeoJSON.FeatureCollection).features.map(feature => [feature.id, feature.properties.x])).toEqual([[1, 1], [3, 3], [4, 4]]);
 });
 
 test('updateData keeps the property changes made to a feature while it has no geometry', () => {
