@@ -5,6 +5,16 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
+- fix: give features added with generateId new ids ([#257](https://github.com/maplibre/geojson-vt/pull/257)) (by [@samipuro](https://github.com/samipuro))
+- cleanup: drop the unreachable Point case in clip ([#246](https://github.com/maplibre/geojson-vt/pull/246)) (by [@birkskyum](https://github.com/birkskyum))
+- refactor: pass one worldCoordinateHelper instead of the worldCoordinates flag ([#242](https://github.com/maplibre/geojson-vt/pull/242)) (by [@birkskyum](https://github.com/birkskyum))
+- fix: hand the update filter features without coordinates with the id they are kept under ([#243](https://github.com/maplibre/geojson-vt/pull/243)) (by [@birkskyum](https://github.com/birkskyum))
+- docs: remove the changelog lines for #242 and #243 from main ([#245](https://github.com/maplibre/geojson-vt/pull/245)) (by [@birkskyum](https://github.com/birkskyum))
+## 6.3.1
+### ✨ Features and improvements
+
+### 🐞 Bug fixes
+
 ## 6.3.0
 ### ✨ Features and improvements
 - Replace the experimental `worldCoordinates` option with two experimental options, `coordinates`, for positions in lng/lat or in the unit square, and `wrap`, for whether the world wraps around the antimeridian. `worldCoordinates: true` becomes `coordinates: 'unitSquare', wrap: false`, and `Supercluster` takes both in its options instead of its second constructor argument and its `worldCoordinates` field ([#241](https://github.com/maplibre/geojson-vt/pull/241)) (by [@birkskyum](https://github.com/birkskyum))
