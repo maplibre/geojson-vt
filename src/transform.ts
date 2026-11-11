@@ -54,9 +54,22 @@ function transformNonPointFeature(feature: GeoJSONVTInternalTileFeatureNonPoint,
     const nonPoint: GeoJSONVTFeatureNonPoint["geometry"] = [];
     for (const geom of geometry) {
         const ring: GeoJSONVTFeaturePoint["geometry"] = [];
+        let area = 0;
+        let roundedArea = 0;
         for (let i = 0; i < geom.length; i += 2) {
-            ring.push(transformPoint(geom[i], geom[i + 1], extent, z2, tx, ty));
+            const point = transformPoint(geom[i], geom[i + 1], extent, z2, tx, ty);
+            if (feature.type === 3 && i > 0) {
+                area += (geom[i - 2] - geom[0]) * (geom[i + 1] - geom[1]) -
+                    (geom[i] - geom[0]) * (geom[i - 1] - geom[1]);
+                const previous = ring[ring.length - 1];
+                const origin = ring[0];
+                roundedArea += (previous[0] - origin[0]) * (point[1] - origin[1]) -
+                    (point[0] - origin[0]) * (previous[1] - origin[1]);
+            }
+            ring.push(point);
         }
+        // Quantization must not turn a hole into a shell, or vice versa.
+        if (area * roundedArea < 0) ring.reverse();
         nonPoint.push(ring);
     }
     transformed.geometry = nonPoint;
