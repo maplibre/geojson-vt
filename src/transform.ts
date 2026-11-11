@@ -53,15 +53,54 @@ function transformNonPointFeature(feature: GeoJSONVTInternalTileFeatureNonPoint,
     const geometry = feature.geometry;
     const nonPoint: GeoJSONVTFeatureNonPoint["geometry"] = [];
     for (const geom of geometry) {
-        const ring: GeoJSONVTFeaturePoint["geometry"] = [];
-        for (let i = 0; i < geom.length; i += 2) {
-            ring.push(transformPoint(geom[i], geom[i + 1], extent, z2, tx, ty));
+        if (feature.type === 3) {
+            nonPoint.push(transformPolygonRing(geom, extent, z2, tx, ty));
+        } else {
+            const line: GeoJSONVTFeaturePoint["geometry"] = [];
+            for (let i = 0; i < geom.length; i += 2) {
+                line.push(transformPoint(geom[i], geom[i + 1], extent, z2, tx, ty));
+            }
+            nonPoint.push(line);
         }
-        nonPoint.push(ring);
     }
     transformed.geometry = nonPoint;
 
     return transformed;
+}
+
+function transformPolygonRing(geometry: number[], extent: number, z2: number, tx: number, ty: number): [number, number][] {
+    if (!geometry.length) return [];
+
+    // Relative coordinates avoid cancellation for narrow rings far from the origin.
+    const originX = geometry[0];
+    const originY = geometry[1];
+    const origin = transformPoint(originX, originY, extent, z2, tx, ty);
+    const ring = [origin];
+    let previousX = 0;
+    let previousY = 0;
+    let previousRoundedX = 0;
+    let previousRoundedY = 0;
+    let sourceArea = 0;
+    let roundedArea = 0;
+
+    for (let i = 2; i < geometry.length; i += 2) {
+        const point = transformPoint(geometry[i], geometry[i + 1], extent, z2, tx, ty);
+        const x = geometry[i] - originX;
+        const y = geometry[i + 1] - originY;
+        const roundedX = point[0] - origin[0];
+        const roundedY = point[1] - origin[1];
+        sourceArea += previousX * y - x * previousY;
+        roundedArea += previousRoundedX * roundedY - roundedX * previousRoundedY;
+        previousX = x;
+        previousY = y;
+        previousRoundedX = roundedX;
+        previousRoundedY = roundedY;
+        ring.push(point);
+    }
+
+    // Quantization must not turn a hole into a shell, or vice versa.
+    if (sourceArea * roundedArea < 0) ring.reverse();
+    return ring;
 }
 
 function transformPoint(x: number, y: number, extent: number, z2: number, tx: number, ty: number): [number, number] {
