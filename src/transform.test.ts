@@ -1,5 +1,6 @@
 import {describe, expect, test} from 'vitest';
 import {GeoJSONVT, geoJSONToTile} from '.';
+import {transformTile} from './transform';
 import type {GeoJSONToTileOptions} from './definitions';
 
 const options: GeoJSONToTileOptions = {coordinates: 'unitSquare', wrap: false, extent: 8192, tolerance: 0};
@@ -19,6 +20,7 @@ const generators = [
 describe.each(generators)('$name at zoom $z preserves polygon winding during quantization', ({tile: generateTile, z, x, y}) => {
     const tile = (data: GeoJSON.GeoJSON) => generateTile(data, z, x, y);
     const unitSquare = (ring: number[][]) => ring.map(([px, py]) => [(x + px / 8192) / (1 << z), (y + py / 8192) / (1 << z)]);
+
     test('keeps a narrow hole distinct from its shell and subsequent holes', () => {
         const data: GeoJSON.Polygon = {type: 'Polygon', coordinates: [outer, thinHole, hole].map(unitSquare)};
 
@@ -60,4 +62,15 @@ describe.each(generators)('$name at zoom $z preserves polygon winding during qua
 
         expect(tile(data).features[0].geometry).toEqual([[[200, 200], [250, 200], [300, 201], [200, 200]]]);
     });
+});
+
+test('transformTile retains empty polygon rings', () => {
+    const tile = transformTile({
+        transformed: false,
+        source: null,
+        x: 0, y: 0, z: 0,
+        features: [{type: 3, tags: null, geometry: [[]]}]
+    }, 8192);
+
+    expect(tile.features[0].geometry).toEqual([[]]);
 });
