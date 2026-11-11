@@ -35,6 +35,7 @@ export class GeoJSONVT {
     private source?: GeoJSONVTInternalFeature[];
     private unlocated?: Map<string | number, GeoJSON.Feature>;
     private tileIndex: GeoJSONVTTileIndex;
+    private nextId: number;
 
     constructor(data: GeoJSON.GeoJSON, options?: GeoJSONVTOptions) {
         options = this.options = Object.assign({}, defaultOptions, options);
@@ -49,6 +50,9 @@ export class GeoJSONVT {
 
         // for updateable indexes, keep the properties of the features without coordinates, so that an update can give them some
         if (options.updateable) this.unlocated = new Map();
+
+        // with generateId, features added by an update get ids after the ones generated here
+        this.nextId = data.type === 'FeatureCollection' ? data.features.length : 1;
 
         // projects and adds simplification info
         let features = convertToInternal(data, options, this.unlocated);
@@ -101,6 +105,9 @@ export class GeoJSONVT {
         const options = this.options;
 
         if (!options.updateable) throw new Error('to update tile geojson `updateable` option must be set to true');
+
+        // give added features new generated ids, so none of them share or reuse an id
+        if (options.generateId && diff.add) diff = {...diff, add: diff.add.map(feature => ({...feature, id: this.nextId++}))};
 
         // apply diff and collect affected features and updated source that will be used to invalidate tiles
         let {affected, source} = applySourceDiff(this.source, diff, options, this.unlocated);

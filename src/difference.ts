@@ -105,7 +105,8 @@ export function applySourceDiff(source: GeoJSONVTInternalFeature[], dataDiff: Ge
         }
 
         if (diff.add.size) {
-            let addFeatures = convertToInternal({type: 'FeatureCollection', features: Array.from(diff.add.values())}, options, unlocated);
+            // added features keep their own ids, as generated ids are given to them before the diff is applied
+            let addFeatures = convertToInternal({type: 'FeatureCollection', features: Array.from(diff.add.values())}, {...options, generateId: false}, unlocated);
             addFeatures = wrap(addFeatures, options);
             affected = affected.concat(addFeatures);
             source = source.concat(addFeatures);
