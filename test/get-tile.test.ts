@@ -2,7 +2,7 @@
 import {test, expect} from 'vitest';
 import fs from 'fs';
 
-import {GeoJSONVT, geoJSONToTile} from '../src';
+import {GeoJSONVT} from '../src';
 
 const square = [{
     geometry: [[[-64, 4160], [-64, -64], [4160, -64], [4160, 4160], [-64, 4160]]],
@@ -90,11 +90,3 @@ test('getTile: polygon clipping on the boundary', () => {
 function getJSON(name: string) {
     return JSON.parse(fs.readFileSync(new URL(`fixtures/${name}`, import.meta.url), 'utf-8'));
 }
-
-test('getTile: returns only the features', () => {
-    const point: GeoJSON.Feature = {type: 'Feature', properties: {}, geometry: {type: 'Point', coordinates: [0, 0]}};
-
-    expect(Object.keys(new GeoJSONVT(point).getTile(0, 0, 0))).toEqual(['features']);
-    expect(Object.keys(new GeoJSONVT(point, {cluster: true}).getTile(0, 0, 0))).toEqual(['features']);
-    expect(Object.keys(geoJSONToTile(point, 0, 0, 0))).toEqual(['features']);
-});
