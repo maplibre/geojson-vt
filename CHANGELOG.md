@@ -1,15 +1,21 @@
 ## main
 ### ✨ Features and improvements
+- _...Add new stuff here..._
+
+### 🐞 Bug fixes
+- _...Add new stuff here..._
+
+## 7.0.0
+
+### ✨ Features and improvements
 - ⚠️ Return only `features` from `getTile` and `geoJSONToTile`, and stop exporting the internal types, which is a breaking change ([#268](https://github.com/maplibre/geojson-vt/pull/268)) (by [@birkskyum](https://github.com/birkskyum))
 - Reduce the memory usage of point features, ~2.6 GB to ~1.2 GB for 1M points with the options GL JS uses ([#269](https://github.com/maplibre/geojson-vt/pull/269)) (by [@birkskyum](https://github.com/birkskyum))
 - Reduce the memory usage of tiles by keeping their coordinates in typed arrays, so that reading the tiles no longer multiplies the memory of the index ([#270](https://github.com/maplibre/geojson-vt/pull/270)) (by [@birkskyum](https://github.com/birkskyum))
 - Reduce the allocations for lines and polygons by keeping the coordinates of a feature in one array ([#271](https://github.com/maplibre/geojson-vt/pull/271)) (by [@birkskyum](https://github.com/birkskyum))
 - Reduce the memory usage of features near the antimeridian, whose copy on the other side now shares their coordinates ([#273](https://github.com/maplibre/geojson-vt/pull/273)) (by [@birkskyum](https://github.com/birkskyum))
-- _...Add new stuff here..._
 
 ### 🐞 Bug fixes
 - Fix clusters at the antimeridian counting their points twice. Clusters no longer form across the antimeridian ([#272](https://github.com/maplibre/geojson-vt/pull/272)) (by [@birkskyum](https://github.com/birkskyum))
-- _...Add new stuff here..._
 
 ## 6.3.3
 
