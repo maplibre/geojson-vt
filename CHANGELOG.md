@@ -5,6 +5,12 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
+## 6.3.2
+
+### 🐞 Bug fixes
+
+- fix: preserve polygon ring winding after quantization ([#261](https://github.com/maplibre/geojson-vt/pull/261)) (by [@ynelin](https://github.com/ynelin))
+
 ## 6.3.1
 
 ### 🐞 Bug fixes
