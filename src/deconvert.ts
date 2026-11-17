@@ -1,5 +1,6 @@
 import {mercatorWorldCoordinateHelper, type WorldCoordinateHelper} from './world-coordinate-helper';
 import type {GeoJSONVTInternalFeature, GeoJSONVTSourceCoords} from './definitions';
+import {isHole} from './feature';
 
 /**
  * Converts internal source features back to GeoJSON format.
@@ -84,7 +85,7 @@ function unprojectPolygons(coords: GeoJSONVTSourceCoords, offset: number, worldC
     for (let i = 0; i < coords.length;) {
         const ringEnd = i + 2 + coords[i] * 3;
         const ring = unprojectPoints(coords, offset, i + 2, ringEnd, worldCoordinateHelper);
-        if (coords[i + 1] >= 0 || !polygons.length) {
+        if (!isHole(coords[i + 1]) || !polygons.length) {
             polygons.push([ring]);
         } else {
             polygons[polygons.length - 1].push(ring);

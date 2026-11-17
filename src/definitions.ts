@@ -109,7 +109,7 @@ export type GeoJSONToTileOptions = GeoJSONVTOptions & {
  *
  * A MultiPoint is only its positions. A line or polygon has two values before the positions of each ring: how many
  * positions the ring has, and its size. The size is the length of a line and the area of a polygon ring, and
- * the ring is a hole of the ring before it when the size is negative.
+ * the ring is a hole of the ring before it when the size is negative, see `isHole`.
  */
 export type GeoJSONVTSourceCoords = Float64Array;
 

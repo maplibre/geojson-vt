@@ -32,11 +32,19 @@ export function createFeature<T extends GeometryFeature["type"]>(id: number | st
     const outerOnly = type === 'Polygon' || type === 'MultiPolygon';
     for (let i = 0; i < geom.length;) {
         const end = i + 2 + geom[i] * 3;
-        if (!outerOnly || geom[i + 1] >= 0) calcBBox(feature, geom, i + 2, end);
+        if (!outerOnly || !isHole(geom[i + 1])) calcBBox(feature, geom, i + 2, end);
         i = end;
     }
 
     return feature;
+}
+
+/**
+ * Whether a polygon ring is a hole, going by the size stored before it. A hole has a negative size, which is -0
+ * when it has no area. An outer ring whose area is not a number has NaN, so the test is not `size >= 0`.
+ */
+export function isHole(size: number): boolean {
+    return size < 0 || Object.is(size, -0);
 }
 
 export function createPointFeature(id: number | string | undefined, x: number, y: number, tags: GeoJSON.GeoJsonProperties): GeoJSONVTInternalPointFeature {

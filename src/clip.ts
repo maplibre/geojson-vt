@@ -1,5 +1,5 @@
 
-import {createFeature, createPointFeature} from './feature';
+import {createFeature, createPointFeature, isHole} from './feature';
 import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, GeoJSONVTSourceCoords } from './definitions';
 
 export const enum AxisType {
@@ -130,7 +130,7 @@ function clipRingsFeature(feature: RingsFeature, clipped: GeoJSONVTInternalFeatu
         let size = geom[i + 1];
         if (isPolygon) {
             // the first ring that is left of a polygon is its outer ring, also when that was a hole
-            if (size >= 0) hasOuter = false;
+            if (!isHole(size)) hasOuter = false;
             if (!hasOuter) size = Math.abs(size);
         }
         const ringStart = next;
@@ -173,7 +173,6 @@ function countClippedRing(geom: GeoJSONVTSourceCoords, offset: number, first: nu
     let parts = 0;
     let total = 0;
     let count = 0;
-    let crossings = 0;
 
     for (let i = first; i < ringEnd - 3; i += 3) {
         const a = geom[i + axis] + axisOffset;
@@ -183,12 +182,10 @@ function countClippedRing(geom: GeoJSONVTSourceCoords, offset: number, first: nu
         if (a < start) {
             if (b >= start) {
                 count++;
-                crossings++;
             }
         } else if (a > end) {
             if (b <= end) {
                 count++;
-                crossings++;
             }
         } else {
             count++;
@@ -196,13 +193,11 @@ function countClippedRing(geom: GeoJSONVTSourceCoords, offset: number, first: nu
 
         if (b < start && a >= start) {
             count++;
-            crossings++;
             exited = true;
         }
 
         if (b > end && a <= end) {
             count++;
-            crossings++;
             exited = true;
         }
 
@@ -217,9 +212,8 @@ function countClippedRing(geom: GeoJSONVTSourceCoords, offset: number, first: nu
     const a = geom[last + axis] + axisOffset;
     if (a >= start && a <= end) count++;
 
-    // a ring that is cut ends at an intersection and gets closed, and so does one that came in open
-    const isOpen = geom[first] + offset !== geom[last] + offset || geom[first + 1] !== geom[last + 1];
-    if (isPolygon && count >= 2 && (crossings > 0 || isOpen)) count++;
+    // a polygon ring gets a position that closes it when its ends differ, which only shows once it is written
+    if (isPolygon && count >= 2) count++;
 
     if (count > 0) {
         total += count;
