@@ -1,62 +1,38 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, SliceArray, SliceFixedArray } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature, GeoJSONVTSourceCoords } from "./definitions";
 
-type FeatureTypeMap = {
-    MultiPoint: GeoJSONVTInternalMultiPointFeature["geometry"];
-    LineString: GeoJSONVTInternalLineStringFeature["geometry"];
-    MultiLineString: GeoJSONVTInternalMultiLineStringFeature["geometry"];
-    Polygon: GeoJSONVTInternalPolygonFeature["geometry"];
-    MultiPolygon: GeoJSONVTInternalMultiPolygonFeature["geometry"];
-};
+type GeometryFeature = Exclude<GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature>;
 
 /**
- * 
+ *
  * @param id - the feature's ID
  * @param type - the feature's type
- * @param geom - the feature's geometry
+ * @param geom - the feature's coordinates, see {@link GeoJSONVTSourceCoords}
  * @param tags - the feature's properties
  * @returns the created feature
  */
-export function createFeature<T extends keyof FeatureTypeMap>(id: number | string | undefined, type: T, geom: FeatureTypeMap[T], tags: GeoJSON.GeoJsonProperties): GeoJSONVTInternalFeature {
-    // This is mostly for TypeScript type narrowing
-    const data = { type, geom } as { [K in keyof FeatureTypeMap]: { type: K, geom: FeatureTypeMap[K] } }[keyof FeatureTypeMap];
-
+export function createFeature<T extends GeometryFeature["type"]>(id: number | string | undefined, type: T, geom: GeoJSONVTSourceCoords, tags: GeoJSON.GeoJsonProperties): Extract<GeometryFeature, {type: T}> {
     const feature = {
         id: id == null ? null : id,
-        type: data.type,
-        geometry: data.geom,
+        type,
+        geometry: geom,
         tags,
         minX: Infinity,
         minY: Infinity,
         maxX: -Infinity,
         maxY: -Infinity
-    } as Exclude<GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature>;
+    } as Extract<GeometryFeature, {type: T}>;
 
-    switch (data.type) {
-        case 'MultiPoint':
-            calcLineBBox(feature, data.geom);
-            break;
+    if (type === 'MultiPoint') {
+        calcBBox(feature, geom, 0, geom.length);
+        return feature;
+    }
 
-        case 'LineString':
-            calcLineBBox(feature, data.geom.points);
-            break;
-
-        case 'Polygon':
-            // the outer ring (ie [0]) contains all inner rings
-            calcLineBBox(feature, data.geom[0].points);
-            break;
-
-        case 'MultiLineString':
-            for (const line of data.geom) {
-                calcLineBBox(feature, line.points);
-            }
-            break;
-
-        case 'MultiPolygon':
-            for (const polygon of data.geom) {
-                // the outer ring (ie [0]) contains all inner rings
-                calcLineBBox(feature, polygon[0].points);
-            }
-            break;
+    // the outer ring of a polygon contains its holes
+    const outerOnly = type === 'Polygon' || type === 'MultiPolygon';
+    for (let i = 0; i < geom.length;) {
+        const end = i + 2 + geom[i] * 3;
+        if (!outerOnly || geom[i + 1] >= 0) calcBBox(feature, geom, i + 2, end);
+        i = end;
     }
 
     return feature;
@@ -88,15 +64,8 @@ export function getMaxY(feature: GeoJSONVTInternalFeature): number {
     return feature.type === 'Point' ? feature.y : feature.maxY;
 }
 
-export function optimizeLineMemory(line: SliceArray) {
-    const lineImmutable = line as SliceFixedArray;
-    if (line.points.length > 64) {
-        lineImmutable.points = new Float64Array(line.points);
-    }
-}
-
-function calcLineBBox(feature: Exclude<GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature>, geom: number[] | Float64Array) {
-    for (let i = 0; i < geom.length; i += 3) {
+function calcBBox(feature: GeometryFeature, geom: GeoJSONVTSourceCoords, start: number, end: number) {
+    for (let i = start; i < end; i += 3) {
         feature.minX = Math.min(feature.minX, geom[i]);
         feature.minY = Math.min(feature.minY, geom[i + 1]);
         feature.maxX = Math.max(feature.maxX, geom[i]);

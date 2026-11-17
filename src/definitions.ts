@@ -103,9 +103,15 @@ export type GeoJSONToTileOptions = GeoJSONVTOptions & {
     clip?: boolean;
 };
 
-export type SliceArray = { points: number[]; start?: number; end?: number; size?: number };
-
-export type SliceFixedArray = { points: number[] | Float64Array; start?: number; end?: number; size?: number };
+/**
+ * The coordinates of a source feature in one flat array, with three values for a position: `x`, `y` and how much
+ * the position matters when the line is simplified.
+ *
+ * A MultiPoint is only its positions. A line or polygon has two values before the positions of each ring: how many
+ * positions the ring has, and its size. The size is the length of a line and the area of a polygon ring, and
+ * the ring is a hole of the ring before it when the size is negative.
+ */
+export type GeoJSONVTSourceCoords = Float64Array;
 
 export type PartialGeoJSONVTFeature = {
     id?: number | string | undefined;
@@ -129,27 +135,39 @@ export type GeoJSONVTInternalPointFeature = {
 
 export type GeoJSONVTInternalMultiPointFeature = PartialGeoJSONVTFeature & {
     type: 'MultiPoint';
-    geometry: number[];
+    geometry: GeoJSONVTSourceCoords;
 };
 
 export type GeoJSONVTInternalLineStringFeature = PartialGeoJSONVTFeature & {
     type: 'LineString';
-    geometry: SliceFixedArray;
+    geometry: GeoJSONVTSourceCoords;
+    /**
+     * With `lineMetrics`, how far along the whole line this part of it starts.
+     */
+    start?: number;
+    /**
+     * With `lineMetrics`, how far along the whole line this part of it ends.
+     */
+    end?: number;
+    /**
+     * With `lineMetrics`, the length of the whole line.
+     */
+    size?: number;
 };
 
 export type GeoJSONVTInternalMultiLineStringFeature = PartialGeoJSONVTFeature & {
     type: 'MultiLineString';
-    geometry: SliceFixedArray[];
+    geometry: GeoJSONVTSourceCoords;
 };
 
 export type GeoJSONVTInternalPolygonFeature = PartialGeoJSONVTFeature & {
     type: 'Polygon';
-    geometry: SliceFixedArray[];
+    geometry: GeoJSONVTSourceCoords;
 };
 
 export type GeoJSONVTInternalMultiPolygonFeature = PartialGeoJSONVTFeature & {
     type: 'MultiPolygon';
-    geometry: SliceFixedArray[][];
+    geometry: GeoJSONVTSourceCoords;
 };
 
 export type GeoJSONVTInternalFeature =

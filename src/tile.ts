@@ -1,4 +1,4 @@
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTOptions, GeoJSONVTTileCoords, SliceFixedArray } from "./definitions";
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTOptions, GeoJSONVTSourceCoords, GeoJSONVTTileCoords } from "./definitions";
 
 export const GEOJSONVT_CLIP_START = 'geojsonvt_clip_start';
 export const GEOJSONVT_CLIP_END = 'geojsonvt_clip_end';
@@ -77,21 +77,12 @@ function addFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalFeatu
     tile.maxX = Math.max(tile.maxX, feature.maxX);
     tile.maxY = Math.max(tile.maxY, feature.maxY);
 
-    switch (feature.type) {
-        case 'MultiPoint':
-            addPointsTileFeature(tile, feature, frame);
-            return;
-        case 'LineString':
-            addLineTileFeautre(tile, feature, tolerance, options, frame);
-            return;
-        case 'MultiLineString':
-        case 'Polygon':
-            addLinesTileFeature(tile, feature, tolerance, frame);
-            return;
-        case 'MultiPolygon':
-            addMultiPolygonTileFeature(tile, feature, tolerance, frame);
-            return;
+    if (feature.type === 'MultiPoint') {
+        addPointsTileFeature(tile, feature, frame);
+        return;
     }
+
+    addRingsTileFeature(tile, feature, tolerance, options, frame);
 }
 
 function addPointTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalPointFeature, frame: TileFrame) {
@@ -133,19 +124,26 @@ function addPointsTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInt
     tile.features.push(tileFeature);
 }
 
-function addLineTileFeautre(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalLineStringFeature, tolerance: number, options: GeoJSONVTOptions, frame: TileFrame) {
+function addRingsTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalLineStringFeature | GeoJSONVTInternalMultiLineStringFeature | GeoJSONVTInternalPolygonFeature | GeoJSONVTInternalMultiPolygonFeature, tolerance: number, options: GeoJSONVTOptions, frame: TileFrame) {
+    const isPolygon = feature.type === 'Polygon' || feature.type === 'MultiPolygon';
+    const coords = feature.geometry;
     const geometry: GeoJSONVTTileCoords[] = [];
-    addLine(geometry, feature.geometry, tile, tolerance, false, false, frame);
+    for (let i = 0; i < coords.length;) {
+        const ringEnd = i + 2 + coords[i] * 3;
+        addLine(geometry, coords, i + 2, ringEnd, coords[i + 1], tile, tolerance, isPolygon, frame);
+        i = ringEnd;
+    }
     if (!geometry.length) return;
+
     let tags = feature.tags || null;
-    if (options.lineMetrics) {
+    if (feature.type === 'LineString' && options.lineMetrics) {
         tags = {};
         for (const key in feature.tags) tags[key] = feature.tags[key];
-        tags[GEOJSONVT_CLIP_START] = feature.geometry.start / feature.geometry.size;
-        tags[GEOJSONVT_CLIP_END] = feature.geometry.end / feature.geometry.size;
+        tags[GEOJSONVT_CLIP_START] = feature.start / feature.size;
+        tags[GEOJSONVT_CLIP_END] = feature.end / feature.size;
     }
     const tileFeature: GeoJSONVTInternalTileFeature = {
-        type: 2,
+        type: isPolygon ? 3 : 2,
         tags: tags,
         geometry: geometry
     }
@@ -155,95 +153,108 @@ function addLineTileFeautre(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInter
     tile.features.push(tileFeature);
 }
 
-function addLinesTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalPolygonFeature | GeoJSONVTInternalMultiLineStringFeature, tolerance: number, frame: TileFrame) {
-    const geometry: GeoJSONVTTileCoords[] = [];
-    for (let i = 0; i < feature.geometry.length; i++) {
-        addLine(geometry, feature.geometry[i], tile, tolerance, feature.type === 'Polygon', i === 0, frame);
-    }
-    if (!geometry.length) return;
-    const tileFeature: GeoJSONVTInternalTileFeature = {
-        type: feature.type === 'Polygon' ? 3 : 2,
-        tags: feature.tags || null,
-        geometry: geometry
-    }
-    if (feature.id !== null) {
-        tileFeature.id = feature.id;
-    }
-    tile.features.push(tileFeature);
-}
-
-function addMultiPolygonTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalMultiPolygonFeature, tolerance: number, frame: TileFrame) {
-    const geometry: GeoJSONVTTileCoords[] = [];
-    for (let k = 0; k < feature.geometry.length; k++) {
-        const polygon = feature.geometry[k];
-        for (let i = 0; i < polygon.length; i++) {
-            addLine(geometry, polygon[i], tile, tolerance, true, i === 0, frame);
-        }
-    }
-    if (!geometry.length) return;
-    const tileFeature: GeoJSONVTInternalTileFeature = {
-        type: 3,
-        tags: feature.tags || null,
-        geometry: geometry
-    }
-    if (feature.id !== null) {
-        tileFeature.id = feature.id;
-    }
-    tile.features.push(tileFeature);
-}
-
-function addLine(result: GeoJSONVTTileCoords[], geom: SliceFixedArray, tile: GeoJSONVTInternalTile, tolerance: number, isPolygon: boolean, isOuter: boolean, frame: TileFrame) {
+/**
+ * Adds a ring to a tile feature, with the positions that matter on the zoom level of the tile.
+ * @param size - the size of the ring, which is negative for the hole of a polygon
+ */
+function addLine(result: GeoJSONVTTileCoords[], coords: GeoJSONVTSourceCoords, first: number, ringEnd: number, size: number, tile: GeoJSONVTInternalTile, tolerance: number, isPolygon: boolean, frame: TileFrame) {
     const sqTolerance = tolerance * tolerance;
+    const numPoints = (ringEnd - first) / 3;
 
-    if (tolerance > 0 && (geom.size < (isPolygon ? sqTolerance : tolerance))) {
-        tile.numPoints += geom.points.length / 3;
-        return;
-    }
+    tile.numPoints += numPoints;
+    if (tolerance > 0 && (Math.abs(size) < (isPolygon ? sqTolerance : tolerance))) return;
 
-    const ring = [];
+    // the area of what is kept tells which way the ring winds, starting from the last position that is kept
+    let last = ringEnd - 3;
+    while (last > first && tolerance > 0 && coords[last + 2] <= sqTolerance) last -= 3;
+    let x0 = coords[last];
+    let y0 = coords[last + 1];
+    let area = 0;
+    let numKept = 0;
 
-    for (let i = 0; i < geom.points.length; i += 3) {
-        if (tolerance === 0 || geom.points[i + 2] > sqTolerance) {
-            tile.numSimplified++;
-            ring.push(geom.points[i], geom.points[i + 1]);
+    for (let i = first; i < ringEnd; i += 3) {
+        if (tolerance === 0 || coords[i + 2] > sqTolerance) {
+            area += (coords[i] - x0) * (coords[i + 1] + y0);
+            x0 = coords[i];
+            y0 = coords[i + 1];
+            numKept++;
         }
-        tile.numPoints++;
+    }
+    tile.numSimplified += numKept;
+
+    // an outer ring goes clockwise and a hole the other way
+    const isReversed = isPolygon && (area > 0) === (size >= 0);
+    const ring = projectRing(coords, first, ringEnd, tolerance, numKept, isReversed, frame);
+
+    if (isPolygon && isWindingFlipped(coords, first, ringEnd, tolerance, isReversed, ring)) reverse(ring);
+
+    result.push(ring);
+}
+
+/**
+ * The positions of a ring that matter on the zoom level of the tile, as coordinates in the tile, last to first when
+ * the ring is reversed. They go into a `Float64Array` when one of them doesn't fit the tile's array, which takes a
+ * position far outside the tile.
+ */
+function projectRing(coords: GeoJSONVTSourceCoords, first: number, ringEnd: number, tolerance: number, numKept: number, isReversed: boolean, frame: TileFrame, CoordArray = frame.CoordArray): GeoJSONVTTileCoords {
+    const sqTolerance = tolerance * tolerance;
+    const limit = CoordArray === Int16Array ? 0x7fff : 0x7fffffff;
+    const ring = new CoordArray(numKept * 2);
+    let next = isReversed ? ring.length - 2 : 0;
+
+    for (let i = first; i < ringEnd; i += 3) {
+        if (tolerance === 0 || coords[i + 2] > sqTolerance) {
+            const x = project(coords[i], frame.tx, frame);
+            const y = project(coords[i + 1], frame.ty, frame);
+            if (CoordArray !== Float64Array && !(Math.abs(x) <= limit && Math.abs(y) <= limit)) {
+                return projectRing(coords, first, ringEnd, tolerance, numKept, isReversed, frame, Float64Array);
+            }
+            ring[next] = x;
+            ring[next + 1] = y;
+            next += isReversed ? -2 : 2;
+        }
     }
 
-    if (isPolygon) rewind(ring, isOuter);
-
-    const coords = projectCoords(ring, 2, frame);
-
-    if (isPolygon && isWindingFlipped(ring, coords)) reverse(coords);
-
-    result.push(coords);
+    return ring;
 }
 
 /**
  * Whether rounding to tile coordinates turned a polygon ring around, so that a hole would read as a shell, or the
- * other way round. Both signed areas are summed relative to the first position, to reduce cancellation for narrow
- * rings far from the origin. A ring that rounds to no area is left as it is, and other changes rounding makes to
- * a ring are not repaired.
+ * other way round. Both signed areas are summed in the order of the tile's ring and relative to its first position,
+ * to reduce cancellation for narrow rings far from the origin. A ring that rounds to no area is left as it is, and
+ * other changes rounding makes to a ring are not repaired.
  */
-function isWindingFlipped(ring: number[], coords: GeoJSONVTTileCoords): boolean {
+function isWindingFlipped(coords: GeoJSONVTSourceCoords, first: number, ringEnd: number, tolerance: number, isReversed: boolean, ring: GeoJSONVTTileCoords): boolean {
+    const sqTolerance = tolerance * tolerance;
+    const step = isReversed ? -3 : 3;
+    let originX = 0;
+    let originY = 0;
     let previousX = 0;
     let previousY = 0;
     let previousRoundedX = 0;
     let previousRoundedY = 0;
     let sourceArea = 0;
     let roundedArea = 0;
+    let next = 0;
 
-    for (let i = 2; i < ring.length; i += 2) {
-        const x = ring[i] - ring[0];
-        const y = ring[i + 1] - ring[1];
-        const roundedX = coords[i] - coords[0];
-        const roundedY = coords[i + 1] - coords[1];
-        sourceArea += previousX * y - x * previousY;
-        roundedArea += previousRoundedX * roundedY - roundedX * previousRoundedY;
-        previousX = x;
-        previousY = y;
-        previousRoundedX = roundedX;
-        previousRoundedY = roundedY;
+    for (let i = isReversed ? ringEnd - 3 : first; i >= first && i < ringEnd; i += step) {
+        if (tolerance > 0 && !(coords[i + 2] > sqTolerance)) continue;
+        if (next === 0) {
+            originX = coords[i];
+            originY = coords[i + 1];
+        } else {
+            const x = coords[i] - originX;
+            const y = coords[i + 1] - originY;
+            const roundedX = ring[next] - ring[0];
+            const roundedY = ring[next + 1] - ring[1];
+            sourceArea += previousX * y - x * previousY;
+            roundedArea += previousRoundedX * roundedY - roundedX * previousRoundedY;
+            previousX = x;
+            previousY = y;
+            previousRoundedX = roundedX;
+            previousRoundedY = roundedY;
+        }
+        next += 2;
     }
 
     return sourceArea * roundedArea < 0;
@@ -287,24 +298,4 @@ function projectCoords(positions: ArrayLike<number>, stride: number, frame: Tile
     }
 
     return coords;
-}
-
-function rewind(ring: number[], clockwise: boolean) {
-    let area = 0;
-
-    for (let i = 0, len = ring.length, j = len - 2; i < len; j = i, i += 2) {
-        area += (ring[i] - ring[j]) * (ring[i + 1] + ring[j + 1]);
-    }
-
-    if (area > 0 !== clockwise) return;
-
-    for (let i = 0, len = ring.length; i < len / 2; i += 2) {
-        const x = ring[i];
-        const y = ring[i + 1];
-
-        ring[i] = ring[len - 2 - i];
-        ring[i + 1] = ring[len - 1 - i];
-        ring[len - 2 - i] = x;
-        ring[len - 1 - i] = y;
-    }
 }

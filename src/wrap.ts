@@ -1,7 +1,7 @@
 
 import {AxisType, clip} from './clip';
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, SliceArray, SliceFixedArray } from './definitions';
-import {createFeature, createPointFeature, optimizeLineMemory} from './feature';
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, GeoJSONVTSourceCoords } from './definitions';
+import {createFeature, createPointFeature} from './feature';
 
 export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
     if (!options.wrap) return features;
@@ -26,81 +26,39 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
     const newFeatures = [];
 
     for (const feature of features) {
-        switch (feature.type) {
-            case 'Point':
-                newFeatures.push(createPointFeature(feature.id, feature.x + offset, feature.y, feature.tags));
-                continue;
-
-            case 'MultiPoint': {
-                const newGeometry = shiftPointCoords(feature.geometry, offset);
-
-                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-                continue;
-            }
-
-            case 'LineString': {
-                const newGeometry = shiftLineCoords(feature.geometry, offset);
-
-                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-                continue;
-            }
-
-            case 'MultiLineString':
-            case 'Polygon': {
-                const newGeometry: SliceFixedArray[] = [];
-                for (const line of feature.geometry) {
-                    newGeometry.push(shiftLineCoords(line, offset));
-                }
-
-                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-                continue;
-            }
-
-            case 'MultiPolygon': {
-                const newGeometry: SliceFixedArray[][] = [];
-                for (const polygon of feature.geometry) {
-                    const newPolygon: SliceFixedArray[] = [];
-                    for (const line of polygon) {
-                        newPolygon.push(shiftLineCoords(line, offset));
-                    }
-                    newGeometry.push(newPolygon);
-                }
-
-                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-                continue;
-            }
+        if (feature.type === 'Point') {
+            newFeatures.push(createPointFeature(feature.id, feature.x + offset, feature.y, feature.tags));
+            continue;
         }
+
+        const shifted = createFeature(feature.id, feature.type, shiftCoords(feature.geometry, feature.type === 'MultiPoint', offset), feature.tags);
+        if (feature.type === 'LineString' && shifted.type === 'LineString' && feature.start !== undefined) {
+            shifted.start = feature.start;
+            shifted.end = feature.end;
+            shifted.size = feature.size;
+        }
+        newFeatures.push(shifted);
     }
 
     return newFeatures;
 }
 
-function shiftPointCoords(coords: number[], offset: number): number[] {
-    const newCoords: number[] = [];
+/**
+ * A copy of the coordinates with every x moved by an offset.
+ */
+function shiftCoords(coords: GeoJSONVTSourceCoords, isPoints: boolean, offset: number): GeoJSONVTSourceCoords {
+    const shifted = coords.slice();
 
-    for (let i = 0; i < coords.length; i += 3) {
-        newCoords.push(coords[i] + offset, coords[i + 1], coords[i + 2]);
+    if (isPoints) {
+        for (let i = 0; i < shifted.length; i += 3) shifted[i] += offset;
+        return shifted;
     }
 
-    return newCoords;
-}
-
-function shiftLineCoords(line: SliceArray | SliceFixedArray, offset: number): SliceFixedArray {
-    const newLine: SliceArray = {
-        points: [],
-        size: line.size
-    };
-
-    if (line.start !== undefined) {
-        newLine.start = line.start;
-        newLine.end = line.end;
+    for (let i = 0; i < shifted.length;) {
+        const ringEnd = i + 2 + shifted[i] * 3;
+        for (let j = i + 2; j < ringEnd; j += 3) shifted[j] += offset;
+        i = ringEnd;
     }
 
-    for (let i = 0; i < line.points.length; i += 3) {
-        newLine.points.push(line.points[i] + offset, line.points[i + 1], line.points[i + 2]);
-    }
-
-    optimizeLineMemory(newLine);
-
-    return newLine;
+    return shifted;
 }

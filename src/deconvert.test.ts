@@ -46,7 +46,7 @@ test('featureToGeoJSON: converts MultiPoint geometry', () => {
     const feature: GeoJSONVTInternalFeature = {
         type: 'MultiPoint',
         id: 'multipoint1',
-        geometry: [0.5, 0.5, 0, 0.525, 0.5, 0],
+        geometry: new Float64Array([0.5, 0.5, 0, 0.525, 0.5, 0]),
         tags: {},
         minX: 0.5, minY: 0.5, maxX: 0.525, maxY: 0.5
     };
@@ -61,7 +61,7 @@ test('featureToGeoJSON: converts LineString geometry', () => {
     const feature: GeoJSONVTInternalFeature = {
         type: 'LineString',
         id: 'line1',
-        geometry: {points: [0.5, 0.5, 0, 0.525, 0.5, 0, 0.525, 0.525, 0]},
+        geometry: new Float64Array([3, 0.05, 0.5, 0.5, 0, 0.525, 0.5, 0, 0.525, 0.525, 0]),
         tags: {highway: 'primary'},
         minX: 0.5, minY: 0.5, maxX: 0.525, maxY: 0.525
     };
@@ -76,10 +76,10 @@ test('featureToGeoJSON: converts MultiLineString geometry', () => {
     const feature: GeoJSONVTInternalFeature = {
         type: 'MultiLineString',
         id: 'multiline1',
-        geometry: [
-            {points: [0.5, 0.5, 0, 0.525, 0.5, 0]},
-            {points: [0.55, 0.55, 0, 0.575, 0.55, 0]}
-        ],
+        geometry: new Float64Array([
+            2, 0.025, 0.5, 0.5, 0, 0.525, 0.5, 0,
+            2, 0.025, 0.55, 0.55, 0, 0.575, 0.55, 0
+        ]),
         tags: {},
         minX: 0.5, minY: 0.5, maxX: 0.575, maxY: 0.55
     };
@@ -94,10 +94,10 @@ test('featureToGeoJSON: converts Polygon geometry', () => {
     const feature: GeoJSONVTInternalFeature = {
         type: 'Polygon',
         id: 'polygon1',
-        geometry: [
-            {points: [0.5, 0.5, 0, 0.6, 0.5, 0, 0.6, 0.6, 0, 0.5, 0.6, 0, 0.5, 0.5, 0]},
-            {points: [0.52, 0.52, 0, 0.58, 0.52, 0, 0.58, 0.58, 0, 0.52, 0.58, 0, 0.52, 0.52, 0]}
-        ],
+        geometry: new Float64Array([
+            5, 0.01, 0.5, 0.5, 0, 0.6, 0.5, 0, 0.6, 0.6, 0, 0.5, 0.6, 0, 0.5, 0.5, 0,
+            5, -0.0036, 0.52, 0.52, 0, 0.58, 0.52, 0, 0.58, 0.58, 0, 0.52, 0.58, 0, 0.52, 0.52, 0
+        ]),
         tags: {landuse: 'residential'},
         minX: 0.5, minY: 0.5, maxX: 0.6, maxY: 0.6
     };
@@ -112,10 +112,11 @@ test('featureToGeoJSON: converts MultiPolygon geometry', () => {
     const feature: GeoJSONVTInternalFeature = {
         type: 'MultiPolygon',
         id: 'multipolygon1',
-        geometry: [
-            [{points: [0.5, 0.5, 0, 0.52, 0.5, 0, 0.52, 0.52, 0, 0.5, 0.52, 0, 0.5, 0.5, 0]}],
-            [{points: [0.55, 0.55, 0, 0.57, 0.55, 0, 0.57, 0.57, 0, 0.55, 0.57, 0, 0.55, 0.55, 0]}]
-        ],
+        geometry: new Float64Array([
+            5, 0.0004, 0.5, 0.5, 0, 0.52, 0.5, 0, 0.52, 0.52, 0, 0.5, 0.52, 0, 0.5, 0.5, 0,
+            4, -0.00005, 0.505, 0.505, 0, 0.515, 0.505, 0, 0.515, 0.515, 0, 0.505, 0.505, 0,
+            5, 0.0004, 0.55, 0.55, 0, 0.57, 0.55, 0, 0.57, 0.57, 0, 0.55, 0.57, 0, 0.55, 0.55, 0
+        ]),
         tags: {},
         minX: 0.5, minY: 0.5, maxX: 0.57, maxY: 0.57
     };
@@ -123,7 +124,7 @@ test('featureToGeoJSON: converts MultiPolygon geometry', () => {
     const result = featureToGeoJSON(feature);
 
     expect(result.geometry.type).toBe('MultiPolygon');
-    expect((result.geometry as GeoJSON.MultiPolygon).coordinates.length).toBe(2);
+    expect((result.geometry as GeoJSON.MultiPolygon).coordinates.map(polygon => polygon.length)).toEqual([2, 1]);
 });
 
 test('featureToGeoJSON: handles various id types', () => {
@@ -139,7 +140,7 @@ test('featureToGeoJSON: handles various id types', () => {
 test('featureToGeoJSON: correctly unprojects known coordinates', () => {
     const feature: GeoJSONVTInternalFeature = {
         type: 'MultiPoint',
-        geometry: [0.5, 0.5, 0, 0, 0.5, 0, 1, 0.5, 0],
+        geometry: new Float64Array([0.5, 0.5, 0, 0, 0.5, 0, 1, 0.5, 0]),
         tags: {},
         minX: 0, minY: 0.5, maxX: 1, maxY: 0.5
     };
