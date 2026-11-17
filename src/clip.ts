@@ -1,6 +1,6 @@
 
-import {createFeature, optimizeLineMemory} from './feature';
-import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, SliceArray, SliceFixedArray } from './definitions';
+import {createFeature, createPointFeature, optimizeLineMemory} from './feature';
+import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, SliceArray, SliceFixedArray } from './definitions';
 
 export const enum AxisType {
     X = 0,
@@ -37,6 +37,12 @@ export function clip(features: GeoJSONVTInternalFeature[], scale: number, start:
     const clipped: GeoJSONVTInternalFeature[] = [];
 
     for (const feature of features) {
+        if (feature.type === 'Point') {
+            const a = axis === AxisType.X ? feature.x : feature.y;
+            if (a >= start && a < end) clipped.push(feature);
+            continue;
+        }
+
         const min = axis === AxisType.X ? feature.minX : feature.minY;
         const max = axis === AxisType.X ? feature.maxX : feature.maxY;
 
@@ -82,14 +88,18 @@ export function clip(features: GeoJSONVTInternalFeature[], scale: number, start:
     return clipped;
 }
 
-function clipPointFeature(feature: GeoJSONVTInternalPointFeature | GeoJSONVTInternalMultiPointFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType) {
+function clipPointFeature(feature: GeoJSONVTInternalMultiPointFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType) {
     const geom: number[] = [];
 
     clipPoints(feature.geometry, geom, start, end, axis);
     if (!geom.length) return;
 
-    const type = geom.length === 3 ? 'Point' : 'MultiPoint';
-    clipped.push(createFeature(feature.id, type, geom, feature.tags));
+    if (geom.length === 3) {
+        clipped.push(createPointFeature(feature.id, geom[0], geom[1], feature.tags));
+        return;
+    }
+
+    clipped.push(createFeature(feature.id, 'MultiPoint', geom, feature.tags));
 }
 
 function clipLineStringFeature(feature: GeoJSONVTInternalLineStringFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType, options: GeoJSONVTOptions) {

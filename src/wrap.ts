@@ -1,7 +1,7 @@
 
 import {AxisType, clip} from './clip';
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, SliceArray, SliceFixedArray } from './definitions';
-import {createFeature, optimizeLineMemory} from './feature';
+import {createFeature, createPointFeature, optimizeLineMemory} from './feature';
 
 export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
     if (!options.wrap) return features;
@@ -28,6 +28,9 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
     for (const feature of features) {
         switch (feature.type) {
             case 'Point':
+                newFeatures.push(createPointFeature(feature.id, feature.x + offset, feature.y, feature.tags));
+                continue;
+
             case 'MultiPoint': {
                 const newGeometry = shiftPointCoords(feature.geometry, offset);
 

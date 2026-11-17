@@ -1,7 +1,6 @@
 import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, SliceArray, SliceFixedArray } from "./definitions";
 
 type FeatureTypeMap = {
-    Point: GeoJSONVTInternalPointFeature["geometry"];
     MultiPoint: GeoJSONVTInternalMultiPointFeature["geometry"];
     LineString: GeoJSONVTInternalLineStringFeature["geometry"];
     MultiLineString: GeoJSONVTInternalMultiLineStringFeature["geometry"];
@@ -17,9 +16,9 @@ type FeatureTypeMap = {
  * @param tags - the feature's properties
  * @returns the created feature
  */
-export function createFeature<T extends GeoJSONVTInternalFeature["type"]>(id: number | string | undefined, type: T, geom: FeatureTypeMap[T], tags: GeoJSON.GeoJsonProperties): GeoJSONVTInternalFeature {
+export function createFeature<T extends keyof FeatureTypeMap>(id: number | string | undefined, type: T, geom: FeatureTypeMap[T], tags: GeoJSON.GeoJsonProperties): GeoJSONVTInternalFeature {
     // This is mostly for TypeScript type narrowing
-    const data = { type, geom } as { [K in GeoJSONVTInternalFeature["type"]]: { type: K, geom: FeatureTypeMap[K] } }[GeoJSONVTInternalFeature["type"]];
+    const data = { type, geom } as { [K in keyof FeatureTypeMap]: { type: K, geom: FeatureTypeMap[K] } }[keyof FeatureTypeMap];
 
     const feature = {
         id: id == null ? null : id,
@@ -30,10 +29,9 @@ export function createFeature<T extends GeoJSONVTInternalFeature["type"]>(id: nu
         minY: Infinity,
         maxX: -Infinity,
         maxY: -Infinity
-    } as GeoJSONVTInternalFeature;
+    } as Exclude<GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature>;
 
     switch (data.type) {
-        case 'Point':
         case 'MultiPoint':
             calcLineBBox(feature, data.geom);
             break;
@@ -64,6 +62,32 @@ export function createFeature<T extends GeoJSONVTInternalFeature["type"]>(id: nu
     return feature;
 }
 
+export function createPointFeature(id: number | string | undefined, x: number, y: number, tags: GeoJSON.GeoJsonProperties): GeoJSONVTInternalPointFeature {
+    return {
+        id: id == null ? null : id,
+        type: 'Point',
+        x,
+        y,
+        tags
+    };
+}
+
+export function getMinX(feature: GeoJSONVTInternalFeature): number {
+    return feature.type === 'Point' ? feature.x : feature.minX;
+}
+
+export function getMinY(feature: GeoJSONVTInternalFeature): number {
+    return feature.type === 'Point' ? feature.y : feature.minY;
+}
+
+export function getMaxX(feature: GeoJSONVTInternalFeature): number {
+    return feature.type === 'Point' ? feature.x : feature.maxX;
+}
+
+export function getMaxY(feature: GeoJSONVTInternalFeature): number {
+    return feature.type === 'Point' ? feature.y : feature.maxY;
+}
+
 export function optimizeLineMemory(line: SliceArray) {
     const lineImmutable = line as SliceFixedArray;
     if (line.points.length > 64) {
@@ -71,7 +95,7 @@ export function optimizeLineMemory(line: SliceArray) {
     }
 }
 
-function calcLineBBox(feature: GeoJSONVTInternalFeature, geom: number[] | Float64Array) {
+function calcLineBBox(feature: Exclude<GeoJSONVTInternalFeature, GeoJSONVTInternalPointFeature>, geom: number[] | Float64Array) {
     for (let i = 0; i < geom.length; i += 3) {
         feature.minX = Math.min(feature.minX, geom[i]);
         feature.minY = Math.min(feature.minY, geom[i + 1]);

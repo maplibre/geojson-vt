@@ -119,12 +119,13 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
             const positions = point.geometry.type === 'MultiPoint' ? point.geometry.coordinates : [point.geometry.coordinates];
             for (const [lng, lat] of positions) {
                 const [x, y] = [this.worldCoordinateHelper.projectX(lng), this.worldCoordinateHelper.projectY(lat)];
-                if (!this.options.wrap && !isInWorld([x, y])) continue;
+                if (!this.options.wrap && !isInWorld(x, y)) continue;
 
                 const feature: GeoJSONVTInternalPointFeature = {
                     id: point.id,
                     type: 'Point',
-                    geometry: [x, y],
+                    x,
+                    y,
                     tags: point.properties
                 };
 
@@ -146,16 +147,17 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
 
         for (const feature of features) {
             if (feature.type === 'Point') {
-                if (!this.options.wrap && !isInWorld(feature.geometry)) continue;
+                if (!this.options.wrap && !isInWorld(feature.x, feature.y)) continue;
                 points.push(feature);
                 continue;
             }
             if (feature.type !== 'MultiPoint') continue;
 
             for (let i = 0; i < feature.geometry.length; i += 3) {
-                const geometry = [feature.geometry[i], feature.geometry[i + 1]];
-                if (!this.options.wrap && !isInWorld(geometry)) continue;
-                points.push({id: feature.id, type: 'Point', geometry, tags: feature.tags});
+                const x = feature.geometry[i];
+                const y = feature.geometry[i + 1];
+                if (!this.options.wrap && !isInWorld(x, y)) continue;
+                points.push({id: feature.id, type: 'Point', x, y, tags: feature.tags});
             }
         }
 
@@ -201,11 +203,11 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
 
         for (let i = 0; i < points.length; i++) {
             const p = points[i];
-            if (!p?.geometry || !fitsInteger(p.geometry[0]) || !fitsInteger(p.geometry[1])) continue;
+            if (!fitsInteger(p.x) || !fitsInteger(p.y)) continue;
 
             // store internal point/cluster data in flat numeric arrays for performance
-            coords[numItems * 2] = Math.round(encode(p.geometry[0])); // projected point coordinates
-            coords[numItems * 2 + 1] = Math.round(encode(p.geometry[1]));
+            coords[numItems * 2] = Math.round(encode(p.x)); // projected point coordinates
+            coords[numItems * 2 + 1] = Math.round(encode(p.y));
             const k = numItems * stride;
             data[k + OFFSET_ZOOM] = notProcessed; // the last zoom the point was processed at
             data[k + OFFSET_ID] = i; // index of the source feature in the original input array
@@ -475,7 +477,8 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
             } else {
                 const p = this.points[data[k + OFFSET_ID]];
                 tags = p.tags;
-                [px, py] = p.geometry;
+                px = p.x;
+                py = p.y;
             }
 
             const f: GeoJSONVTFeature = {
@@ -645,7 +648,8 @@ function getClusterFeature(coords: Int32Array, index: number, data: Int32Array, 
         id: data[i + OFFSET_ID],
         type: 'Point',
         tags: getClusterProperties(data, i, clusterProps),
-        geometry: [decode(coords[index * 2]), decode(coords[index * 2 + 1])]
+        x: decode(coords[index * 2]),
+        y: decode(coords[index * 2 + 1])
     };
 }
 
@@ -677,6 +681,6 @@ function getClusterProperties(data: Int32Array, i: number, clusterProps: Record<
     });
 }
 
-function isInWorld(geometry: number[]): boolean {
-    return geometry[0] >= 0 && geometry[0] <= 1 && geometry[1] >= 0 && geometry[1] <= 1;
+function isInWorld(x: number, y: number): boolean {
+    return x >= 0 && x <= 1 && y >= 0 && y <= 1;
 }

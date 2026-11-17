@@ -1,7 +1,7 @@
 
 import {test, expect} from 'vitest';
 import {clip} from './clip';
-import type { SliceArray } from './definitions';
+import type { GeoJSONVTInternalLineStringFeature, SliceArray } from './definitions';
 
 const geom1 = [0,0,0,50,0,0,50,10,0,20,10,0,20,20,0,30,20,0,30,30,0,50,30,0,50,40,0,25,40,0,25,50,0,0,50,0,0,60,0,25,60,0];
 const geom2 = [0,0,0,50,0,0,50,10,0,0,10,0];
@@ -42,7 +42,7 @@ test('clips lines with line metrics on', () => {
         1, 10, 40, 0, -Infinity, Infinity, {lineMetrics: true});
 
     expect(
-        clipped.map(f => [(f.geometry as SliceArray).start, (f.geometry as SliceArray).end])).toEqual(
+        clipped.map(f => [(f as GeoJSONVTInternalLineStringFeature).geometry.start, (f as GeoJSONVTInternalLineStringFeature).geometry.end])).toEqual(
         [[10, 40], [70, 130], [160, 200], [230, 245]]
     );
 });

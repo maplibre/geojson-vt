@@ -39,13 +39,17 @@ export function createTile(features: GeoJSONVTInternalFeature[], z: number, tx: 
 }
 
 function addFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalFeature, tolerance: number, options: GeoJSONVTOptions) {
+    if (feature.type === 'Point') {
+        addPointTileFeature(tile, feature);
+        return;
+    }
+
     tile.minX = Math.min(tile.minX, feature.minX);
     tile.minY = Math.min(tile.minY, feature.minY);
     tile.maxX = Math.max(tile.maxX, feature.maxX);
     tile.maxY = Math.max(tile.maxY, feature.maxY);
 
     switch (feature.type) {
-        case 'Point':
         case 'MultiPoint': 
             addPointsTileFeature(tile, feature);
             return;
@@ -62,7 +66,26 @@ function addFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalFeatu
     }
 }
 
-function addPointsTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalPointFeature | GeoJSONVTInternalMultiPointFeature) {
+function addPointTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalPointFeature) {
+    tile.minX = Math.min(tile.minX, feature.x);
+    tile.minY = Math.min(tile.minY, feature.y);
+    tile.maxX = Math.max(tile.maxX, feature.x);
+    tile.maxY = Math.max(tile.maxY, feature.y);
+    tile.numPoints++;
+    tile.numSimplified++;
+
+    const tileFeature: GeoJSONVTInternalTileFeature = {
+        type: 1,
+        tags: feature.tags || null,
+        geometry: [feature.x, feature.y]
+    };
+    if (feature.id !== null) {
+        tileFeature.id = feature.id;
+    }
+    tile.features.push(tileFeature);
+}
+
+function addPointsTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInternalMultiPointFeature) {
     const geometry: number[] = [];
     for (let i = 0; i < feature.geometry.length; i += 3) {
         geometry.push(feature.geometry[i] , feature.geometry[i + 1]);

@@ -1,6 +1,6 @@
 
 import {simplify} from './simplify';
-import {createFeature, optimizeLineMemory} from './feature';
+import {createFeature, createPointFeature, optimizeLineMemory} from './feature';
 import {getWorldCoordinateHelper, type WorldCoordinateHelper} from './world-coordinate-helper';
 import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, SliceArray} from './definitions';
 
@@ -117,9 +117,7 @@ function convertGeometryCollection(features: GeoJSONVTInternalFeature[], geojson
 }
 
 function convertPointFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, geom: GeoJSON.Point, worldCoordinateHelper: WorldCoordinateHelper, properties: GeoJSON.GeoJsonProperties) {
-    const out: number[] = [];
-    out.push(worldCoordinateHelper.projectX(geom.coordinates[0]), worldCoordinateHelper.projectY(geom.coordinates[1]), 0);
-    features.push(createFeature(id, 'Point', out, properties));
+    features.push(createPointFeature(id, worldCoordinateHelper.projectX(geom.coordinates[0]), worldCoordinateHelper.projectY(geom.coordinates[1]), properties));
 }
 
 function convertMultiPointFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, geom: GeoJSON.MultiPoint, worldCoordinateHelper: WorldCoordinateHelper, properties: GeoJSON.GeoJsonProperties) {

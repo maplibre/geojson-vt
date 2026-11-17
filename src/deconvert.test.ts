@@ -28,9 +28,9 @@ test('featureToGeoJSON: converts Point geometry', () => {
     const feature: GeoJSONVTInternalFeature = {
         type: 'Point',
         id: 'point1',
-        geometry: [0.5, 0.5, 0],
-        tags: {name: 'Test Point'},
-        minX: 0.5, minY: 0.5, maxX: 0.5, maxY: 0.5
+        x: 0.5,
+        y: 0.5,
+        tags: {name: 'Test Point'}
     };
 
     const result = featureToGeoJSON(feature);
@@ -127,9 +127,9 @@ test('featureToGeoJSON: converts MultiPolygon geometry', () => {
 });
 
 test('featureToGeoJSON: handles various id types', () => {
-    const noId: GeoJSONVTInternalFeature = {type: 'Point', geometry: [0.5, 0.5, 0], tags: {}, minX: 0.5, minY: 0.5, maxX: 0.5, maxY: 0.5};
-    const stringId: GeoJSONVTInternalFeature = {type: 'Point', id: 'string-id', geometry: [0.5, 0.5, 0], tags: {}, minX: 0.5, minY: 0.5, maxX: 0.5, maxY: 0.5};
-    const numberId: GeoJSONVTInternalFeature = {type: 'Point', id: 42, geometry: [0.5, 0.5, 0], tags: {}, minX: 0.5, minY: 0.5, maxX: 0.5, maxY: 0.5};
+    const noId: GeoJSONVTInternalFeature = {type: 'Point', x: 0.5, y: 0.5, tags: {}};
+    const stringId: GeoJSONVTInternalFeature = {type: 'Point', id: 'string-id', x: 0.5, y: 0.5, tags: {}};
+    const numberId: GeoJSONVTInternalFeature = {type: 'Point', id: 42, x: 0.5, y: 0.5, tags: {}};
 
     expect(featureToGeoJSON(noId).id).toBeUndefined();
     expect(featureToGeoJSON(stringId).id).toBe('string-id');

@@ -65,30 +65,24 @@ test('applySourceDiff: adds a feature without properties when promoteId is set',
     }, {promoteId: 'promoteId'});
 
     expect(source.length).toBe(1);
-    expect(source[0].geometry).toEqual([0.5, 0.5, 0]);
+    expect(source[0]).toMatchObject({x: 0.5, y: 0.5});
 });
 
 test('applySourceDiff: removes a feature by its id', () => {
     const point = {
         type: 'Point' as const,
         id: 'point',
-        geometry: [0, 0],
-        tags: {},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {}
     };
 
     const point2 = {
         type: 'Point' as const,
         id: 'point2',
-        geometry: [0, 0],
-        tags: {},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {}
     };
 
     const {source} = applySourceDiff([point, point2], {
@@ -103,23 +97,17 @@ test('applySourceDiff: removeAll clears all features', () => {
     const point = {
         type: 'Point' as const,
         id: 'point',
-        geometry: [0, 0],
-        tags: {},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {}
     };
 
     const point2 = {
         type: 'Point' as const,
         id: 'point2',
-        geometry: [0, 0],
-        tags: {},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {}
     };
 
     const source = [point, point2];
@@ -135,12 +123,9 @@ test('applySourceDiff: updates a feature geometry', () => {
     const point = {
         type: 'Point' as const,
         id: 'point',
-        geometry: [0, 0],
-        tags: {},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {}
     };
 
     const {source} = applySourceDiff([point], {
@@ -155,20 +140,16 @@ test('applySourceDiff: updates a feature geometry', () => {
 
     expect(source.length).toBe(1);
     expect(source[0].id).toBe('point');
-    expect((source[0].geometry as number[])[0]).toBe(0.5027777777777778);
-    expect((source[0].geometry as number[])[1]).toBe(0.5);
+    expect(source[0]).toMatchObject({x: 0.5027777777777778, y: 0.5});
 });
 
 test('applySourceDiff: keeps a generated id when updating a feature geometry', () => {
     const point = {
         type: 'Point' as const,
         id: 1,
-        geometry: [0, 0],
-        tags: {},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {}
     };
 
     const {source} = applySourceDiff([point], {
@@ -189,12 +170,9 @@ test('applySourceDiff: keeps a promoted id when updating a feature geometry and 
     const point = {
         type: 'Point' as const,
         id: 'point',
-        geometry: [0, 0],
-        tags: {name: 'point'},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {name: 'point'}
     };
 
     const {source} = applySourceDiff([point], {
@@ -216,12 +194,9 @@ test('applySourceDiff: adds properties', () => {
     const point = {
         type: 'Point' as const,
         id: 'point',
-        geometry: [0, 0],
-        tags: {},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {}
     };
 
     const {source} = applySourceDiff([point], {
@@ -245,12 +220,9 @@ test('applySourceDiff: updates properties', () => {
     const point = {
         type: 'Point' as const,
         id: 'point',
-        geometry: [0, 0],
-        tags: {prop: 'value', prop2: 'value2'},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {prop: 'value', prop2: 'value2'}
     };
 
     const {source} = applySourceDiff([point], {
@@ -273,12 +245,9 @@ test('applySourceDiff: removes properties', () => {
     const point = {
         type: 'Point' as const,
         id: 'point',
-        geometry: [0, 0],
-        tags: {prop: 'value', prop2: 'value2'},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {prop: 'value', prop2: 'value2'}
     };
 
     const {source} = applySourceDiff([point], {
@@ -298,12 +267,9 @@ test('applySourceDiff: removes all properties', () => {
     const point = {
         type: 'Point' as const,
         id: 'point',
-        geometry: [0, 0],
-        tags: {prop: 'value', prop2: 'value2'},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {prop: 'value', prop2: 'value2'}
     };
 
     const {source} = applySourceDiff([point], {
@@ -321,12 +287,9 @@ test('applySourceDiff: empty update preserves properties', () => {
     const point = {
         type: 'Point' as const,
         id: 'point',
-        geometry: [0, 0],
-        tags: {prop: 'value', prop2: 'value2'},
-        minX: 0,
-        minY: 0,
-        maxX: 0,
-        maxY: 0
+        x: 0,
+        y: 0,
+        tags: {prop: 'value', prop2: 'value2'}
     };
 
     const {source} = applySourceDiff([point], {

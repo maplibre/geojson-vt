@@ -33,14 +33,16 @@ export function featureToGeoJSON(feature: GeoJSONVTInternalFeature, worldCoordin
  * Converts a single internal feature geometry to GeoJSON format.
  */
 function geometryToGeoJSON(feature: GeoJSONVTInternalFeature, worldCoordinateHelper: WorldCoordinateHelper): GeoJSON.Geometry {
+    if (feature.type === 'Point') {
+        return {
+            type: feature.type,
+            coordinates: unprojectPoint(feature.x, feature.y, worldCoordinateHelper)
+        };
+    }
+
     const {type, geometry} = feature;
 
     switch (type) {
-        case 'Point':
-            return {
-                type: type,
-                coordinates: unprojectPoint(geometry[0], geometry[1], worldCoordinateHelper)
-            };
         case 'MultiPoint':
             return {
                 type: type,

@@ -116,9 +116,15 @@ export type PartialGeoJSONVTFeature = {
     maxY?: number;
 }
 
-export type GeoJSONVTInternalPointFeature = PartialGeoJSONVTFeature & {
+/**
+ * A single point keeps its position on the feature, without a geometry array or a bounding box.
+ */
+export type GeoJSONVTInternalPointFeature = {
+    id?: number | string | undefined;
     type: 'Point';
-    geometry: number[];
+    x: number;
+    y: number;
+    tags: GeoJSON.GeoJsonProperties;
 };
 
 export type GeoJSONVTInternalMultiPointFeature = PartialGeoJSONVTFeature & {

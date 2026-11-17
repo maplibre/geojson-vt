@@ -473,3 +473,18 @@ test('takes a polygon or a MultiLineString with only empty rings as a feature wi
     expect((index.getData() as GeoJSON.FeatureCollection).features.map(feature => feature.id)).toEqual(['polygon']);
 });
 
+test('shows the positions of a MultiPoint near the antimeridian at both edges of the world', () => {
+    const multiPoint: GeoJSON.Feature<GeoJSON.MultiPoint> = {
+        type: 'Feature',
+        id: 3,
+        properties: {name: 'both sides'},
+        geometry: {type: 'MultiPoint', coordinates: [[179.9, 0], [179.95, 5], [-179.9, 10]]}
+    };
+    const index = new GeoJSONVT(multiPoint);
+
+    expect(index.getTile(0, 0, 0).features.map(f => f.geometry)).toEqual([
+        [[4097, 1934]],
+        [[4095, 2048], [4095, 1991], [1, 1934]],
+        [[-1, 2048], [-1, 1991]]
+    ]);
+});
