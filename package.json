@@ -7,7 +7,7 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/geojson-vt.mjs",
-      "default": "./dist/geojson-vt.js"
+      "default": "./dist/geojson-vt.mjs"
     }
   },
   "sideEffects": false,
