@@ -5,13 +5,15 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
-- fix: ship the type declarations as one file so they resolve with nodenext ([#276](https://github.com/maplibre/geojson-vt/pull/276)) (by [@birkskyum](https://github.com/birkskyum))
-- fix: let require() load the module build ([#277](https://github.com/maplibre/geojson-vt/pull/277)) (by [@birkskyum](https://github.com/birkskyum))
-- fix: throw a clear error from updateClusterOptions when the index is not updateable ([#275](https://github.com/maplibre/geojson-vt/pull/275)) (by [@birkskyum](https://github.com/birkskyum))
 ## 7.0.1
+
 ### ✨ Features and improvements
 
 ### 🐞 Bug fixes
+
+- fix: ship the type declarations as one file so they resolve with nodenext ([#276](https://github.com/maplibre/geojson-vt/pull/276)) (by [@birkskyum](https://github.com/birkskyum))
+- fix: let require() load the module build ([#277](https://github.com/maplibre/geojson-vt/pull/277)) (by [@birkskyum](https://github.com/birkskyum))
+- fix: throw a clear error from updateClusterOptions when the index is not updateable ([#275](https://github.com/maplibre/geojson-vt/pull/275)) (by [@birkskyum](https://github.com/birkskyum))
 
 ## 7.0.0
 
