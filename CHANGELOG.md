@@ -5,8 +5,8 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
-- feat!: return only the features from getTile and store coordinates in typed arrays ([#267](https://github.com/maplibre/geojson-vt/pull/267)) (by [@birkskyum](https://github.com/birkskyum))
 ## 7.0.0
+
 ### ✨ Features and improvements
 - ⚠️ Return only `features` from `getTile` and `geoJSONToTile`, and stop exporting the internal types, which is a breaking change ([#268](https://github.com/maplibre/geojson-vt/pull/268)) (by [@birkskyum](https://github.com/birkskyum))
 - Reduce the memory usage of point features, ~2.6 GB to ~1.2 GB for 1M points with the options GL JS uses ([#269](https://github.com/maplibre/geojson-vt/pull/269)) (by [@birkskyum](https://github.com/birkskyum))
