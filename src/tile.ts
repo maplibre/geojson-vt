@@ -109,7 +109,7 @@ function addPointsTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInt
     const numPoints = feature.geometry.length / 3;
     if (!numPoints) return;
 
-    const geometry = projectCoords(feature.geometry, feature.offset, frame);
+    const geometry = projectCoords(feature.geometry, feature.offsetX, frame);
     tile.numPoints += numPoints;
     tile.numSimplified += numPoints;
 
@@ -130,7 +130,7 @@ function addRingsTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInte
     const geometry: GeoJSONVTTileCoords[] = [];
     for (let i = 0; i < coords.length;) {
         const ringEnd = i + 2 + coords[i] * 3;
-        addLine(geometry, coords, feature.offset, i + 2, ringEnd, coords[i + 1], tile, tolerance, isPolygon, frame);
+        addLine(geometry, coords, feature.offsetX, i + 2, ringEnd, coords[i + 1], tile, tolerance, isPolygon, frame);
         i = ringEnd;
     }
     if (!geometry.length) return;

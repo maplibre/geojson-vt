@@ -125,7 +125,7 @@ export type PartialGeoJSONVTFeature = {
      * coordinates of the feature and has the width of the world here, where the feature itself has 0.
      * The bounding box has it added already.
      */
-    offset: number;
+    offsetX: number;
 }
 
 /**

@@ -72,7 +72,7 @@ export function clip(features: GeoJSONVTInternalFeature[], scale: number, start:
 
 function clipPointsFeature(feature: GeoJSONVTInternalMultiPointFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType) {
     const geom = feature.geometry;
-    const offset = feature.offset;
+    const offset = feature.offsetX;
     const axisOffset = axis === AxisType.X ? offset : 0;
 
     let count = 0;
@@ -108,7 +108,7 @@ function clipPointsFeature(feature: GeoJSONVTInternalMultiPointFeature, clipped:
 
 function clipRingsFeature(feature: RingsFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType, options: GeoJSONVTOptions) {
     const geom = feature.geometry;
-    const offset = feature.offset;
+    const offset = feature.offsetX;
     const isPolygon = feature.type === 'Polygon' || feature.type === 'MultiPolygon';
 
     // count first, so that all clipped rings go into one array of the right size
