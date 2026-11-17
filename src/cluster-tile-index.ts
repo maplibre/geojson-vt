@@ -147,21 +147,30 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
 
         for (const feature of features) {
             if (feature.type === 'Point') {
-                if (!this.options.wrap && !isInWorld(feature.x, feature.y)) continue;
+                if (!this.isClustered(feature.x, feature.y)) continue;
                 points.push(feature);
                 continue;
             }
             if (feature.type !== 'MultiPoint') continue;
 
             for (let i = 0; i < feature.geometry.length; i += 3) {
-                const x = feature.geometry[i];
+                const x = feature.geometry[i] + feature.worldOffset;
                 const y = feature.geometry[i + 1];
-                if (!this.options.wrap && !isInWorld(x, y)) continue;
+                if (!this.isClustered(x, y)) continue;
                 points.push({id: feature.id, type: 'Point', x, y, tags: feature.tags});
             }
         }
 
         this.createIndex(points);
+    }
+
+    /**
+     * Whether a position of the data source goes into the clusters. In a world that wraps, the source also has a copy
+     * of each position near the antimeridian on the other side of it. Only the one inside the world is clustered, since
+     * `getTile` looks across the antimeridian by itself. In a world that doesn't wrap, the positions outside it are left out.
+     */
+    private isClustered(x: number, y: number): boolean {
+        return this.options.wrap ? x >= 0 && x < 1 : isInWorld(x, y);
     }
 
     /**

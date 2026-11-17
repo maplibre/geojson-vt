@@ -1,7 +1,7 @@
 
 import {AxisType, clip} from './clip';
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, SliceArray, SliceFixedArray } from './definitions';
-import {createFeature, createPointFeature, optimizeLineMemory} from './feature';
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
+import {createPointFeature} from './feature';
 
 export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
     if (!options.wrap) return features;
@@ -22,85 +22,21 @@ export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOpt
     return merged;
 }
 
+/**
+ * The features on the other side of the antimeridian. A feature with a coordinates array shares it with its copy,
+ * which only gets the offset.
+ */
 function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number): GeoJSONVTInternalFeature[] {
-    const newFeatures = [];
+    const newFeatures: GeoJSONVTInternalFeature[] = [];
 
     for (const feature of features) {
-        switch (feature.type) {
-            case 'Point':
-                newFeatures.push(createPointFeature(feature.id, feature.x + offset, feature.y, feature.tags));
-                continue;
-
-            case 'MultiPoint': {
-                const newGeometry = shiftPointCoords(feature.geometry, offset);
-
-                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-                continue;
-            }
-
-            case 'LineString': {
-                const newGeometry = shiftLineCoords(feature.geometry, offset);
-
-                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-                continue;
-            }
-
-            case 'MultiLineString':
-            case 'Polygon': {
-                const newGeometry: SliceFixedArray[] = [];
-                for (const line of feature.geometry) {
-                    newGeometry.push(shiftLineCoords(line, offset));
-                }
-
-                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-                continue;
-            }
-
-            case 'MultiPolygon': {
-                const newGeometry: SliceFixedArray[][] = [];
-                for (const polygon of feature.geometry) {
-                    const newPolygon: SliceFixedArray[] = [];
-                    for (const line of polygon) {
-                        newPolygon.push(shiftLineCoords(line, offset));
-                    }
-                    newGeometry.push(newPolygon);
-                }
-
-                newFeatures.push(createFeature(feature.id, feature.type, newGeometry, feature.tags));
-                continue;
-            }
+        if (feature.type === 'Point') {
+            newFeatures.push(createPointFeature(feature.id, feature.x + offset, feature.y, feature.tags));
+            continue;
         }
+
+        newFeatures.push({...feature, minX: feature.minX + offset, maxX: feature.maxX + offset, worldOffset: feature.worldOffset + offset});
     }
 
     return newFeatures;
-}
-
-function shiftPointCoords(coords: number[], offset: number): number[] {
-    const newCoords: number[] = [];
-
-    for (let i = 0; i < coords.length; i += 3) {
-        newCoords.push(coords[i] + offset, coords[i + 1], coords[i + 2]);
-    }
-
-    return newCoords;
-}
-
-function shiftLineCoords(line: SliceArray | SliceFixedArray, offset: number): SliceFixedArray {
-    const newLine: SliceArray = {
-        points: [],
-        size: line.size
-    };
-
-    if (line.start !== undefined) {
-        newLine.start = line.start;
-        newLine.end = line.end;
-    }
-
-    for (let i = 0; i < line.points.length; i += 3) {
-        newLine.points.push(line.points[i] + offset, line.points[i + 1], line.points[i + 2]);
-    }
-
-    optimizeLineMemory(newLine);
-
-    return newLine;
 }
