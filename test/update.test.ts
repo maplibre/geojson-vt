@@ -635,6 +635,24 @@ test('cluster option: updateData rebuilds supercluster', () => {
     expect(tile.features.length).toBe(1);
 });
 
+test('updateClusterOptions: requires updateable option and leaves the index as it was', () => {
+    const points = {
+        type: 'FeatureCollection' as const,
+        features: Array.from({length: 20}, (_, i) => ({
+            type: 'Feature' as const,
+            geometry: {type: 'Point' as const, coordinates: [i * 0.0001, i * 0.0001]},
+            properties: {}
+        }))
+    };
+    const index = new GeoJSONVT(points, {cluster: true, clusterOptions: {radius: 100}});
+
+    expect(() => {
+        index.updateClusterOptions(false, {radius: 100});
+    }).toThrow('to update cluster options the `updateable` option must be set to true');
+
+    expect(index.getTile(0, 0, 0).features.length).toBe(1);
+});
+
 test('updateClusterOptions: rebuilds supercluster with new options', () => {
     const closePoints = {
         type: 'FeatureCollection' as const,

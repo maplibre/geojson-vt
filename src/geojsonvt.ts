@@ -157,11 +157,13 @@ export class GeoJSONVT {
     }
     
     /**
-     * Update supercluster options and regenerate the index.
+     * Update supercluster options and regenerate the index - only available when `updateable` option is set to true.
      * @param cluster - whether to enable clustering
      * @param clusterOptions - {@link SuperclusterOptions} without `coordinates` and `wrap`, which come from the index options
      */
     updateClusterOptions(cluster: boolean, clusterOptions: GeoJSONVTOptions['clusterOptions']) {
+        if (!this.options.updateable) throw new Error('to update cluster options the `updateable` option must be set to true');
+
         const wasCluster = this.options.cluster;
         this.options.cluster = cluster;
         this.options.clusterOptions = clusterOptions;
