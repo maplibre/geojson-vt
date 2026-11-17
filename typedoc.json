@@ -1,7 +1,6 @@
 {
     "treatWarningsAsErrors": true,
     "excludeInternal": true,
-    "intentionallyNotExported": ["GeoJSONVTTileIndex"],
     "navigationLinks": {
         "GitHub": "https://github.com/maplibre/geojson-vt",
         "Example Page": "https://maplibre.org/geojson-vt/debug/"
