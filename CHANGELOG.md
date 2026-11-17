@@ -5,6 +5,12 @@
 ### 🐞 Bug fixes
 - _...Add new stuff here..._
 
+- fix: leave out empty rings instead of giving them a position ([#265](https://github.com/maplibre/geojson-vt/pull/265)) (by [@birkskyum](https://github.com/birkskyum))
+## 6.3.3
+### ✨ Features and improvements
+
+### 🐞 Bug fixes
+
 ## 6.3.2
 
 ### 🐞 Bug fixes
