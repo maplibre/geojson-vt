@@ -1,6 +1,6 @@
 
 import type {GeoJSONVTFeatureDiff, GeoJSONVTSourceDiff} from './difference';
-import type {GeoJSONVTOptions, GeoJSONToTileOptions, ClusterProperties, ClusterFeature, ClusterOrPointFeature, GeoJSONVTTile, GeoJSONVTFeature, GeoJSONVTFeaturePoint, GeoJSONVTFeatureNonPoint, SuperclusterOptions, GeoJSONVTCoordinatesType} from './definitions';
+import type {GeoJSONVTOptions, GeoJSONToTileOptions, ClusterProperties, ClusterFeature, ClusterOrPointFeature, GeoJSONVTTile, GeoJSONVTFeature, GeoJSONVTFeaturePoint, GeoJSONVTFeatureNonPoint, GeoJSONVTTileIndex, SuperclusterOptions, GeoJSONVTCoordinatesType} from './definitions';
 import {GeoJSONVT} from './geojsonvt';
 import {ClusterTileIndex} from './cluster-tile-index';
 import {geoJSONToTile} from './geojson-to-tile';
@@ -27,5 +27,6 @@ export type {
     GeoJSONVTCoordinatesType,
     ClusterProperties,
     ClusterFeature,
-    ClusterOrPointFeature
+    ClusterOrPointFeature,
+    GeoJSONVTTileIndex
 };
