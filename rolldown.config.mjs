@@ -1,4 +1,6 @@
 import {defineConfig} from 'rolldown';
+import {dts} from 'rolldown-plugin-dts';
+import packageJSON from './package.json' with {type: 'json'};
 
 const umd = (file, minify) => ({
     input: 'src/index.ts',
@@ -20,5 +22,14 @@ export default defineConfig([
             file: 'dist/geojson-vt.mjs',
             sourcemap: true
         }
+    },
+    {
+        input: {index: 'src/index.ts'},
+        output: {
+            dir: 'dist',
+            format: 'esm'
+        },
+        external: Object.keys(packageJSON.dependencies),
+        plugins: [dts({dtsOnly: true})]
     }
 ]);
