@@ -1,4 +1,5 @@
 import type { GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTOptions, GeoJSONVTSourceCoords, GeoJSONVTTileCoords } from "./definitions";
+import { isHole } from "./feature";
 
 export const GEOJSONVT_CLIP_START = 'geojsonvt_clip_start';
 export const GEOJSONVT_CLIP_END = 'geojsonvt_clip_end';
@@ -183,7 +184,7 @@ function addLine(result: GeoJSONVTTileCoords[], coords: GeoJSONVTSourceCoords, f
     tile.numSimplified += numKept;
 
     // an outer ring goes clockwise and a hole the other way
-    const isReversed = isPolygon && (area > 0) === (size >= 0);
+    const isReversed = isPolygon && (area > 0) === !isHole(size);
     const ring = projectRing(coords, first, ringEnd, tolerance, numKept, isReversed, frame);
 
     if (isPolygon && isWindingFlipped(coords, first, ringEnd, tolerance, isReversed, ring)) reverse(ring);
