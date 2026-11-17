@@ -28,8 +28,8 @@ function rings(feature: GeoJSONVTInternalFeature): number[][] {
 test('clips polylines', () => {
 
     const clipped = clip([
-        {geometry: ring(geom1), type: 'LineString', tags: { "1": 1}, minX: 0, minY: 0, maxX: 50, maxY: 60, offsetX: 0},
-        {geometry: ring(geom2), type: 'LineString', tags: { "2": 2}, minX: 0, minY: 0, maxX: 50, maxY: 10, offsetX: 0}
+        {geometry: ring(geom1), type: 'LineString', tags: { "1": 1}, minX: 0, minY: 0, maxX: 50, maxY: 60, worldOffset: 0},
+        {geometry: ring(geom2), type: 'LineString', tags: { "2": 2}, minX: 0, minY: 0, maxX: 50, maxY: 10, worldOffset: 0}
     ], 1, 10, 40, 0, -Infinity, Infinity, {});
 
     expect(clipped).toMatchObject([
@@ -58,7 +58,7 @@ test('clips lines with line metrics on', () => {
         size += Math.sqrt(dx * dx + dy * dy);
     }
 
-    const clipped = clip([{id: 1, geometry: ring(points, size), type: 'LineString', tags: {}, minX: 0, minY: 0, maxX: 50, maxY: 60, offsetX: 0, start: 0, end: size, size}],
+    const clipped = clip([{id: 1, geometry: ring(points, size), type: 'LineString', tags: {}, minX: 0, minY: 0, maxX: 50, maxY: 60, worldOffset: 0, start: 0, end: size, size}],
         1, 10, 40, 0, -Infinity, Infinity, {lineMetrics: true});
 
     expect(
@@ -74,8 +74,8 @@ function closed(geometry: number[]): Float64Array {
 test('clips polygons', () => {
 
     const clipped = clip([
-        {geometry: closed(geom1), type: 'Polygon', tags: {"1": 1}, minX: 0, minY: 0, maxX: 50, maxY: 60, offsetX: 0},
-        {geometry: closed(geom2), type: 'Polygon', tags: {"2": 2}, minX: 0, minY: 0, maxX: 50, maxY: 10, offsetX: 0}
+        {geometry: closed(geom1), type: 'Polygon', tags: {"1": 1}, minX: 0, minY: 0, maxX: 50, maxY: 60, worldOffset: 0},
+        {geometry: closed(geom2), type: 'Polygon', tags: {"2": 2}, minX: 0, minY: 0, maxX: 50, maxY: 10, worldOffset: 0}
     ], 1, 10, 40, 0, -Infinity, Infinity, {});
 
     expect(clipped).toMatchObject([
@@ -89,8 +89,8 @@ test('clips polygons', () => {
 test('clips points', () => {
 
     const clipped = clip([
-        {geometry: new Float64Array(geom1), type: 'MultiPoint', tags: {"1": 1}, minX: 0, minY: 0, maxX: 50, maxY: 60, offsetX: 0},
-        {geometry: new Float64Array(geom2), type: 'MultiPoint', tags: {"2": 2}, minX: 0, minY: 0, maxX: 50, maxY: 10, offsetX: 0}
+        {geometry: new Float64Array(geom1), type: 'MultiPoint', tags: {"1": 1}, minX: 0, minY: 0, maxX: 50, maxY: 60, worldOffset: 0},
+        {geometry: new Float64Array(geom2), type: 'MultiPoint', tags: {"2": 2}, minX: 0, minY: 0, maxX: 50, maxY: 10, worldOffset: 0}
     ], 1, 10, 40, 0, -Infinity, Infinity, {});
 
     expect(clipped).toMatchObject([{id: null, type: 'MultiPoint', tags: {"1": 1}, minX: 20, minY: 10, maxX: 30, maxY: 60}]);

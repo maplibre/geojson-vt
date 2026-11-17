@@ -20,7 +20,7 @@ export function createFeature<T extends GeometryFeature["type"]>(id: number | st
         minY: Infinity,
         maxX: -Infinity,
         maxY: -Infinity,
-        offsetX: 0
+        worldOffset: 0
     } as Extract<GeometryFeature, {type: T}>;
 
     if (type === 'MultiPoint') {

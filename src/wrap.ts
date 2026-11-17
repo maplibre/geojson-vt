@@ -35,7 +35,7 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
             continue;
         }
 
-        newFeatures.push({...feature, minX: feature.minX + offset, maxX: feature.maxX + offset, offsetX: feature.offsetX + offset});
+        newFeatures.push({...feature, minX: feature.minX + offset, maxX: feature.maxX + offset, worldOffset: feature.worldOffset + offset});
     }
 
     return newFeatures;

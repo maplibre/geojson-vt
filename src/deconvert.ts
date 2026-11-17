@@ -42,23 +42,23 @@ function geometryToGeoJSON(feature: GeoJSONVTInternalFeature, worldCoordinateHel
         case 'MultiPoint':
             return {
                 type: feature.type,
-                coordinates: unprojectPoints(feature.geometry, feature.offsetX, 0, feature.geometry.length, worldCoordinateHelper)
+                coordinates: unprojectPoints(feature.geometry, feature.worldOffset, 0, feature.geometry.length, worldCoordinateHelper)
             };
         case 'LineString':
             return {
                 type: feature.type,
-                coordinates: unprojectRings(feature.geometry, feature.offsetX, worldCoordinateHelper)[0]
+                coordinates: unprojectRings(feature.geometry, feature.worldOffset, worldCoordinateHelper)[0]
             };
         case 'MultiLineString':
         case 'Polygon':
             return {
                 type: feature.type,
-                coordinates: unprojectRings(feature.geometry, feature.offsetX, worldCoordinateHelper)
+                coordinates: unprojectRings(feature.geometry, feature.worldOffset, worldCoordinateHelper)
             };
         case 'MultiPolygon':
             return {
                 type: feature.type,
-                coordinates: unprojectPolygons(feature.geometry, feature.offsetX, worldCoordinateHelper)
+                coordinates: unprojectPolygons(feature.geometry, feature.worldOffset, worldCoordinateHelper)
             };
     }
 }
