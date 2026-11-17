@@ -110,7 +110,7 @@ function addPointsTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInt
     const numPoints = feature.geometry.length / 3;
     if (!numPoints) return;
 
-    const geometry = projectCoords(feature.geometry, 3, frame);
+    const geometry = projectCoords(feature.geometry, feature.worldOffset, frame);
     tile.numPoints += numPoints;
     tile.numSimplified += numPoints;
 
@@ -131,7 +131,7 @@ function addRingsTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInte
     const geometry: GeoJSONVTTileCoords[] = [];
     for (let i = 0; i < coords.length;) {
         const ringEnd = i + 2 + coords[i] * 3;
-        addLine(geometry, coords, i + 2, ringEnd, coords[i + 1], tile, tolerance, isPolygon, frame);
+        addLine(geometry, coords, feature.worldOffset, i + 2, ringEnd, coords[i + 1], tile, tolerance, isPolygon, frame);
         i = ringEnd;
     }
     if (!geometry.length) return;
@@ -156,9 +156,10 @@ function addRingsTileFeature(tile: GeoJSONVTInternalTile, feature: GeoJSONVTInte
 
 /**
  * Adds a ring to a tile feature, with the positions that matter on the zoom level of the tile.
+ * @param offset - what to add to every x of `coords`
  * @param size - the size of the ring, which is negative for the hole of a polygon
  */
-function addLine(result: GeoJSONVTTileCoords[], coords: GeoJSONVTSourceCoords, first: number, ringEnd: number, size: number, tile: GeoJSONVTInternalTile, tolerance: number, isPolygon: boolean, frame: TileFrame) {
+function addLine(result: GeoJSONVTTileCoords[], coords: GeoJSONVTSourceCoords, offset: number, first: number, ringEnd: number, size: number, tile: GeoJSONVTInternalTile, tolerance: number, isPolygon: boolean, frame: TileFrame) {
     const sqTolerance = tolerance * tolerance;
     const numPoints = (ringEnd - first) / 3;
 
@@ -168,15 +169,15 @@ function addLine(result: GeoJSONVTTileCoords[], coords: GeoJSONVTSourceCoords, f
     // the area of what is kept tells which way the ring winds, starting from the last position that is kept
     let last = ringEnd - 3;
     while (last > first && tolerance > 0 && coords[last + 2] <= sqTolerance) last -= 3;
-    let x0 = coords[last];
+    let x0 = coords[last] + offset;
     let y0 = coords[last + 1];
     let area = 0;
     let numKept = 0;
 
     for (let i = first; i < ringEnd; i += 3) {
         if (tolerance === 0 || coords[i + 2] > sqTolerance) {
-            area += (coords[i] - x0) * (coords[i + 1] + y0);
-            x0 = coords[i];
+            area += (coords[i] + offset - x0) * (coords[i + 1] + y0);
+            x0 = coords[i] + offset;
             y0 = coords[i + 1];
             numKept++;
         }
@@ -185,9 +186,9 @@ function addLine(result: GeoJSONVTTileCoords[], coords: GeoJSONVTSourceCoords, f
 
     // an outer ring goes clockwise and a hole the other way
     const isReversed = isPolygon && (area > 0) === !isHole(size);
-    const ring = projectRing(coords, first, ringEnd, tolerance, numKept, isReversed, frame);
+    const ring = projectRing(coords, offset, first, ringEnd, tolerance, numKept, isReversed, frame);
 
-    if (isPolygon && isWindingFlipped(coords, first, ringEnd, tolerance, isReversed, ring)) reverse(ring);
+    if (isPolygon && isWindingFlipped(coords, offset, first, ringEnd, tolerance, isReversed, ring)) reverse(ring);
 
     result.push(ring);
 }
@@ -197,7 +198,7 @@ function addLine(result: GeoJSONVTTileCoords[], coords: GeoJSONVTSourceCoords, f
  * the ring is reversed. They go into a `Float64Array` when one of them doesn't fit the tile's array, which takes a
  * position far outside the tile.
  */
-function projectRing(coords: GeoJSONVTSourceCoords, first: number, ringEnd: number, tolerance: number, numKept: number, isReversed: boolean, frame: TileFrame, CoordArray = frame.CoordArray): GeoJSONVTTileCoords {
+function projectRing(coords: GeoJSONVTSourceCoords, offset: number, first: number, ringEnd: number, tolerance: number, numKept: number, isReversed: boolean, frame: TileFrame, CoordArray = frame.CoordArray): GeoJSONVTTileCoords {
     const sqTolerance = tolerance * tolerance;
     const limit = CoordArray === Int16Array ? 0x7fff : 0x7fffffff;
     const ring = new CoordArray(numKept * 2);
@@ -205,10 +206,10 @@ function projectRing(coords: GeoJSONVTSourceCoords, first: number, ringEnd: numb
 
     for (let i = first; i < ringEnd; i += 3) {
         if (tolerance === 0 || coords[i + 2] > sqTolerance) {
-            const x = project(coords[i], frame.tx, frame);
+            const x = project(coords[i] + offset, frame.tx, frame);
             const y = project(coords[i + 1], frame.ty, frame);
             if (CoordArray !== Float64Array && !(Math.abs(x) <= limit && Math.abs(y) <= limit)) {
-                return projectRing(coords, first, ringEnd, tolerance, numKept, isReversed, frame, Float64Array);
+                return projectRing(coords, offset, first, ringEnd, tolerance, numKept, isReversed, frame, Float64Array);
             }
             ring[next] = x;
             ring[next + 1] = y;
@@ -225,7 +226,7 @@ function projectRing(coords: GeoJSONVTSourceCoords, first: number, ringEnd: numb
  * to reduce cancellation for narrow rings far from the origin. A ring that rounds to no area is left as it is, and
  * other changes rounding makes to a ring are not repaired.
  */
-function isWindingFlipped(coords: GeoJSONVTSourceCoords, first: number, ringEnd: number, tolerance: number, isReversed: boolean, ring: GeoJSONVTTileCoords): boolean {
+function isWindingFlipped(coords: GeoJSONVTSourceCoords, offset: number, first: number, ringEnd: number, tolerance: number, isReversed: boolean, ring: GeoJSONVTTileCoords): boolean {
     const sqTolerance = tolerance * tolerance;
     const step = isReversed ? -3 : 3;
     let originX = 0;
@@ -241,10 +242,10 @@ function isWindingFlipped(coords: GeoJSONVTSourceCoords, first: number, ringEnd:
     for (let i = isReversed ? ringEnd - 3 : first; i >= first && i < ringEnd; i += step) {
         if (tolerance > 0 && !(coords[i + 2] > sqTolerance)) continue;
         if (next === 0) {
-            originX = coords[i];
+            originX = coords[i] + offset;
             originY = coords[i + 1];
         } else {
-            const x = coords[i] - originX;
+            const x = coords[i] + offset - originX;
             const y = coords[i + 1] - originY;
             const roundedX = ring[next] - ring[0];
             const roundedY = ring[next + 1] - ring[1];
@@ -281,18 +282,19 @@ function project(position: number, t: number, frame: TileFrame): number {
 }
 
 /**
- * The positions as coordinates in the tile, `stride` values apart, of which the first two are x and y.
- * They go into a `Float64Array` when one of them doesn't fit the tile's array, which takes a position far outside the tile.
+ * The positions of a MultiPoint as coordinates in the tile. They go into a `Float64Array` when one of them doesn't
+ * fit the tile's array, which takes a position far outside the tile.
+ * @param offset - what to add to every x of `positions`
  */
-function projectCoords(positions: ArrayLike<number>, stride: number, frame: TileFrame, CoordArray = frame.CoordArray): GeoJSONVTTileCoords {
+function projectCoords(positions: GeoJSONVTSourceCoords, offset: number, frame: TileFrame, CoordArray = frame.CoordArray): GeoJSONVTTileCoords {
     const limit = CoordArray === Int16Array ? 0x7fff : 0x7fffffff;
-    const coords = new CoordArray(positions.length / stride * 2);
+    const coords = new CoordArray(positions.length / 3 * 2);
 
-    for (let i = 0, j = 0; i < positions.length; i += stride, j += 2) {
-        const x = project(positions[i], frame.tx, frame);
+    for (let i = 0, j = 0; i < positions.length; i += 3, j += 2) {
+        const x = project(positions[i] + offset, frame.tx, frame);
         const y = project(positions[i + 1], frame.ty, frame);
         if (CoordArray !== Float64Array && !(Math.abs(x) <= limit && Math.abs(y) <= limit)) {
-            return projectCoords(positions, stride, frame, Float64Array);
+            return projectCoords(positions, offset, frame, Float64Array);
         }
         coords[j] = x;
         coords[j + 1] = y;

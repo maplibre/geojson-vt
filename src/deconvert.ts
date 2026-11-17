@@ -43,33 +43,33 @@ function geometryToGeoJSON(feature: GeoJSONVTInternalFeature, worldCoordinateHel
         case 'MultiPoint':
             return {
                 type: feature.type,
-                coordinates: unprojectPoints(feature.geometry, 0, feature.geometry.length, worldCoordinateHelper)
+                coordinates: unprojectPoints(feature.geometry, feature.worldOffset, 0, feature.geometry.length, worldCoordinateHelper)
             };
         case 'LineString':
             return {
                 type: feature.type,
-                coordinates: unprojectRings(feature.geometry, worldCoordinateHelper)[0]
+                coordinates: unprojectRings(feature.geometry, feature.worldOffset, worldCoordinateHelper)[0]
             };
         case 'MultiLineString':
         case 'Polygon':
             return {
                 type: feature.type,
-                coordinates: unprojectRings(feature.geometry, worldCoordinateHelper)
+                coordinates: unprojectRings(feature.geometry, feature.worldOffset, worldCoordinateHelper)
             };
         case 'MultiPolygon':
             return {
                 type: feature.type,
-                coordinates: unprojectPolygons(feature.geometry, worldCoordinateHelper)
+                coordinates: unprojectPolygons(feature.geometry, feature.worldOffset, worldCoordinateHelper)
             };
     }
 }
 
-function unprojectRings(coords: GeoJSONVTSourceCoords, worldCoordinateHelper: WorldCoordinateHelper): GeoJSON.Position[][] {
+function unprojectRings(coords: GeoJSONVTSourceCoords, offset: number, worldCoordinateHelper: WorldCoordinateHelper): GeoJSON.Position[][] {
     const rings: GeoJSON.Position[][] = [];
 
     for (let i = 0; i < coords.length;) {
         const ringEnd = i + 2 + coords[i] * 3;
-        rings.push(unprojectPoints(coords, i + 2, ringEnd, worldCoordinateHelper));
+        rings.push(unprojectPoints(coords, offset, i + 2, ringEnd, worldCoordinateHelper));
         i = ringEnd;
     }
 
@@ -79,12 +79,12 @@ function unprojectRings(coords: GeoJSONVTSourceCoords, worldCoordinateHelper: Wo
 /**
  * The rings in groups of one polygon each, where a ring with a negative size is a hole of the polygon before it.
  */
-function unprojectPolygons(coords: GeoJSONVTSourceCoords, worldCoordinateHelper: WorldCoordinateHelper): GeoJSON.Position[][][] {
+function unprojectPolygons(coords: GeoJSONVTSourceCoords, offset: number, worldCoordinateHelper: WorldCoordinateHelper): GeoJSON.Position[][][] {
     const polygons: GeoJSON.Position[][][] = [];
 
     for (let i = 0; i < coords.length;) {
         const ringEnd = i + 2 + coords[i] * 3;
-        const ring = unprojectPoints(coords, i + 2, ringEnd, worldCoordinateHelper);
+        const ring = unprojectPoints(coords, offset, i + 2, ringEnd, worldCoordinateHelper);
         if (!isHole(coords[i + 1]) || !polygons.length) {
             polygons.push([ring]);
         } else {
@@ -96,11 +96,14 @@ function unprojectPolygons(coords: GeoJSONVTSourceCoords, worldCoordinateHelper:
     return polygons;
 }
 
-function unprojectPoints(coords: GeoJSONVTSourceCoords, start: number, end: number, worldCoordinateHelper: WorldCoordinateHelper): GeoJSON.Position[] {
+/**
+ * @param offset - what to add to every x of `coords`
+ */
+function unprojectPoints(coords: GeoJSONVTSourceCoords, offset: number, start: number, end: number, worldCoordinateHelper: WorldCoordinateHelper): GeoJSON.Position[] {
     const result: GeoJSON.Position[] = [];
 
     for (let i = start; i < end; i += 3) {
-        result.push([worldCoordinateHelper.unprojectX(coords[i]), worldCoordinateHelper.unprojectY(coords[i + 1])]);
+        result.push([worldCoordinateHelper.unprojectX(coords[i] + offset), worldCoordinateHelper.unprojectY(coords[i + 1])]);
     }
 
     return result;
