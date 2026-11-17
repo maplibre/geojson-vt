@@ -424,6 +424,35 @@ test('clusters each position of a MultiPoint feature when clustering is on', () 
     ]);
 });
 
+test('counts each point once in the clusters at the antimeridian', () => {
+    const data = {
+        type: 'FeatureCollection' as const,
+        features: [[179, 0], [178, 0], [-179, 0], [-178, 0]].map(coordinates => (
+            {type: 'Feature' as const, geometry: {type: 'Point' as const, coordinates}, properties: {}}
+        ))
+    };
+    const clusters = (index: GeoJSONVT) => index.getTile(0, 0, 0).features.map(feature => [feature.geometry, feature.tags.point_count]);
+    const expected = [
+        [[[510, 256]], 2],
+        [[[2, 256]], 2],
+        [[[-2, 256]], 2],
+        [[[514, 256]], 2]
+    ];
+
+    expect(clusters(new GeoJSONVT(data, {cluster: true}))).toEqual(expected);
+
+    const clusteredLater = new GeoJSONVT(data, {updateable: true});
+    clusteredLater.updateClusterOptions(true, {});
+    expect(clusters(clusteredLater)).toEqual(expected);
+});
+
+test('counts each position of a MultiPoint once in the clusters at the antimeridian', () => {
+    const multiPoint: GeoJSON.Feature = {type: 'Feature', properties: {}, geometry: {type: 'MultiPoint', coordinates: [[179, 0], [178, 0], [-179, 0], [-178, 0]]}};
+    const index = new GeoJSONVT(multiPoint, {cluster: true});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.tags.point_count)).toEqual([2, 2, 2, 2]);
+});
+
 test('a unit square without wrap leaves the positions of a MultiPoint outside the world out of the clusters', () => {
     const multiPoint = {
         type: 'Feature' as const,
