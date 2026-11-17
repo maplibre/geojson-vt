@@ -72,11 +72,13 @@ export function clip(features: GeoJSONVTInternalFeature[], scale: number, start:
 
 function clipPointsFeature(feature: GeoJSONVTInternalMultiPointFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType) {
     const geom = feature.geometry;
+    const offset = feature.worldOffset;
+    const axisOffset = axis === AxisType.X ? offset : 0;
 
     let count = 0;
     let lastInside = 0;
     for (let i = 0; i < geom.length; i += 3) {
-        const a = geom[i + axis];
+        const a = geom[i + axis] + axisOffset;
         if (a >= start && a <= end) {
             count++;
             lastInside = i;
@@ -85,16 +87,16 @@ function clipPointsFeature(feature: GeoJSONVTInternalMultiPointFeature, clipped:
     if (!count) return;
 
     if (count === 1) {
-        clipped.push(createPointFeature(feature.id, geom[lastInside], geom[lastInside + 1], feature.tags));
+        clipped.push(createPointFeature(feature.id, geom[lastInside] + offset, geom[lastInside + 1], feature.tags));
         return;
     }
 
     const out = new Float64Array(count * 3);
     let next = 0;
     for (let i = 0; i < geom.length; i += 3) {
-        const a = geom[i + axis];
+        const a = geom[i + axis] + axisOffset;
         if (a >= start && a <= end) {
-            out[next] = geom[i];
+            out[next] = geom[i] + offset;
             out[next + 1] = geom[i + 1];
             out[next + 2] = geom[i + 2];
             next += 3;
@@ -106,13 +108,14 @@ function clipPointsFeature(feature: GeoJSONVTInternalMultiPointFeature, clipped:
 
 function clipRingsFeature(feature: RingsFeature, clipped: GeoJSONVTInternalFeature[], start: number, end: number, axis: AxisType, options: GeoJSONVTOptions) {
     const geom = feature.geometry;
+    const offset = feature.worldOffset;
     const isPolygon = feature.type === 'Polygon' || feature.type === 'MultiPolygon';
 
     // count first, so that all clipped rings go into one array of the right size
     let length = 0;
     for (let i = 0; i < geom.length;) {
         const ringEnd = i + 2 + geom[i] * 3;
-        length += countClippedRing(geom, i + 2, ringEnd, start, end, axis, isPolygon);
+        length += countClippedRing(geom, offset, i + 2, ringEnd, start, end, axis, isPolygon);
         i = ringEnd;
     }
     if (!length) return;
@@ -131,7 +134,7 @@ function clipRingsFeature(feature: RingsFeature, clipped: GeoJSONVTInternalFeatu
             if (!hasOuter) size = Math.abs(size);
         }
         const ringStart = next;
-        next = clipRing(geom, i + 2, ringEnd, size, out, next, start, end, axis, isPolygon, metricsOf, metrics);
+        next = clipRing(geom, offset, i + 2, ringEnd, size, out, next, start, end, axis, isPolygon, metricsOf, metrics);
         if (next > ringStart) hasOuter = true;
         i = ringEnd;
     }
@@ -163,15 +166,17 @@ function clipRingsFeature(feature: RingsFeature, clipped: GeoJSONVTInternalFeatu
 
 /**
  * How many values `clipRing` writes for a ring, without working out the intersections.
+ * @param offset - what to add to every x of `geom`
  */
-function countClippedRing(geom: GeoJSONVTSourceCoords, first: number, ringEnd: number, start: number, end: number, axis: AxisType, isPolygon: boolean): number {
+function countClippedRing(geom: GeoJSONVTSourceCoords, offset: number, first: number, ringEnd: number, start: number, end: number, axis: AxisType, isPolygon: boolean): number {
+    const axisOffset = axis === AxisType.X ? offset : 0;
     let parts = 0;
     let total = 0;
     let count = 0;
 
     for (let i = first; i < ringEnd - 3; i += 3) {
-        const a = geom[i + axis];
-        const b = geom[i + 3 + axis];
+        const a = geom[i + axis] + axisOffset;
+        const b = geom[i + 3 + axis] + axisOffset;
         let exited = false;
 
         if (a < start) {
@@ -204,7 +209,7 @@ function countClippedRing(geom: GeoJSONVTSourceCoords, first: number, ringEnd: n
     }
 
     const last = ringEnd - 3;
-    const a = geom[last + axis];
+    const a = geom[last + axis] + axisOffset;
     if (a >= start && a <= end) count++;
 
     // a polygon ring gets a position that closes it when its ends differ, which only shows once it is written
@@ -221,10 +226,11 @@ function countClippedRing(geom: GeoJSONVTSourceCoords, first: number, ringEnd: n
 /**
  * Clips a ring and writes what is left of it to `out`, each part with the two values before it,
  * see {@link GeoJSONVTSourceCoords}. A polygon ring stays one ring, and a line can come out in several parts.
+ * @param offset - what to add to every x of `geom`, which `out` has added already
  * @param metricsOf - the line whose metrics to track, which adds where each part starts and ends to `metrics`
  * @returns where the next ring starts in `out`
  */
-function clipRing(geom: GeoJSONVTSourceCoords, first: number, ringEnd: number, size: number, out: GeoJSONVTSourceCoords, next: number, start: number, end: number, axis: AxisType, isPolygon: boolean, metricsOf: GeoJSONVTInternalLineStringFeature | null, metrics: number[]): number {
+function clipRing(geom: GeoJSONVTSourceCoords, offset: number, first: number, ringEnd: number, size: number, out: GeoJSONVTSourceCoords, next: number, start: number, end: number, axis: AxisType, isPolygon: boolean, metricsOf: GeoJSONVTInternalLineStringFeature | null, metrics: number[]): number {
     let header = next;
     out[next + 1] = size;
     next += 2;
@@ -235,10 +241,10 @@ function clipRing(geom: GeoJSONVTSourceCoords, first: number, ringEnd: number, s
     let segLen, t;
 
     for (let i = first; i < ringEnd - 3; i += 3) {
-        const ax = geom[i];
+        const ax = geom[i] + offset;
         const ay = geom[i + 1];
         const az = geom[i + 2];
-        const bx = geom[i + 3];
+        const bx = geom[i + 3] + offset;
         const by = geom[i + 4];
         const a = axis === AxisType.X ? ax : ay;
         const b = axis === AxisType.X ? bx : by;
@@ -299,7 +305,7 @@ function clipRing(geom: GeoJSONVTSourceCoords, first: number, ringEnd: number, s
 
     // add the last point
     const last = ringEnd - 3;
-    const ax = geom[last];
+    const ax = geom[last] + offset;
     const ay = geom[last + 1];
     const a = axis === AxisType.X ? ax : ay;
     if (a >= start && a <= end) {

@@ -48,7 +48,7 @@ test('featureToGeoJSON: converts MultiPoint geometry', () => {
         id: 'multipoint1',
         geometry: new Float64Array([0.5, 0.5, 0, 0.525, 0.5, 0]),
         tags: {},
-        minX: 0.5, minY: 0.5, maxX: 0.525, maxY: 0.5
+        minX: 0.5, minY: 0.5, maxX: 0.525, maxY: 0.5, worldOffset: 0
     };
 
     const result = featureToGeoJSON(feature);
@@ -63,7 +63,7 @@ test('featureToGeoJSON: converts LineString geometry', () => {
         id: 'line1',
         geometry: new Float64Array([3, 0.05, 0.5, 0.5, 0, 0.525, 0.5, 0, 0.525, 0.525, 0]),
         tags: {highway: 'primary'},
-        minX: 0.5, minY: 0.5, maxX: 0.525, maxY: 0.525
+        minX: 0.5, minY: 0.5, maxX: 0.525, maxY: 0.525, worldOffset: 0
     };
 
     const result = featureToGeoJSON(feature);
@@ -81,7 +81,7 @@ test('featureToGeoJSON: converts MultiLineString geometry', () => {
             2, 0.025, 0.55, 0.55, 0, 0.575, 0.55, 0
         ]),
         tags: {},
-        minX: 0.5, minY: 0.5, maxX: 0.575, maxY: 0.55
+        minX: 0.5, minY: 0.5, maxX: 0.575, maxY: 0.55, worldOffset: 0
     };
 
     const result = featureToGeoJSON(feature);
@@ -99,7 +99,7 @@ test('featureToGeoJSON: converts Polygon geometry', () => {
             5, -0.0036, 0.52, 0.52, 0, 0.58, 0.52, 0, 0.58, 0.58, 0, 0.52, 0.58, 0, 0.52, 0.52, 0
         ]),
         tags: {landuse: 'residential'},
-        minX: 0.5, minY: 0.5, maxX: 0.6, maxY: 0.6
+        minX: 0.5, minY: 0.5, maxX: 0.6, maxY: 0.6, worldOffset: 0
     };
 
     const result = featureToGeoJSON(feature);
@@ -118,7 +118,7 @@ test('featureToGeoJSON: converts MultiPolygon geometry', () => {
             5, 0.0004, 0.55, 0.55, 0, 0.57, 0.55, 0, 0.57, 0.57, 0, 0.55, 0.57, 0, 0.55, 0.55, 0
         ]),
         tags: {},
-        minX: 0.5, minY: 0.5, maxX: 0.57, maxY: 0.57
+        minX: 0.5, minY: 0.5, maxX: 0.57, maxY: 0.57, worldOffset: 0
     };
 
     const result = featureToGeoJSON(feature);
@@ -142,7 +142,7 @@ test('featureToGeoJSON: correctly unprojects known coordinates', () => {
         type: 'MultiPoint',
         geometry: new Float64Array([0.5, 0.5, 0, 0, 0.5, 0, 1, 0.5, 0]),
         tags: {},
-        minX: 0, minY: 0.5, maxX: 1, maxY: 0.5
+        minX: 0, minY: 0.5, maxX: 1, maxY: 0.5, worldOffset: 0
     };
 
     const result = featureToGeoJSON(feature);
