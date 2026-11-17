@@ -1,7 +1,7 @@
 
 import {AxisType, clip} from './clip';
-import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, GeoJSONVTSourceCoords } from './definitions';
-import {createFeature, createPointFeature} from './feature';
+import type { GeoJSONVTInternalFeature, GeoJSONVTOptions } from './definitions';
+import {createPointFeature} from './feature';
 
 export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): GeoJSONVTInternalFeature[] {
     if (!options.wrap) return features;
@@ -22,8 +22,12 @@ export function wrap(features: GeoJSONVTInternalFeature[], options: GeoJSONVTOpt
     return merged;
 }
 
+/**
+ * The features on the other side of the antimeridian. A feature with a coordinates array shares it with its copy,
+ * which only gets the offset.
+ */
 function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number): GeoJSONVTInternalFeature[] {
-    const newFeatures = [];
+    const newFeatures: GeoJSONVTInternalFeature[] = [];
 
     for (const feature of features) {
         if (feature.type === 'Point') {
@@ -31,34 +35,8 @@ function shiftFeatureCoords(features: GeoJSONVTInternalFeature[], offset: number
             continue;
         }
 
-        const shifted = createFeature(feature.id, feature.type, shiftCoords(feature.geometry, feature.type === 'MultiPoint', offset), feature.tags);
-        if (feature.type === 'LineString' && shifted.type === 'LineString' && feature.start !== undefined) {
-            shifted.start = feature.start;
-            shifted.end = feature.end;
-            shifted.size = feature.size;
-        }
-        newFeatures.push(shifted);
+        newFeatures.push({...feature, minX: feature.minX + offset, maxX: feature.maxX + offset, offset: feature.offset + offset});
     }
 
     return newFeatures;
-}
-
-/**
- * A copy of the coordinates with every x moved by an offset.
- */
-function shiftCoords(coords: GeoJSONVTSourceCoords, isPoints: boolean, offset: number): GeoJSONVTSourceCoords {
-    const shifted = coords.slice();
-
-    if (isPoints) {
-        for (let i = 0; i < shifted.length; i += 3) shifted[i] += offset;
-        return shifted;
-    }
-
-    for (let i = 0; i < shifted.length;) {
-        const ringEnd = i + 2 + shifted[i] * 3;
-        for (let j = i + 2; j < ringEnd; j += 3) shifted[j] += offset;
-        i = ringEnd;
-    }
-
-    return shifted;
 }

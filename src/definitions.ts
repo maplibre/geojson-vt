@@ -120,6 +120,12 @@ export type PartialGeoJSONVTFeature = {
     minY?: number;
     maxX?: number;
     maxY?: number;
+    /**
+     * What to add to every x of `geometry`. The copy of a feature on the other side of the antimeridian shares the
+     * coordinates of the feature and has the width of the world here, where the feature itself has 0.
+     * The bounding box has it added already.
+     */
+    offset: number;
 }
 
 /**

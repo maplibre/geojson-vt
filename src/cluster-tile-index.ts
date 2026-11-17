@@ -154,7 +154,7 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
             if (feature.type !== 'MultiPoint') continue;
 
             for (let i = 0; i < feature.geometry.length; i += 3) {
-                const x = feature.geometry[i];
+                const x = feature.geometry[i] + feature.offset;
                 const y = feature.geometry[i + 1];
                 if (!this.isClustered(x, y)) continue;
                 points.push({id: feature.id, type: 'Point', x, y, tags: feature.tags});
