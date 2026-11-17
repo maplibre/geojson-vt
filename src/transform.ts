@@ -68,10 +68,16 @@ function transformNonPointFeature(feature: GeoJSONVTInternalTileFeatureNonPoint,
     return transformed;
 }
 
+/**
+ * Quantizes a polygon ring while preserving its winding so a hole does not become
+ * a shell, or vice versa. Signed areas use coordinates relative to the first
+ * vertex to reduce cancellation for narrow rings far from the origin.
+ * Zero-area results are left unchanged; other quantization topology changes
+ * are not repaired.
+ */
 function transformPolygonRing(geometry: number[], extent: number, z2: number, tx: number, ty: number): [number, number][] {
     if (!geometry.length) return [];
 
-    // Relative coordinates avoid cancellation for narrow rings far from the origin.
     const originX = geometry[0];
     const originY = geometry[1];
     const origin = transformPoint(originX, originY, extent, z2, tx, ty);
@@ -98,7 +104,6 @@ function transformPolygonRing(geometry: number[], extent: number, z2: number, tx
         ring.push(point);
     }
 
-    // Quantization must not turn a hole into a shell, or vice versa.
     if (sourceArea * roundedArea < 0) ring.reverse();
     return ring;
 }
