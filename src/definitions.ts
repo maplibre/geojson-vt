@@ -223,9 +223,14 @@ export type GeoJSONVTFeatureNonPoint = {
 
 export type GeoJSONVTFeature = GeoJSONVTFeaturePoint | GeoJSONVTFeatureNonPoint;
 
-export type GeoJSONVTTile = GeoJSONVTInternalTile & {
-    transformed: true;
-    features: GeoJSONVTFeature[]
+/**
+ * A tile as `getTile` and `geoJSONToTile` return it.
+ */
+export type GeoJSONVTTile = {
+    /**
+     * The features of the tile, with geometries in tile coordinates.
+     */
+    features: GeoJSONVTFeature[];
 }
 
 export interface GeoJSONVTTileIndex {

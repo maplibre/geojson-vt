@@ -83,11 +83,13 @@ const OFFSET_PROP = 4;
 export class ClusterTileIndex implements GeoJSONVTTileIndex {
     options: Required<SuperclusterOptions>;
     /**
+     * @internal
      * A tree per zoom level. A zoom level where no clusters form shares the tree of the zoom level above it.
      */
     trees: KDBushWithData[];
     stride: number;
     clusterProps: Record<string, unknown>[];
+    /** @internal */
     points: GeoJSONVTInternalPointFeature[];
     private worldCoordinateHelper: WorldCoordinateHelper;
 
@@ -377,14 +379,7 @@ export class ClusterTileIndex implements GeoJSONVTTileIndex {
         const top = encode((y - p) / z2);
         const bottom = encode((y + 1 + p) / z2);
 
-        const tile: GeoJSONVTTile = {
-            transformed: true,
-            features: [],
-            source: null,
-            x: x,
-            y: y,
-            z: z
-        };
+        const tile: GeoJSONVTTile = {features: []};
 
         this.addTileFeatures(
             tree.range(encode((x - p) / z2), top, encode((x + 1 + p) / z2), bottom),

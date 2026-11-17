@@ -1,7 +1,6 @@
 
 import type {GeoJSONVTFeatureDiff, GeoJSONVTSourceDiff} from './difference';
-import type {GeoJSONVTInternalFeature, GeoJSONVTInternalLineStringFeature, GeoJSONVTInternalMultiLineStringFeature, GeoJSONVTInternalMultiPointFeature, GeoJSONVTInternalMultiPolygonFeature, GeoJSONVTInternalPointFeature, GeoJSONVTInternalPolygonFeature, GeoJSONVTOptions, GeoJSONToTileOptions, PartialGeoJSONVTFeature, SliceArray, SliceFixedArray, ClusterProperties, ClusterFeature, ClusterOrPointFeature, GeoJSONVTTile, GeoJSONVTFeature, GeoJSONVTFeaturePoint, GeoJSONVTFeatureNonPoint, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTInternalTileFeatureNonPoint, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTTileIndex, SuperclusterOptions, GeoJSONVTCoordinatesType} from './definitions';
-import type {KDBushWithData} from './cluster-tile-index';
+import type {GeoJSONVTOptions, GeoJSONToTileOptions, ClusterProperties, ClusterFeature, ClusterOrPointFeature, GeoJSONVTTile, GeoJSONVTFeature, GeoJSONVTFeaturePoint, GeoJSONVTFeatureNonPoint, SuperclusterOptions, GeoJSONVTCoordinatesType} from './definitions';
 import {GeoJSONVT} from './geojsonvt';
 import {ClusterTileIndex} from './cluster-tile-index';
 import {geoJSONToTile} from './geojson-to-tile';
@@ -16,33 +15,17 @@ export {
 }
 
 export type {
-    GeoJSONVTInternalFeature, 
     GeoJSONVTOptions,
     GeoJSONToTileOptions,
-    GeoJSONVTInternalTile, 
-    GeoJSONVTInternalTileFeature, 
-    PartialGeoJSONVTFeature,
-    SliceArray,
-    SliceFixedArray,
     GeoJSONVTTile,
     GeoJSONVTFeature,
     GeoJSONVTSourceDiff,
     GeoJSONVTFeatureDiff,
     GeoJSONVTFeaturePoint,
     GeoJSONVTFeatureNonPoint,
-    GeoJSONVTInternalTileFeaturePoint,
-    GeoJSONVTInternalTileFeatureNonPoint,
-    GeoJSONVTInternalPointFeature,
-    GeoJSONVTInternalMultiPointFeature,
-    GeoJSONVTInternalLineStringFeature,
-    GeoJSONVTInternalMultiLineStringFeature,
-    GeoJSONVTInternalPolygonFeature,
-    GeoJSONVTInternalMultiPolygonFeature,
     SuperclusterOptions,
     GeoJSONVTCoordinatesType,
     ClusterProperties,
     ClusterFeature,
-    ClusterOrPointFeature,
-    KDBushWithData,
-    GeoJSONVTTileIndex
+    ClusterOrPointFeature
 };

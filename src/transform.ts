@@ -1,4 +1,4 @@
-import type { GeoJSONVTFeatureNonPoint, GeoJSONVTFeaturePoint, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeatureNonPoint, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTTile } from "./definitions";
+import type { GeoJSONVTFeature, GeoJSONVTFeatureNonPoint, GeoJSONVTFeaturePoint, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeatureNonPoint, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTTile } from "./definitions";
 
 /**
  * Transforms the coordinates of each feature in the given tile from
@@ -9,7 +9,7 @@ import type { GeoJSONVTFeatureNonPoint, GeoJSONVTFeaturePoint, GeoJSONVTInternal
  */
 export function transformTile(tile: GeoJSONVTInternalTile, extent: number): GeoJSONVTTile {
     if (tile.transformed) {
-        return tile as GeoJSONVTTile;
+        return {features: tile.features as unknown as GeoJSONVTFeature[]};
     }
 
     const z2 = 1 << tile.z;
@@ -25,7 +25,7 @@ export function transformTile(tile: GeoJSONVTInternalTile, extent: number): GeoJ
     }
     tile.transformed = true;
 
-    return tile as GeoJSONVTTile;
+    return {features: tile.features as unknown as GeoJSONVTFeature[]};
 }
 
 /**
