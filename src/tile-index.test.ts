@@ -242,8 +242,7 @@ describe('Multiworld test', () => {
         let sourceFeatures = convertToInternal(rightPoint, defaultOptions);
         sourceFeatures = wrap(sourceFeatures, defaultOptions);
         vt.initialize(sourceFeatures);
-        expect(vt.tiles[0].features[0].geometry[0]).toBe(1);
-        expect(vt.tiles[0].features[0].geometry[1]).toBe(.5);
+        expect(vt.getTile(0, 0, 0).features[0].geometry).toEqual([[4096, 2048]]);
     });
 
     test('handle point only in the leftside world', () => {
@@ -251,8 +250,7 @@ describe('Multiworld test', () => {
         let sourceFeatures = convertToInternal(leftPoint, defaultOptions);
         sourceFeatures = wrap(sourceFeatures, defaultOptions);
         vt.initialize(sourceFeatures);
-        expect(vt.tiles[0].features[0].geometry[0]).toBe(0);
-        expect(vt.tiles[0].features[0].geometry[1]).toBe(.5);
+        expect(vt.getTile(0, 0, 0).features[0].geometry).toEqual([[0, 2048]]);
     });
 
     test('handle points in the leftside world and the rightside world', () => {
@@ -261,10 +259,6 @@ describe('Multiworld test', () => {
         sourceFeatures = wrap(sourceFeatures, defaultOptions);
         vt.initialize(sourceFeatures);
 
-        expect(vt.tiles[0].features[0].geometry[0]).toBe(0);
-        expect(vt.tiles[0].features[0].geometry[1]).toBe(.5);
-
-        expect(vt.tiles[0].features[1].geometry[0]).toBe(1);
-        expect(vt.tiles[0].features[1].geometry[1]).toBe(.5);
+        expect(vt.getTile(0, 0, 0).features.map(f => f.geometry)).toEqual([[[0, 2048]], [[4096, 2048]]]);
     });
 })

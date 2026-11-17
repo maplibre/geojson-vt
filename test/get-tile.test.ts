@@ -90,3 +90,14 @@ test('getTile: polygon clipping on the boundary', () => {
 function getJSON(name: string) {
     return JSON.parse(fs.readFileSync(new URL(`fixtures/${name}`, import.meta.url), 'utf-8'));
 }
+
+test('getTile: keeps the coordinates of a line and of points far outside the tile', () => {
+    const line: GeoJSON.Feature = {type: 'Feature', properties: {}, geometry: {type: 'LineString', coordinates: [[100, 0.5], [101, 0.5]]}};
+    const points: GeoJSON.Feature = {type: 'Feature', properties: {}, geometry: {type: 'MultiPoint', coordinates: [[100, 0.5], [101, 0.5]]}};
+    const index = new GeoJSONVT({type: 'FeatureCollection', features: [line, points]}, {coordinates: 'unitSquare'});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.geometry)).toEqual([
+        [[[409600, 2048], [413696, 2048]]],
+        [[409600, 2048], [413696, 2048]]
+    ]);
+});
