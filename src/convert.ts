@@ -1,8 +1,8 @@
 
 import {simplify} from './simplify';
-import {createFeature, optimizeLineMemory} from './feature';
+import {createFeature, createPointFeature} from './feature';
 import {getWorldCoordinateHelper, type WorldCoordinateHelper} from './world-coordinate-helper';
-import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, SliceArray} from './definitions';
+import type {GeoJSONVTInternalFeature, GeoJSONVTOptions, GeoJSONVTSourceCoords} from './definitions';
 
 const MAX_GEOMETRY_COLLECTION_DEPTH = 1024;
 
@@ -67,7 +67,7 @@ function featureToInternal(features: GeoJSONVTInternalFeature[], geojson: GeoJSO
 
     switch (geojson.geometry.type) {
         case 'Point':
-            convertPointFeature(features, id, geojson.geometry, worldCoordinateHelper, geojson.properties);
+            features.push(createPointFeature(id, worldCoordinateHelper.projectX(geojson.geometry.coordinates[0]), worldCoordinateHelper.projectY(geojson.geometry.coordinates[1]), geojson.properties));
             return;
 
         case 'MultiPoint':
@@ -75,19 +75,26 @@ function featureToInternal(features: GeoJSONVTInternalFeature[], geojson: GeoJSO
             return;
 
         case 'LineString':
-            convertLineStringFeature(features, id, geojson.geometry, tolerance, worldCoordinateHelper, geojson.properties);
+            convertLineStringFeature(features, id, geojson.geometry.coordinates, tolerance, worldCoordinateHelper, options, geojson.properties);
             return;
 
         case 'MultiLineString':
-            convertMultiLineStringFeature(features, id, geojson.geometry, tolerance, worldCoordinateHelper, options, geojson.properties);
+            if (options.lineMetrics) {
+                // explode into linestrings to be able to track metrics
+                for (const line of geojson.geometry.coordinates) {
+                    convertLineStringFeature(features, id, line, tolerance, worldCoordinateHelper, options, geojson.properties);
+                }
+                return;
+            }
+            convertRingsFeature(features, id, 'MultiLineString', [geojson.geometry.coordinates], tolerance, worldCoordinateHelper, geojson.properties);
             return;
 
         case 'Polygon':
-            convertPolygonFeature(features, id, geojson.geometry, tolerance, worldCoordinateHelper, geojson.properties);
+            convertRingsFeature(features, id, 'Polygon', [geojson.geometry.coordinates], tolerance, worldCoordinateHelper, geojson.properties);
             return;
 
         case 'MultiPolygon':
-            convertMultiPolygonFeature(features, id, geojson.geometry, tolerance, worldCoordinateHelper, geojson.properties);
+            convertRingsFeature(features, id, 'MultiPolygon', geojson.geometry.coordinates, tolerance, worldCoordinateHelper, geojson.properties);
             return;
 
         default:
@@ -116,76 +123,84 @@ function convertGeometryCollection(features: GeoJSONVTInternalFeature[], geojson
     }
 }
 
-function convertPointFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, geom: GeoJSON.Point, worldCoordinateHelper: WorldCoordinateHelper, properties: GeoJSON.GeoJsonProperties) {
-    const out: number[] = [];
-    out.push(worldCoordinateHelper.projectX(geom.coordinates[0]), worldCoordinateHelper.projectY(geom.coordinates[1]), 0);
-    features.push(createFeature(id, 'Point', out, properties));
-}
-
 function convertMultiPointFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, geom: GeoJSON.MultiPoint, worldCoordinateHelper: WorldCoordinateHelper, properties: GeoJSON.GeoJsonProperties) {
-    const out: number[] = [];
-    for (const coords of geom.coordinates) {
-        out.push(worldCoordinateHelper.projectX(coords[0]), worldCoordinateHelper.projectY(coords[1]), 0);
+    const out = new Float64Array(geom.coordinates.length * 3);
+    for (let i = 0; i < geom.coordinates.length; i++) {
+        out[i * 3] = worldCoordinateHelper.projectX(geom.coordinates[i][0]);
+        out[i * 3 + 1] = worldCoordinateHelper.projectY(geom.coordinates[i][1]);
     }
     features.push(createFeature(id, 'MultiPoint', out, properties));
 }
 
-function convertLineStringFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, geom: GeoJSON.LineString, tolerance: number, worldCoordinateHelper: WorldCoordinateHelper, properties: GeoJSON.GeoJsonProperties) {
-    const out: SliceArray = {points: []};
-    convertLine(geom.coordinates, out, tolerance, false, worldCoordinateHelper);
-    features.push(createFeature(id, 'LineString', out, properties));
-}
+function convertLineStringFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, line: GeoJSON.Position[], tolerance: number, worldCoordinateHelper: WorldCoordinateHelper, options: GeoJSONVTOptions, properties: GeoJSON.GeoJsonProperties) {
+    if (!line.length) return;
 
-function convertMultiLineStringFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, geom: GeoJSON.MultiLineString, tolerance: number, worldCoordinateHelper: WorldCoordinateHelper, options: GeoJSONVTOptions, properties: GeoJSON.GeoJsonProperties) {
+    const out = new Float64Array(2 + line.length * 3);
+    convertRing(line, out, 0, tolerance, false, false, worldCoordinateHelper);
+
+    const feature = createFeature(id, 'LineString', out, properties);
     if (options.lineMetrics) {
-        // explode into linestrings to be able to track metrics
-        for (const line of geom.coordinates) {
-            if (!line.length) continue;
+        feature.start = 0;
+        feature.end = feature.size = out[1];
+    }
+    features.push(feature);
+}
 
-            const out: SliceArray = {points: []};
-            convertLine(line, out, tolerance, false, worldCoordinateHelper);
-            features.push(createFeature(id, 'LineString', out, properties));
+/**
+ * Converts a MultiLineString, a Polygon or a MultiPolygon, whose rings come in groups: all lines in one,
+ * and the rings of one polygon in each. The first ring of a polygon is its outer ring, and the rest are its holes.
+ */
+function convertRingsFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, type: 'MultiLineString' | 'Polygon' | 'MultiPolygon', groups: GeoJSON.Position[][][], tolerance: number, worldCoordinateHelper: WorldCoordinateHelper, properties: GeoJSON.GeoJsonProperties) {
+    let length = 0;
+    for (const rings of groups) {
+        for (const ring of rings) {
+            if (ring.length) length += 2 + ring.length * 3;
         }
-    } else {
-        const out: SliceArray[] = [];
-        convertLines(geom.coordinates, out, tolerance, false, worldCoordinateHelper);
-        if (!out.length) return;
-
-        features.push(createFeature(id, 'MultiLineString', out, properties));
     }
-}
+    if (!length) return;
 
-function convertPolygonFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, geom: GeoJSON.Polygon, tolerance: number, worldCoordinateHelper: WorldCoordinateHelper, properties: GeoJSON.GeoJsonProperties) {
-    const out: SliceArray[] = [];
-    convertLines(geom.coordinates, out, tolerance, true, worldCoordinateHelper);
-    if (!out.length) return;
-
-    features.push(createFeature(id, 'Polygon', out, properties));
-}
-
-function convertMultiPolygonFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, geom: GeoJSON.MultiPolygon, tolerance: number, worldCoordinateHelper: WorldCoordinateHelper, properties: GeoJSON.GeoJsonProperties) {
-    const out: SliceArray[][] = [];
-    for (const polygon of geom.coordinates) {
-        const polygonOut: SliceArray[] = [];
-        convertLines(polygon, polygonOut, tolerance, true, worldCoordinateHelper);
-        if (!polygonOut.length) continue;
-
-        out.push(polygonOut);
+    const isPolygon = type !== 'MultiLineString';
+    const out = new Float64Array(length);
+    let index = 0;
+    for (const rings of groups) {
+        let isOuter = true;
+        for (const ring of rings) {
+            if (!ring.length) continue;
+            index = convertRing(ring, out, index, tolerance, isPolygon, isOuter, worldCoordinateHelper);
+            isOuter = false;
+        }
     }
-    if (!out.length) return;
 
-    features.push(createFeature(id, 'MultiPolygon', out, properties));
+    features.push(createFeature(id, type, out, properties));
 }
 
-function convertLine(ring: GeoJSON.Position[], out: SliceArray, tolerance: number, isPolygon: boolean, worldCoordinateHelper: WorldCoordinateHelper) {
+/**
+ * The size a hole is stored with, which has to be negative for {@link isHole} to tell it from an outer ring.
+ * A hole without area gets -0, and one whose area is not a number gets -Infinity. Both compare with a tolerance
+ * the way 0 and NaN do.
+ */
+function toHoleSize(size: number): number {
+    const magnitude = Math.abs(size);
+    return Number.isNaN(magnitude) ? -Infinity : -magnitude;
+}
+
+/**
+ * Writes a ring and the two values before it, see {@link GeoJSONVTSourceCoords}.
+ * @returns where the next ring starts
+ */
+function convertRing(ring: GeoJSON.Position[], out: GeoJSONVTSourceCoords, index: number, tolerance: number, isPolygon: boolean, isOuter: boolean, worldCoordinateHelper: WorldCoordinateHelper): number {
+    const first = index + 2;
     let x0, y0;
     let size = 0;
+    let next = first;
 
     for (let j = 0; j < ring.length; j++) {
         const x = worldCoordinateHelper.projectX(ring[j][0]);
         const y = worldCoordinateHelper.projectY(ring[j][1]);
 
-        out.points.push(x, y, 0);
+        out[next] = x;
+        out[next + 1] = y;
+        next += 3;
 
         if (j > 0) {
             if (isPolygon) {
@@ -198,23 +213,13 @@ function convertLine(ring: GeoJSON.Position[], out: SliceArray, tolerance: numbe
         y0 = y;
     }
 
-    const last = out.points.length - 3;
-    out.points[2] = 1;
-    if (tolerance > 0) simplify(out.points, 0, last, tolerance);
-    out.points[last + 2] = 1;
+    const last = next - 3;
+    out[first + 2] = 1;
+    if (tolerance > 0) simplify(out, first, last, tolerance);
+    out[last + 2] = 1;
 
-    optimizeLineMemory(out);
-    out.size = Math.abs(size);
-    out.start = 0;
-    out.end = out.size;
-}
+    out[index] = ring.length;
+    out[index + 1] = isPolygon && !isOuter ? toHoleSize(size) : Math.abs(size);
 
-function convertLines(rings: GeoJSON.Position[][], out: SliceArray[], tolerance: number, isPolygon: boolean, worldCoordinateHelper: WorldCoordinateHelper) {
-    for (let i = 0; i < rings.length; i++) {
-        if (!rings[i].length) continue;
-
-        const geom: SliceArray = {points: []};
-        convertLine(rings[i], geom, tolerance, isPolygon, worldCoordinateHelper);
-        out.push(geom);
-    }
+    return next;
 }

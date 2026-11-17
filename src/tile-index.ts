@@ -1,5 +1,6 @@
 import { AxisType, clip } from "./clip";
 import { createTile } from "./tile";
+import { getMaxX, getMaxY, getMinX, getMinY } from "./feature";
 import { transformTile } from "./transform";
 import type { GeoJSONVTInternalFeature, GeoJSONVTOptions, ClusterOrPointFeature, GeoJSONVTTileIndex, GeoJSONVTInternalTile, GeoJSONVTTile } from "./definitions";
 
@@ -81,15 +82,15 @@ export class TileIndex implements GeoJSONVTTileIndex {
 
     /** {@inheritdoc} */
     getTile(z: number, x: number, y: number): GeoJSONVTTile | null {
-        const {extent, debug} = this.options;
-        
+        const {debug} = this.options;
+
         const z2 = 1 << z;
         if (!this.options.wrap && (x < 0 || x >= z2)) return null; // a row outside the world has no tile either
         x = (x + z2) & (z2 - 1); // wrap tile x coordinate
 
         const id = toID(z, x, y);
         if (this.tiles[id]) {
-            return transformTile(this.tiles[id], extent);
+            return transformTile(this.tiles[id]);
         }
 
         if (debug > 1) console.log('drilling down to z%d-%d-%d', z, x, y);
@@ -118,7 +119,7 @@ export class TileIndex implements GeoJSONVTTileIndex {
 
         if (!this.tiles[id]) return null;
 
-        return transformTile(this.tiles[id], extent);
+        return transformTile(this.tiles[id]);
     }
 
     /**
@@ -260,10 +261,10 @@ export class TileIndex implements GeoJSONVTTileIndex {
         let maxY = -Infinity;
 
         for (const feature of features) {
-            minX = Math.min(minX, feature.minX);
-            maxX = Math.max(maxX, feature.maxX);
-            minY = Math.min(minY, feature.minY);
-            maxY = Math.max(maxY, feature.maxY);
+            minX = Math.min(minX, getMinX(feature));
+            maxX = Math.max(maxX, getMaxX(feature));
+            minY = Math.min(minY, getMinY(feature));
+            maxY = Math.max(maxY, getMaxY(feature));
         }
 
         // tile buffer clipping value - not halved as in splitTile above because checking against tile's own extent
@@ -292,8 +293,8 @@ export class TileIndex implements GeoJSONVTTileIndex {
             // check if any feature intersects with the tile
             let intersects = false;
             for (const feature of features) {
-                if (feature.maxX >= tileMinX && feature.minX < tileMaxX &&
-                    feature.maxY >= tileMinY && feature.minY < tileMaxY) {
+                if (getMaxX(feature) >= tileMinX && getMinX(feature) < tileMaxX &&
+                    getMaxY(feature) >= tileMinY && getMinY(feature) < tileMaxY) {
                     intersects = true;
                     break;
                 }
