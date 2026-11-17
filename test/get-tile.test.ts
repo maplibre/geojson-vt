@@ -98,3 +98,10 @@ test('getTile: returns only the features', () => {
     expect(Object.keys(new GeoJSONVT(point, {cluster: true}).getTile(0, 0, 0))).toEqual(['features']);
     expect(Object.keys(geoJSONToTile(point, 0, 0, 0))).toEqual(['features']);
 });
+
+test('getTile: keeps the coordinates of a line far outside the tile', () => {
+    const line: GeoJSON.Feature = {type: 'Feature', properties: {}, geometry: {type: 'LineString', coordinates: [[100, 0.5], [101, 0.5]]}};
+    const index = new GeoJSONVT(line, {coordinates: 'unitSquare'});
+
+    expect(index.getTile(0, 0, 0).features[0].geometry).toEqual([[[409600, 2048], [413696, 2048]]]);
+});

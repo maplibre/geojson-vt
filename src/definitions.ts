@@ -182,23 +182,38 @@ export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
  */
 export type ClusterOrPointFeature = ClusterFeature | GeoJSON.Feature<GeoJSON.Point>;
 
+/**
+ * The coordinates of a tile feature as flat `x, y` values in the extent of the tile.
+ */
+export type GeoJSONVTTileCoords = Int16Array | Int32Array | Float64Array;
+
+/**
+ * A single point keeps its coordinates on the feature.
+ */
 export type GeoJSONVTInternalTileFeaturePoint = {
+    id? : number | string | undefined;
+    type: 4;
+    tags: GeoJSON.GeoJsonProperties | null;
+    x: number;
+    y: number;
+}
+
+export type GeoJSONVTInternalTileFeatureMultiPoint = {
     id? : number | string | undefined;
     type: 1;
     tags: GeoJSON.GeoJsonProperties | null;
-    geometry: number[];
+    geometry: GeoJSONVTTileCoords;
 }
 
 export type GeoJSONVTInternalTileFeatureNonPoint = {
     id? : number | string | undefined;
     type: 2 | 3;
     tags: GeoJSON.GeoJsonProperties | null;
-    geometry: number[][];
+    geometry: GeoJSONVTTileCoords[];
 }
-export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeatureNonPoint;
+export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeatureMultiPoint | GeoJSONVTInternalTileFeatureNonPoint;
 
 export type GeoJSONVTInternalTile = {
-    transformed: boolean;
     features: GeoJSONVTInternalTileFeature[];
     source: GeoJSONVTInternalFeature[] | null;
     x: number;

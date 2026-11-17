@@ -82,15 +82,15 @@ export class TileIndex implements GeoJSONVTTileIndex {
 
     /** {@inheritdoc} */
     getTile(z: number, x: number, y: number): GeoJSONVTTile | null {
-        const {extent, debug} = this.options;
-        
+        const {debug} = this.options;
+
         const z2 = 1 << z;
         if (!this.options.wrap && (x < 0 || x >= z2)) return null; // a row outside the world has no tile either
         x = (x + z2) & (z2 - 1); // wrap tile x coordinate
 
         const id = toID(z, x, y);
         if (this.tiles[id]) {
-            return transformTile(this.tiles[id], extent);
+            return transformTile(this.tiles[id]);
         }
 
         if (debug > 1) console.log('drilling down to z%d-%d-%d', z, x, y);
@@ -119,7 +119,7 @@ export class TileIndex implements GeoJSONVTTileIndex {
 
         if (!this.tiles[id]) return null;
 
-        return transformTile(this.tiles[id], extent);
+        return transformTile(this.tiles[id]);
     }
 
     /**
