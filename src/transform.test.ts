@@ -26,11 +26,10 @@ test('quantization preserves shell and hole winding without changing ordinary or
 
 test('transformTile retains empty polygon rings', () => {
     const tile = transformTile({
-        transformed: false,
         source: null,
         x: 0, y: 0, z: 0,
-        features: [{type: 3, tags: null, geometry: [[]]}]
-    }, 8192);
+        features: [{type: 3, tags: null, geometry: [new Int16Array(0)]}]
+    });
 
     expect(tile.features[0].geometry).toEqual([[]]);
 });

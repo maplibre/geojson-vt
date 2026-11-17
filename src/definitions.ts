@@ -103,9 +103,15 @@ export type GeoJSONToTileOptions = GeoJSONVTOptions & {
     clip?: boolean;
 };
 
-export type SliceArray = { points: number[]; start?: number; end?: number; size?: number };
-
-export type SliceFixedArray = { points: number[] | Float64Array; start?: number; end?: number; size?: number };
+/**
+ * The coordinates of a source feature in one flat array, with three values for a position: `x`, `y` and how much
+ * the position matters when the line is simplified.
+ *
+ * A MultiPoint is only its positions. A line or polygon has two values before the positions of each ring: how many
+ * positions the ring has, and its size. The size is the length of a line and the area of a polygon ring, and
+ * the ring is a hole of the ring before it when the size is negative, see `isHole`.
+ */
+export type GeoJSONVTSourceCoords = Float64Array;
 
 export type PartialGeoJSONVTFeature = {
     id?: number | string | undefined;
@@ -114,36 +120,60 @@ export type PartialGeoJSONVTFeature = {
     minY?: number;
     maxX?: number;
     maxY?: number;
+    /**
+     * What to add to every x of `geometry`. The copy of a feature on the other side of the antimeridian shares the
+     * coordinates of the feature and has the width of the world here, where the feature itself has 0.
+     * The bounding box has it added already.
+     */
+    worldOffset: number;
 }
 
-export type GeoJSONVTInternalPointFeature = PartialGeoJSONVTFeature & {
+/**
+ * A single point keeps its position on the feature, without a geometry array or a bounding box.
+ */
+export type GeoJSONVTInternalPointFeature = {
+    id?: number | string | undefined;
     type: 'Point';
-    geometry: number[];
+    x: number;
+    y: number;
+    tags: GeoJSON.GeoJsonProperties;
 };
 
 export type GeoJSONVTInternalMultiPointFeature = PartialGeoJSONVTFeature & {
     type: 'MultiPoint';
-    geometry: number[];
+    geometry: GeoJSONVTSourceCoords;
 };
 
 export type GeoJSONVTInternalLineStringFeature = PartialGeoJSONVTFeature & {
     type: 'LineString';
-    geometry: SliceFixedArray;
+    geometry: GeoJSONVTSourceCoords;
+    /**
+     * With `lineMetrics`, how far along the whole line this part of it starts.
+     */
+    start?: number;
+    /**
+     * With `lineMetrics`, how far along the whole line this part of it ends.
+     */
+    end?: number;
+    /**
+     * With `lineMetrics`, the length of the whole line.
+     */
+    size?: number;
 };
 
 export type GeoJSONVTInternalMultiLineStringFeature = PartialGeoJSONVTFeature & {
     type: 'MultiLineString';
-    geometry: SliceFixedArray[];
+    geometry: GeoJSONVTSourceCoords;
 };
 
 export type GeoJSONVTInternalPolygonFeature = PartialGeoJSONVTFeature & {
     type: 'Polygon';
-    geometry: SliceFixedArray[];
+    geometry: GeoJSONVTSourceCoords;
 };
 
 export type GeoJSONVTInternalMultiPolygonFeature = PartialGeoJSONVTFeature & {
     type: 'MultiPolygon';
-    geometry: SliceFixedArray[][];
+    geometry: GeoJSONVTSourceCoords;
 };
 
 export type GeoJSONVTInternalFeature =
@@ -176,23 +206,38 @@ export type ClusterFeature = GeoJSON.Feature<GeoJSON.Point, ClusterProperties>;
  */
 export type ClusterOrPointFeature = ClusterFeature | GeoJSON.Feature<GeoJSON.Point>;
 
+/**
+ * The coordinates of a tile feature as flat `x, y` values in the extent of the tile.
+ */
+export type GeoJSONVTTileCoords = Int16Array | Int32Array | Float64Array;
+
+/**
+ * A single point keeps its coordinates on the feature.
+ */
 export type GeoJSONVTInternalTileFeaturePoint = {
+    id? : number | string | undefined;
+    type: 4;
+    tags: GeoJSON.GeoJsonProperties | null;
+    x: number;
+    y: number;
+}
+
+export type GeoJSONVTInternalTileFeatureMultiPoint = {
     id? : number | string | undefined;
     type: 1;
     tags: GeoJSON.GeoJsonProperties | null;
-    geometry: number[];
+    geometry: GeoJSONVTTileCoords;
 }
 
 export type GeoJSONVTInternalTileFeatureNonPoint = {
     id? : number | string | undefined;
     type: 2 | 3;
     tags: GeoJSON.GeoJsonProperties | null;
-    geometry: number[][];
+    geometry: GeoJSONVTTileCoords[];
 }
-export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeatureNonPoint;
+export type GeoJSONVTInternalTileFeature = GeoJSONVTInternalTileFeaturePoint | GeoJSONVTInternalTileFeatureMultiPoint | GeoJSONVTInternalTileFeatureNonPoint;
 
 export type GeoJSONVTInternalTile = {
-    transformed: boolean;
     features: GeoJSONVTInternalTileFeature[];
     source: GeoJSONVTInternalFeature[] | null;
     x: number;

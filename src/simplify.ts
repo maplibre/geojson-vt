@@ -5,7 +5,7 @@
  * @param last - index of the last coordinate in the segment
  * @param sqTolerance - square tolerance value
  */
-export function simplify(coords: number[], first: number, last: number, sqTolerance: number) {
+export function simplify(coords: number[] | Float64Array, first: number, last: number, sqTolerance: number) {
     const stack = [first, last];
 
     while (stack.length) {
@@ -15,7 +15,7 @@ export function simplify(coords: number[], first: number, last: number, sqTolera
     }
 }
 
-function simplifySegment(coords: number[], first: number, last: number, sqTolerance: number, stack: number[]) {
+function simplifySegment(coords: number[] | Float64Array, first: number, last: number, sqTolerance: number, stack: number[]) {
     let maxSqDist = sqTolerance;
     const mid = first + ((last - first) >> 1);
     let minPosToMid = last - first;

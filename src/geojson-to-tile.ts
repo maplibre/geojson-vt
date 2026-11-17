@@ -54,5 +54,5 @@ export function geoJSONToTile(data: GeoJSON.GeoJSON, z: number, x: number, y: nu
         features = clip(left || [], pow2, (y - buffer), (y + 1 + buffer), AxisType.Y, -1, 2, options);
     }
 
-    return transformTile(createTile(features ?? [], z, x, y, options), options.extent);
+    return transformTile(createTile(features ?? [], z, x, y, options, Float64Array));
 }
