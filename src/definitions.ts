@@ -255,7 +255,9 @@ export type GeoJSONVTTile = {
 }
 
 export interface GeoJSONVTTileIndex {
+    /** @internal */
     initialize(features: GeoJSONVTInternalFeature[]): void;
+    /** @internal */
     updateIndex(source: GeoJSONVTInternalFeature[], affected: GeoJSONVTInternalFeature[], options: GeoJSONVTOptions): void;
     getClusterExpansionZoom(clusterId: number): number | null;
     getChildren(clusterId: number): ClusterOrPointFeature[] | null;
