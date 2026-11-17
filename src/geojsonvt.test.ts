@@ -435,3 +435,41 @@ test('a unit square without wrap leaves the positions of a MultiPoint outside th
 
     expect(index.getTile(0, 0, 0).features.map(feature => feature.geometry)).toEqual([[[507, 256]]]);
 });
+
+test('leaves out the empty rings of a polygon and the empty lines of a MultiLineString', () => {
+    const ring = [[0, 0], [10, 0], [10, 10], [0, 0]];
+    const data: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [
+            {type: 'Feature', id: 'polygon', properties: {}, geometry: {type: 'Polygon', coordinates: [[], ring, []]}},
+            {type: 'Feature', id: 'polygons', properties: {}, geometry: {type: 'MultiPolygon', coordinates: [[[]], [ring, []]]}},
+            {type: 'Feature', id: 'lines', properties: {}, geometry: {type: 'MultiLineString', coordinates: [[], [[20, 0], [30, 5]]]}}
+        ]
+    };
+    const ringsOf = (index: GeoJSONVT) => (index.getData() as GeoJSON.FeatureCollection<GeoJSON.Polygon>).features.map(feature => [feature.id, feature.geometry.type, feature.geometry.coordinates.length]);
+
+    const index = new GeoJSONVT(data, {updateable: true, tolerance: 0});
+    expect(ringsOf(index)).toEqual([['polygon', 'Polygon', 1], ['polygons', 'MultiPolygon', 1], ['lines', 'MultiLineString', 1]]);
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.geometry.length)).toEqual([1, 1, 1]);
+
+    const withMetrics = new GeoJSONVT(data, {updateable: true, tolerance: 0, lineMetrics: true});
+    expect(ringsOf(withMetrics)).toEqual([['polygon', 'Polygon', 1], ['polygons', 'MultiPolygon', 1], ['lines', 'LineString', 2]]);
+});
+
+test('takes a polygon or a MultiLineString with only empty rings as a feature without coordinates', () => {
+    const data: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [
+            {type: 'Feature', id: 'polygon', properties: {}, geometry: {type: 'Polygon', coordinates: [[]]}},
+            {type: 'Feature', id: 'lines', properties: {}, geometry: {type: 'MultiLineString', coordinates: [[]]}}
+        ]
+    };
+    const index = new GeoJSONVT(data, {updateable: true, tolerance: 0});
+
+    expect((index.getData() as GeoJSON.FeatureCollection).features).toEqual([]);
+    expect(index.getTile(0, 0, 0)).toBeNull();
+
+    index.updateData({update: [{id: 'polygon', newGeometry: {type: 'Point', coordinates: [0, 0]}}]});
+    expect((index.getData() as GeoJSON.FeatureCollection).features.map(feature => feature.id)).toEqual(['polygon']);
+});
+

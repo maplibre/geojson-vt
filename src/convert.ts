@@ -140,6 +140,8 @@ function convertMultiLineStringFeature(features: GeoJSONVTInternalFeature[], id:
     if (options.lineMetrics) {
         // explode into linestrings to be able to track metrics
         for (const line of geom.coordinates) {
+            if (!line.length) continue;
+
             const out: SliceArray = {points: []};
             convertLine(line, out, tolerance, false, worldCoordinateHelper);
             features.push(createFeature(id, 'LineString', out, properties));
@@ -147,6 +149,8 @@ function convertMultiLineStringFeature(features: GeoJSONVTInternalFeature[], id:
     } else {
         const out: SliceArray[] = [];
         convertLines(geom.coordinates, out, tolerance, false, worldCoordinateHelper);
+        if (!out.length) return;
+
         features.push(createFeature(id, 'MultiLineString', out, properties));
     }
 }
@@ -154,6 +158,8 @@ function convertMultiLineStringFeature(features: GeoJSONVTInternalFeature[], id:
 function convertPolygonFeature(features: GeoJSONVTInternalFeature[], id: number | string | undefined, geom: GeoJSON.Polygon, tolerance: number, worldCoordinateHelper: WorldCoordinateHelper, properties: GeoJSON.GeoJsonProperties) {
     const out: SliceArray[] = [];
     convertLines(geom.coordinates, out, tolerance, true, worldCoordinateHelper);
+    if (!out.length) return;
+
     features.push(createFeature(id, 'Polygon', out, properties));
 }
 
@@ -205,6 +211,8 @@ function convertLine(ring: GeoJSON.Position[], out: SliceArray, tolerance: numbe
 
 function convertLines(rings: GeoJSON.Position[][], out: SliceArray[], tolerance: number, isPolygon: boolean, worldCoordinateHelper: WorldCoordinateHelper) {
     for (let i = 0; i < rings.length; i++) {
+        if (!rings[i].length) continue;
+
         const geom: SliceArray = {points: []};
         convertLine(rings[i], geom, tolerance, isPolygon, worldCoordinateHelper);
         out.push(geom);
