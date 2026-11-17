@@ -175,6 +175,16 @@ function convertRingsFeature(features: GeoJSONVTInternalFeature[], id: number | 
 }
 
 /**
+ * The size a hole is stored with, which has to be negative for {@link isHole} to tell it from an outer ring.
+ * A hole without area gets -0, and one whose area is not a number gets -Infinity. Both compare with a tolerance
+ * the way 0 and NaN do.
+ */
+function toHoleSize(size: number): number {
+    const magnitude = Math.abs(size);
+    return Number.isNaN(magnitude) ? -Infinity : -magnitude;
+}
+
+/**
  * Writes a ring and the two values before it, see {@link GeoJSONVTSourceCoords}.
  * @returns where the next ring starts
  */
@@ -209,8 +219,7 @@ function convertRing(ring: GeoJSON.Position[], out: GeoJSONVTSourceCoords, index
     out[last + 2] = 1;
 
     out[index] = ring.length;
-    // a hole keeps a negative size even when it has no area, since that is what tells it from an outer ring
-    out[index + 1] = isPolygon && !isOuter ? -Math.max(Math.abs(size), Number.MIN_VALUE) : Math.abs(size);
+    out[index + 1] = isPolygon && !isOuter ? toHoleSize(size) : Math.abs(size);
 
     return next;
 }

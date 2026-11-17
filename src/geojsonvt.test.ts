@@ -488,3 +488,34 @@ test('shows the positions of a MultiPoint near the antimeridian at both edges of
         [[-1, 2048], [-1, 1991]]
     ]);
 });
+
+test('keeps a polygon whose area is not a number as a polygon of its own', () => {
+    const small = [[0.1, 0.1], [0.2, 0.1], [0.2, 0.2], [0.1, 0.1]];
+    const huge = [[1e200, 1e200], [2e200, 1e200], [2e200, 2e200], [1e200, 2e200], [1e200, 1e200]];
+    const index = new GeoJSONVT({type: 'MultiPolygon', coordinates: [[small], [huge]]}, {coordinates: 'unitSquare', wrap: false, updateable: true});
+
+    const [feature] = (index.getData() as GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>).features;
+    expect(feature.geometry.coordinates.map(polygon => polygon.length)).toEqual([1, 1]);
+    expect(index.getTile(0, 0, 0).features[0].geometry).toHaveLength(1);
+});
+
+test('closes a clipped ring whose positions are not all numbers', () => {
+    const polygon: GeoJSON.Polygon = {type: 'Polygon', coordinates: [[[-100, 20], [Infinity, 30], [40, -10], [-100, 20]]]};
+    const index = new GeoJSONVT(polygon, {tolerance: 0});
+
+    expect(index.getTile(1, 0, 1).features.map(feature => feature.geometry)).toEqual([
+        [[[4160, -64], [4160, 45], [3661, -64], [4160, -64]]],
+        [[[4160, NaN], [-64, NaN], [4160, NaN]]]
+    ]);
+});
+
+test('drops a hole without area at a tolerance of the smallest number, like any ring without area', () => {
+    const polygon: GeoJSON.Polygon = {
+        type: 'Polygon',
+        coordinates: [[[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.1]], [[0.3, 0.3], [0.4, 0.4], [0.5, 0.5], [0.3, 0.3]]]
+    };
+    const index = new GeoJSONVT(polygon, {coordinates: 'unitSquare', wrap: false, indexMaxZoom: 0, tolerance: Math.sqrt(Number.MIN_VALUE) * 4096});
+
+    expect(index.getTile(0, 0, 0).features[0].geometry).toHaveLength(1);
+});
+
