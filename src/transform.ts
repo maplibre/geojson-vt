@@ -1,116 +1,41 @@
-import type { GeoJSONVTFeatureNonPoint, GeoJSONVTFeaturePoint, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeatureNonPoint, GeoJSONVTInternalTileFeaturePoint, GeoJSONVTTile } from "./definitions";
+import type { GeoJSONVTFeature, GeoJSONVTInternalTile, GeoJSONVTInternalTileFeature, GeoJSONVTTile, GeoJSONVTTileCoords } from "./definitions";
 
 /**
- * Transforms the coordinates of each feature in the given tile from
- * mercator-projected space into (extent x extent) tile space.
- * @param tile - the tile to transform, this gets modified in place
- * @param extent - the tile extent (usually 4096)
- * @returns the transformed tile
+ * Turns a stored tile, which keeps its coordinates in flat arrays, into the tile `getTile` returns,
+ * with every position as an `[x, y]` pair. The stored tile stays as it is.
+ * @param tile - the stored tile
+ * @returns a new tile with the coordinates as pairs
  */
-export function transformTile(tile: GeoJSONVTInternalTile, extent: number): GeoJSONVTTile {
-    if (tile.transformed) {
-        return tile as GeoJSONVTTile;
-    }
-
-    const z2 = 1 << tile.z;
-    const tx = tile.x;
-    const ty = tile.y;
-
+export function transformTile(tile: GeoJSONVTInternalTile): GeoJSONVTTile {
+    const features: GeoJSONVTFeature[] = [];
     for (const feature of tile.features) {
-        if (feature.type === 1) {
-            transformPointFeature(feature, extent, z2, tx, ty);
-        } else {
-            transformNonPointFeature(feature, extent, z2, tx, ty);
-        }   
+        features.push(transformFeature(feature));
     }
-    tile.transformed = true;
 
-    return tile as GeoJSONVTTile;
+    return {features};
 }
 
-/**
- * Transforms a single point feature from mercator-projected space into (extent x extent) tile space.
- */
-function transformPointFeature(feature: GeoJSONVTInternalTileFeaturePoint, extent: number, z2: number, tx: number, ty: number): GeoJSONVTFeaturePoint {
-    const transformed = feature as unknown as GeoJSONVTFeaturePoint;
-
-    const geometry = feature.geometry;
-    const point: GeoJSONVTFeaturePoint["geometry"] = [];
-    for (let i = 0; i < geometry.length; i += 2) {
-        point.push(transformPoint(geometry[i], geometry[i + 1], extent, z2, tx, ty));
+function transformFeature(feature: GeoJSONVTInternalTileFeature): GeoJSONVTFeature {
+    let transformed: GeoJSONVTFeature;
+    if (feature.type === 4) {
+        transformed = {type: 1, tags: feature.tags, geometry: [[feature.x, feature.y]]};
+    } else if (feature.type === 1) {
+        transformed = {type: 1, tags: feature.tags, geometry: toPairs(feature.geometry)};
+    } else {
+        transformed = {type: feature.type, tags: feature.tags, geometry: feature.geometry.map(toPairs)};
     }
-    transformed.geometry = point;
+    if (feature.id !== undefined) {
+        transformed.id = feature.id;
+    }
 
     return transformed;
 }
 
-/**
- * Transforms a single non-point feature from mercator-projected space into (extent x extent) tile space.
- */
-function transformNonPointFeature(feature: GeoJSONVTInternalTileFeatureNonPoint, extent: number, z2: number, tx: number, ty: number): GeoJSONVTFeatureNonPoint {
-    const transformed = feature as unknown as GeoJSONVTFeatureNonPoint;
-
-    const geometry = feature.geometry;
-    const nonPoint: GeoJSONVTFeatureNonPoint["geometry"] = [];
-    for (const geom of geometry) {
-        if (feature.type === 3) {
-            nonPoint.push(transformPolygonRing(geom, extent, z2, tx, ty));
-        } else {
-            const line: GeoJSONVTFeaturePoint["geometry"] = [];
-            for (let i = 0; i < geom.length; i += 2) {
-                line.push(transformPoint(geom[i], geom[i + 1], extent, z2, tx, ty));
-            }
-            nonPoint.push(line);
-        }
-    }
-    transformed.geometry = nonPoint;
-
-    return transformed;
-}
-
-/**
- * Quantizes a polygon ring while preserving its winding so a hole does not become
- * a shell, or vice versa. Signed areas use coordinates relative to the first
- * vertex to reduce cancellation for narrow rings far from the origin.
- * Zero-area results are left unchanged; other quantization topology changes
- * are not repaired.
- */
-function transformPolygonRing(geometry: number[], extent: number, z2: number, tx: number, ty: number): [number, number][] {
-    if (!geometry.length) return [];
-
-    const originX = geometry[0];
-    const originY = geometry[1];
-    const origin = transformPoint(originX, originY, extent, z2, tx, ty);
-    const ring = [origin];
-    let previousX = 0;
-    let previousY = 0;
-    let previousRoundedX = 0;
-    let previousRoundedY = 0;
-    let sourceArea = 0;
-    let roundedArea = 0;
-
-    for (let i = 2; i < geometry.length; i += 2) {
-        const point = transformPoint(geometry[i], geometry[i + 1], extent, z2, tx, ty);
-        const x = geometry[i] - originX;
-        const y = geometry[i + 1] - originY;
-        const roundedX = point[0] - origin[0];
-        const roundedY = point[1] - origin[1];
-        sourceArea += previousX * y - x * previousY;
-        roundedArea += previousRoundedX * roundedY - roundedX * previousRoundedY;
-        previousX = x;
-        previousY = y;
-        previousRoundedX = roundedX;
-        previousRoundedY = roundedY;
-        ring.push(point);
+function toPairs(coords: GeoJSONVTTileCoords): [number, number][] {
+    const pairs: [number, number][] = [];
+    for (let i = 0; i < coords.length; i += 2) {
+        pairs.push([coords[i], coords[i + 1]]);
     }
 
-    if (sourceArea * roundedArea < 0) ring.reverse();
-    return ring;
-}
-
-function transformPoint(x: number, y: number, extent: number, z2: number, tx: number, ty: number): [number, number] {
-    return [
-        Math.round(extent * (x * z2 - tx)),
-        Math.round(extent * (y * z2 - ty))
-    ];
+    return pairs;
 }

@@ -424,6 +424,35 @@ test('clusters each position of a MultiPoint feature when clustering is on', () 
     ]);
 });
 
+test('counts each point once in the clusters at the antimeridian', () => {
+    const data = {
+        type: 'FeatureCollection' as const,
+        features: [[179, 0], [178, 0], [-179, 0], [-178, 0]].map(coordinates => (
+            {type: 'Feature' as const, geometry: {type: 'Point' as const, coordinates}, properties: {}}
+        ))
+    };
+    const clusters = (index: GeoJSONVT) => index.getTile(0, 0, 0).features.map(feature => [feature.geometry, feature.tags.point_count]);
+    const expected = [
+        [[[510, 256]], 2],
+        [[[2, 256]], 2],
+        [[[-2, 256]], 2],
+        [[[514, 256]], 2]
+    ];
+
+    expect(clusters(new GeoJSONVT(data, {cluster: true}))).toEqual(expected);
+
+    const clusteredLater = new GeoJSONVT(data, {updateable: true});
+    clusteredLater.updateClusterOptions(true, {});
+    expect(clusters(clusteredLater)).toEqual(expected);
+});
+
+test('counts each position of a MultiPoint once in the clusters at the antimeridian', () => {
+    const multiPoint: GeoJSON.Feature = {type: 'Feature', properties: {}, geometry: {type: 'MultiPoint', coordinates: [[179, 0], [178, 0], [-179, 0], [-178, 0]]}};
+    const index = new GeoJSONVT(multiPoint, {cluster: true});
+
+    expect(index.getTile(0, 0, 0).features.map(feature => feature.tags.point_count)).toEqual([2, 2, 2, 2]);
+});
+
 test('a unit square without wrap leaves the positions of a MultiPoint outside the world out of the clusters', () => {
     const multiPoint = {
         type: 'Feature' as const,
@@ -471,5 +500,51 @@ test('takes a polygon or a MultiLineString with only empty rings as a feature wi
 
     index.updateData({update: [{id: 'polygon', newGeometry: {type: 'Point', coordinates: [0, 0]}}]});
     expect((index.getData() as GeoJSON.FeatureCollection).features.map(feature => feature.id)).toEqual(['polygon']);
+});
+
+test('shows the positions of a MultiPoint near the antimeridian at both edges of the world', () => {
+    const multiPoint: GeoJSON.Feature<GeoJSON.MultiPoint> = {
+        type: 'Feature',
+        id: 3,
+        properties: {name: 'both sides'},
+        geometry: {type: 'MultiPoint', coordinates: [[179.9, 0], [179.95, 5], [-179.9, 10]]}
+    };
+    const index = new GeoJSONVT(multiPoint);
+
+    expect(index.getTile(0, 0, 0).features.map(f => f.geometry)).toEqual([
+        [[4097, 1934]],
+        [[4095, 2048], [4095, 1991], [1, 1934]],
+        [[-1, 2048], [-1, 1991]]
+    ]);
+});
+
+test('keeps a polygon whose area is not a number as a polygon of its own', () => {
+    const small = [[0.1, 0.1], [0.2, 0.1], [0.2, 0.2], [0.1, 0.1]];
+    const huge = [[1e200, 1e200], [2e200, 1e200], [2e200, 2e200], [1e200, 2e200], [1e200, 1e200]];
+    const index = new GeoJSONVT({type: 'MultiPolygon', coordinates: [[small], [huge]]}, {coordinates: 'unitSquare', wrap: false, updateable: true});
+
+    const [feature] = (index.getData() as GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>).features;
+    expect(feature.geometry.coordinates.map(polygon => polygon.length)).toEqual([1, 1]);
+    expect(index.getTile(0, 0, 0).features[0].geometry).toHaveLength(1);
+});
+
+test('closes a clipped ring whose positions are not all numbers', () => {
+    const polygon: GeoJSON.Polygon = {type: 'Polygon', coordinates: [[[-100, 20], [Infinity, 30], [40, -10], [-100, 20]]]};
+    const index = new GeoJSONVT(polygon, {tolerance: 0});
+
+    expect(index.getTile(1, 0, 1).features.map(feature => feature.geometry)).toEqual([
+        [[[4160, -64], [4160, 45], [3661, -64], [4160, -64]]],
+        [[[4160, NaN], [-64, NaN], [4160, NaN]]]
+    ]);
+});
+
+test('drops a hole without area at a tolerance of the smallest number, like any ring without area', () => {
+    const polygon: GeoJSON.Polygon = {
+        type: 'Polygon',
+        coordinates: [[[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.1]], [[0.3, 0.3], [0.4, 0.4], [0.5, 0.5], [0.3, 0.3]]]
+    };
+    const index = new GeoJSONVT(polygon, {coordinates: 'unitSquare', wrap: false, indexMaxZoom: 0, tolerance: Math.sqrt(Number.MIN_VALUE) * 4096});
+
+    expect(index.getTile(0, 0, 0).features[0].geometry).toHaveLength(1);
 });
 
